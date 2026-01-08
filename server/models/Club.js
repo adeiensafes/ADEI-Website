@@ -1,80 +1,75 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const clubSchema = new mongoose.Schema({
+const Club = sequelize.define('Club', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
   club: {
-    type: String,
-    required: true
+    type: DataTypes.STRING(255),
+    allowNull: false
   },
   president: {
-    type: String,
-    required: true
+    type: DataTypes.STRING(255),
+    allowNull: false
   },
   annees_etude: {
-    type: String,
-    required: true
+    type: DataTypes.STRING(100),
+    allowNull: false
   },
   tel: {
-    type: String,
-    required: true
+    type: DataTypes.STRING(20),
+    allowNull: false
   },
   email: {
-    type: String,
-    required: true
+    type: DataTypes.STRING(255),
+    allowNull: false
   },
   website: {
-    type: String,
-    default: ''
+    type: DataTypes.STRING(500),
+    defaultValue: ''
   },
   image: {
-    type: String,
-    default: ''
+    type: DataTypes.STRING(500),
+    defaultValue: ''
   },
   observations: {
-    type: String,
-    default: ''
+    type: DataTypes.TEXT,
+    defaultValue: ''
   },
   description: {
-    type: String,
-    default: ''
+    type: DataTypes.TEXT,
+    defaultValue: ''
   },
   activities: {
-    type: [String],
-    default: []
+    type: DataTypes.JSON,
+    defaultValue: []
   },
   achievements: {
-    type: [String],
-    default: []
+    type: DataTypes.JSON,
+    defaultValue: []
   },
   members: {
-    type: [{
-      name: String,
-      role: String,
-      year: String
-    }],
-    default: []
+    type: DataTypes.JSON,
+    defaultValue: []
   },
   meetings: {
-    type: String,
-    default: ''
+    type: DataTypes.STRING(500),
+    defaultValue: ''
   },
   socialMedia: {
-    facebook: {
-      type: String,
-      default: ''
-    },
-    instagram: {
-      type: String,
-      default: ''
-    },
-    linkedin: {
-      type: String,
-      default: ''
+    type: DataTypes.JSON,
+    defaultValue: {
+      facebook: '',
+      instagram: '',
+      linkedin: ''
     }
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
   }
+}, {
+  tableName: 'clubs',
+  timestamps: true
 });
 
-module.exports = mongoose.model('Club', clubSchema);
+module.exports = Club;

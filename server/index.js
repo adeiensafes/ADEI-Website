@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
@@ -10,6 +9,9 @@ require('dotenv').config();
 
 const { authMiddleware, adminMiddleware, JWT_SECRET } = require('./middleware/auth');
 
+// Import Sequelize models
+const sequelize = require('./config/database');
+const { Op } = require('sequelize');
 const User = require('./models/User');
 const News = require('./models/News');
 const Event = require('./models/Event');
@@ -18,9 +20,7 @@ const Feedback = require('./models/Feedback');
 const ADEIMember = require('./models/ADEIMember');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/adei_db';
+const PORT = process.env.PORT || 5001;
 
 app.use(cors());
 app.use(express.json());
@@ -56,31 +56,56 @@ const upload = multer({
   }
 });
 
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(async () => {
-  console.log('MongoDB connecté avec succès');
+// Connexion à MySQL et synchronisation des modèles
+async function connectWithRetry() {
+  const maxRetries = 10;
+  let retries = 0;
+  
+  while (retries < maxRetries) {
+    try {
+      await sequelize.authenticate();
+      console.log('MySQL connecté avec succès');
+      
+      // Synchroniser les modèles avec la base de données
+      await sequelize.sync({ force: false });
+      console.log('');
 
-  const adminExists = await User.findOne({ username: 'admin' });
-  if (!adminExists) {
-    const hashedPassword = await bcrypt.hash('password', 10);
-    await User.create({
-      username: 'admin',
-      password: hashedPassword,
-      role: 'admin'
-    });
-    console.log('Utilisateur admin créé (username: admin, password: password)');
+      // Créer l'utilisateur admin par défaut seulement s'il n'y en a aucun
+      const adminCount = await User.count({ where: { role: 'admin' } });
+      if (adminCount === 0) {
+        const hashedPassword = await bcrypt.hash('password', 10);
+        await User.create({
+          username: 'admin',
+          email: 'adei_ensa@gmail.com',
+          password: hashedPassword,
+          role: 'admin'
+        });
+        console.log('Utilisateur admin par défaut créé (email: admin@adei.tn, password: password)');
+      } else {
+        console.log(`${adminCount} administrateur(s) trouvé(s) dans la base de données`);
+      }
+      break;
+    } catch (err) {
+      retries++;
+      console.log(`Tentative de connexion MySQL ${retries}/${maxRetries}...`);
+      if (retries >= maxRetries) {
+        console.error('Impossible de se connecter à MySQL après', maxRetries, 'tentatives');
+        process.exit(1);
+      }
+      // Attendre 5 secondes avant de réessayer
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
   }
-})
-.catch(err => console.error('Erreur de connexion MongoDB:', err));
+}
 
+connectWithRetry();
+
+// Routes d'authentification
 app.post('/api/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { email, password } = req.body;
 
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ where: { email } });
     if (!user) {
       return res.status(401).json({ success: false, message: 'Identifiants invalides' });
     }
@@ -91,7 +116,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, username: user.username, role: user.role },
+      { id: user.id, username: user.username, email: user.email, role: user.role },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
@@ -100,8 +125,9 @@ app.post('/api/login', async (req, res) => {
       success: true,
       token,
       user: {
-        id: user._id,
+        id: user.id,
         username: user.username,
+        email: user.email,
         role: user.role
       }
     });
@@ -114,9 +140,42 @@ app.post('/api/logout', (req, res) => {
   res.json({ success: true });
 });
 
+// Cache simple pour éviter les requêtes répétitives
+const cache = new Map();
+const CACHE_DURATION = 30000; // 30 secondes
+
+const getCachedData = (key) => {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+  return null;
+};
+
+const setCachedData = (key, data) => {
+  cache.set(key, { data, timestamp: Date.now() });
+};
+
+const clearCache = (key) => {
+  if (key) {
+    cache.delete(key);
+  } else {
+    cache.clear();
+  }
+};
+
+// Routes News
 app.get('/api/news', async (req, res) => {
   try {
-    const news = await News.find().sort({ createdAt: -1 });
+    const cacheKey = 'news';
+    const cachedNews = getCachedData(cacheKey);
+    
+    if (cachedNews) {
+      return res.json(cachedNews);
+    }
+    
+    const news = await News.findAll({ order: [['createdAt', 'DESC']] });
+    setCachedData(cacheKey, news);
     res.json(news);
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la récupération des actualités' });
@@ -125,8 +184,8 @@ app.get('/api/news', async (req, res) => {
 
 app.post('/api/news', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const news = new News(req.body);
-    await news.save();
+    const news = await News.create(req.body);
+    clearCache('news'); // Vider le cache
     res.status(201).json(news);
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la création de l\'actualité' });
@@ -135,8 +194,13 @@ app.post('/api/news', authMiddleware, adminMiddleware, async (req, res) => {
 
 app.put('/api/news/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const news = await News.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(news);
+    const [updated] = await News.update(req.body, { where: { id: req.params.id } });
+    if (updated) {
+      const news = await News.findByPk(req.params.id);
+      res.json(news);
+    } else {
+      res.status(404).json({ message: 'Actualité non trouvée' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'actualité' });
   }
@@ -144,16 +208,29 @@ app.put('/api/news/:id', authMiddleware, adminMiddleware, async (req, res) => {
 
 app.delete('/api/news/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    await News.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'Actualité supprimée' });
+    const deleted = await News.destroy({ where: { id: req.params.id } });
+    if (deleted) {
+      res.json({ success: true, message: 'Actualité supprimée' });
+    } else {
+      res.status(404).json({ message: 'Actualité non trouvée' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la suppression de l\'actualité' });
   }
 });
 
+// Routes Events
 app.get('/api/events', async (req, res) => {
   try {
-    const events = await Event.find().sort({ createdAt: -1 });
+    const cacheKey = 'events';
+    const cachedEvents = getCachedData(cacheKey);
+    
+    if (cachedEvents) {
+      return res.json(cachedEvents);
+    }
+    
+    const events = await Event.findAll({ order: [['createdAt', 'DESC']] });
+    setCachedData(cacheKey, events);
     res.json(events);
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la récupération des événements' });
@@ -162,8 +239,7 @@ app.get('/api/events', async (req, res) => {
 
 app.post('/api/events', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const event = new Event(req.body);
-    await event.save();
+    const event = await Event.create(req.body);
     res.status(201).json(event);
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la création de l\'événement' });
@@ -172,8 +248,13 @@ app.post('/api/events', authMiddleware, adminMiddleware, async (req, res) => {
 
 app.put('/api/events/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(event);
+    const [updated] = await Event.update(req.body, { where: { id: req.params.id } });
+    if (updated) {
+      const event = await Event.findByPk(req.params.id);
+      res.json(event);
+    } else {
+      res.status(404).json({ message: 'Événement non trouvé' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'événement' });
   }
@@ -181,16 +262,21 @@ app.put('/api/events/:id', authMiddleware, adminMiddleware, async (req, res) => 
 
 app.delete('/api/events/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    await Event.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'Événement supprimé' });
+    const deleted = await Event.destroy({ where: { id: req.params.id } });
+    if (deleted) {
+      res.json({ success: true, message: 'Événement supprimé' });
+    } else {
+      res.status(404).json({ message: 'Événement non trouvé' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la suppression de l\'événement' });
   }
 });
 
+// Routes Clubs
 app.get('/api/clubs', async (req, res) => {
   try {
-    const clubs = await Club.find().sort({ createdAt: -1 });
+    const clubs = await Club.findAll({ order: [['createdAt', 'DESC']] });
     res.json(clubs);
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la récupération des clubs' });
@@ -203,22 +289,9 @@ app.post('/api/clubs', authMiddleware, adminMiddleware, upload.single('image'), 
     if (req.file) {
       clubData.image = `/uploads/${req.file.filename}`;
     }
-    const club = new Club(clubData);
-    await club.save();
-    res.status(201).json(club);
-  } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la création du club' });
-  }
-});
 
-app.put('/api/clubs/:id', authMiddleware, adminMiddleware, upload.single('image'), async (req, res) => {
-  try {
-    const clubData = { ...req.body };
-    if (req.file) {
-      clubData.image = `/uploads/${req.file.filename}`;
-    }
-
-    if (clubData.activities && typeof clubData.activities === 'string') {
+    // Parser les champs JSON si nécessaire
+    if (typeof clubData.activities === 'string') {
       try {
         clubData.activities = JSON.parse(clubData.activities);
       } catch (e) {
@@ -226,7 +299,7 @@ app.put('/api/clubs/:id', authMiddleware, adminMiddleware, upload.single('image'
       }
     }
 
-    if (clubData.achievements && typeof clubData.achievements === 'string') {
+    if (typeof clubData.achievements === 'string') {
       try {
         clubData.achievements = JSON.parse(clubData.achievements);
       } catch (e) {
@@ -234,7 +307,7 @@ app.put('/api/clubs/:id', authMiddleware, adminMiddleware, upload.single('image'
       }
     }
 
-    if (clubData.members && typeof clubData.members === 'string') {
+    if (typeof clubData.members === 'string') {
       try {
         clubData.members = JSON.parse(clubData.members);
       } catch (e) {
@@ -242,7 +315,7 @@ app.put('/api/clubs/:id', authMiddleware, adminMiddleware, upload.single('image'
       }
     }
 
-    if (clubData.socialMedia && typeof clubData.socialMedia === 'string') {
+    if (typeof clubData.socialMedia === 'string') {
       try {
         clubData.socialMedia = JSON.parse(clubData.socialMedia);
       } catch (e) {
@@ -250,32 +323,128 @@ app.put('/api/clubs/:id', authMiddleware, adminMiddleware, upload.single('image'
       }
     }
 
-    const club = await Club.findByIdAndUpdate(req.params.id, clubData, { new: true });
-    res.json(club);
+    const club = await Club.create(clubData);
+    res.status(201).json({ 
+      success: true, 
+      message: 'Club créé avec succès!', 
+      club: club 
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la mise à jour du club' });
+    console.error('Erreur création club:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur lors de la création du club - Veuillez réessayer' 
+    });
+  }
+});
+
+app.put('/api/clubs/:id', authMiddleware, adminMiddleware, upload.single('image'), async (req, res) => {
+  try {
+    console.log('=== DÉBUT MODIFICATION CLUB ===');
+    console.log('ID du club:', req.params.id);
+    console.log('Données reçues:', JSON.stringify(req.body, null, 2));
+    
+    const clubData = { ...req.body };
+    if (req.file) {
+      clubData.image = `/uploads/${req.file.filename}`;
+    }
+
+    // Parser les champs JSON si nécessaire
+    if (typeof clubData.activities === 'string') {
+      try {
+        clubData.activities = JSON.parse(clubData.activities);
+      } catch (e) {
+        clubData.activities = [];
+      }
+    }
+
+    if (typeof clubData.achievements === 'string') {
+      try {
+        clubData.achievements = JSON.parse(clubData.achievements);
+      } catch (e) {
+        clubData.achievements = [];
+      }
+    }
+
+    if (typeof clubData.members === 'string') {
+      try {
+        clubData.members = JSON.parse(clubData.members);
+      } catch (e) {
+        clubData.members = [];
+      }
+    }
+
+    if (typeof clubData.socialMedia === 'string') {
+      try {
+        clubData.socialMedia = JSON.parse(clubData.socialMedia);
+      } catch (e) {
+        clubData.socialMedia = { facebook: '', instagram: '', linkedin: '' };
+      }
+    }
+
+    console.log('=== DÉBUT MODIFICATION CLUB ===');
+    console.log('ID du club:', req.params.id);
+    console.log('Type de l\'ID:', typeof req.params.id);
+    
+    // Vérifier si le club existe d'abord
+    const existingClub = await Club.findByPk(req.params.id);
+    console.log('Club existant trouvé:', existingClub ? 'Oui' : 'Non');
+    
+    if (!existingClub) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Club non trouvé - Impossible de modifier ce club' 
+      });
+    }
+    
+    const [updated] = await Club.update(clubData, { where: { id: req.params.id } });
+    console.log('Nombre de lignes mises à jour:', updated);
+    if (updated) {
+      const club = await Club.findByPk(req.params.id);
+      res.json({ 
+        success: true, 
+        message: 'Club modifié avec succès!', 
+        club: club 
+      });
+    } else {
+      res.status(404).json({ 
+        success: false, 
+        message: 'Club non trouvé - Impossible de modifier ce club' 
+      });
+    }
+  } catch (error) {
+    console.error('Erreur mise à jour club:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur lors de la mise à jour du club - Veuillez réessayer' 
+    });
   }
 });
 
 app.delete('/api/clubs/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const club = await Club.findById(req.params.id);
+    const club = await Club.findByPk(req.params.id);
     if (club && club.image) {
       const imagePath = path.join(__dirname, club.image);
       if (fs.existsSync(imagePath)) {
         fs.unlinkSync(imagePath);
       }
     }
-    await Club.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'Club supprimé' });
+    const deleted = await Club.destroy({ where: { id: req.params.id } });
+    if (deleted) {
+      res.json({ success: true, message: 'Club supprimé' });
+    } else {
+      res.status(404).json({ message: 'Club non trouvé' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la suppression du club' });
   }
 });
 
+// Routes Feedbacks
 app.get('/api/feedbacks', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const feedbacks = await Feedback.find().sort({ createdAt: -1 });
+    const feedbacks = await Feedback.findAll({ order: [['createdAt', 'DESC']] });
     res.json(feedbacks);
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la récupération des feedbacks' });
@@ -284,8 +453,7 @@ app.get('/api/feedbacks', authMiddleware, adminMiddleware, async (req, res) => {
 
 app.post('/api/feedbacks', async (req, res) => {
   try {
-    const feedback = new Feedback(req.body);
-    await feedback.save();
+    const feedback = await Feedback.create(req.body);
     res.status(201).json({ success: true, message: 'Votre feedback a été envoyé avec succès!' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Erreur lors de l\'envoi du feedback' });
@@ -294,12 +462,13 @@ app.post('/api/feedbacks', async (req, res) => {
 
 app.put('/api/feedbacks/:id/read', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const feedback = await Feedback.findByIdAndUpdate(
-      req.params.id,
-      { read: true },
-      { new: true }
-    );
-    res.json(feedback);
+    const [updated] = await Feedback.update({ read: true }, { where: { id: req.params.id } });
+    if (updated) {
+      const feedback = await Feedback.findByPk(req.params.id);
+      res.json(feedback);
+    } else {
+      res.status(404).json({ message: 'Feedback non trouvé' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la mise à jour du feedback' });
   }
@@ -307,16 +476,24 @@ app.put('/api/feedbacks/:id/read', authMiddleware, adminMiddleware, async (req, 
 
 app.delete('/api/feedbacks/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    await Feedback.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'Feedback supprimé' });
+    const deleted = await Feedback.destroy({ where: { id: req.params.id } });
+    if (deleted) {
+      res.json({ success: true, message: 'Feedback supprimé' });
+    } else {
+      res.status(404).json({ message: 'Feedback non trouvé' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la suppression du feedback' });
   }
 });
 
+// Routes Users
 app.get('/api/users', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const users = await User.find().select('-password').sort({ createdAt: -1 });
+    const users = await User.findAll({ 
+      attributes: { exclude: ['password'] },
+      order: [['createdAt', 'DESC']] 
+    });
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la récupération des utilisateurs' });
@@ -325,22 +502,29 @@ app.get('/api/users', authMiddleware, adminMiddleware, async (req, res) => {
 
 app.post('/api/users', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { username, password, role } = req.body;
+    const { username, email, password, role } = req.body;
 
-    const existingUser = await User.findOne({ username });
+    const existingUser = await User.findOne({ 
+      where: { 
+        [Op.or]: [
+          { username },
+          { email }
+        ]
+      }
+    });
     if (existingUser) {
-      return res.status(400).json({ message: 'Ce nom d\'utilisateur existe déjà' });
+      return res.status(400).json({ message: 'Ce nom d\'utilisateur ou cet email existe déjà' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({
+    const user = await User.create({
       username,
+      email,
       password: hashedPassword,
       role: role || 'user'
     });
-    await user.save();
 
-    const userResponse = user.toObject();
+    const userResponse = user.toJSON();
     delete userResponse.password;
 
     res.status(201).json(userResponse);
@@ -351,15 +535,20 @@ app.post('/api/users', authMiddleware, adminMiddleware, async (req, res) => {
 
 app.put('/api/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { username, password, role } = req.body;
-    const updateData = { username, role };
+    const { username, email, password, role } = req.body;
+    const updateData = { username, email, role };
 
     if (password) {
       updateData.password = await bcrypt.hash(password, 10);
     }
 
-    const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true }).select('-password');
-    res.json(user);
+    const [updated] = await User.update(updateData, { where: { id: req.params.id } });
+    if (updated) {
+      const user = await User.findByPk(req.params.id, { attributes: { exclude: ['password'] } });
+      res.json(user);
+    } else {
+      res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'utilisateur' });
   }
@@ -367,24 +556,29 @@ app.put('/api/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
 
 app.delete('/api/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findByPk(req.params.id);
     if (user && user.role === 'admin') {
-      const adminCount = await User.countDocuments({ role: 'admin' });
+      const adminCount = await User.count({ where: { role: 'admin' } });
       if (adminCount <= 1) {
         return res.status(400).json({ message: 'Impossible de supprimer le dernier administrateur' });
       }
     }
 
-    await User.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'Utilisateur supprimé' });
+    const deleted = await User.destroy({ where: { id: req.params.id } });
+    if (deleted) {
+      res.json({ success: true, message: 'Utilisateur supprimé' });
+    } else {
+      res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la suppression de l\'utilisateur' });
   }
 });
 
+// Routes ADEI Members
 app.get('/api/adei-members', async (req, res) => {
   try {
-    const members = await ADEIMember.find().sort({ createdAt: -1 });
+    const members = await ADEIMember.findAll({ order: [['createdAt', 'DESC']] });
     res.json(members);
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la récupération des membres ADEI' });
@@ -397,8 +591,7 @@ app.post('/api/adei-members', authMiddleware, adminMiddleware, upload.single('ph
     if (req.file) {
       memberData.photo = `/uploads/${req.file.filename}`;
     }
-    const member = new ADEIMember(memberData);
-    await member.save();
+    const member = await ADEIMember.create(memberData);
     res.status(201).json(member);
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la création du membre ADEI' });
@@ -411,8 +604,13 @@ app.put('/api/adei-members/:id', authMiddleware, adminMiddleware, upload.single(
     if (req.file) {
       memberData.photo = `/uploads/${req.file.filename}`;
     }
-    const member = await ADEIMember.findByIdAndUpdate(req.params.id, memberData, { new: true });
-    res.json(member);
+    const [updated] = await ADEIMember.update(memberData, { where: { id: req.params.id } });
+    if (updated) {
+      const member = await ADEIMember.findByPk(req.params.id);
+      res.json(member);
+    } else {
+      res.status(404).json({ message: 'Membre ADEI non trouvé' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la mise à jour du membre ADEI' });
   }
@@ -420,15 +618,19 @@ app.put('/api/adei-members/:id', authMiddleware, adminMiddleware, upload.single(
 
 app.delete('/api/adei-members/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const member = await ADEIMember.findById(req.params.id);
+    const member = await ADEIMember.findByPk(req.params.id);
     if (member && member.photo && member.photo !== '/images/default.jpg') {
       const photoPath = path.join(__dirname, member.photo);
       if (fs.existsSync(photoPath)) {
         fs.unlinkSync(photoPath);
       }
     }
-    await ADEIMember.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'Membre ADEI supprimé' });
+    const deleted = await ADEIMember.destroy({ where: { id: req.params.id } });
+    if (deleted) {
+      res.json({ success: true, message: 'Membre ADEI supprimé' });
+    } else {
+      res.status(404).json({ message: 'Membre ADEI non trouvé' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la suppression du membre ADEI' });
   }

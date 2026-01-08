@@ -1,14 +1,18 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
 
-const adeiMemberSchema = new mongoose.Schema({
+const ADEIMember = sequelize.define('ADEIMember', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
   name: {
-    type: String,
-    required: true
+    type: DataTypes.STRING(255),
+    allowNull: false
   },
   role: {
-    type: String,
-    required: true,
-    enum: [
+    type: DataTypes.ENUM(
       'President',
       'Vice President',
       'Secrétaire Générale',
@@ -23,20 +27,20 @@ const adeiMemberSchema = new mongoose.Schema({
       'Responsable Interne',
       'Responsables Sponsoring',
       'Responsables Création & Design'
-    ]
+    ),
+    allowNull: false
   },
   email: {
-    type: String,
-    required: true
+    type: DataTypes.STRING(255),
+    allowNull: false
   },
   photo: {
-    type: String,
-    default: '/images/default.jpg'
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
+    type: DataTypes.STRING(500),
+    defaultValue: '/images/default.jpg'
   }
+}, {
+  tableName: 'adei_members',
+  timestamps: true
 });
 
-module.exports = mongoose.model('ADEIMember', adeiMemberSchema);
+module.exports = ADEIMember;

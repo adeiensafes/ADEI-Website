@@ -2,7 +2,7 @@
 
 Cette application web complète gère le site de l'Association des Étudiants Ingénieurs (ADEI). Le projet est divisé en deux parties :
 
-* **client/** : Application React (frontend) affichant les pages du site (accueil, actualités, événements, clubs, ENSA, ADEI, feedback)
+* **frontend/** : Application React (frontend) affichant les pages du site (accueil, actualités, événements, clubs, ENSA, ADEI, feedback)
 * **server/** : Serveur Node.js/Express (backend) avec API REST et base de données MongoDB
 
 ## 🔧 Configuration et Installation
@@ -38,7 +38,7 @@ Le fichier `server/.env` est déjà configuré pour une connexion MongoDB locale
 ```
 MONGODB_URI=mongodb://localhost:27017/adei-db
 JWT_SECRET=your_jwt_secret_key_here
-PORT=5000
+PORT=5001
 ```
 
 ### 4. Démarrage du Serveur Backend
@@ -48,7 +48,7 @@ cd server
 node index.js
 ```
 
-Le serveur démarre sur `http://localhost:5000`.
+Le serveur démarre sur `http://localhost:5001`.
 
 **Note importante** : Au premier démarrage, un compte administrateur par défaut est automatiquement créé :
 - **Username:** `admin`
@@ -61,7 +61,7 @@ Le serveur démarre sur `http://localhost:5000`.
 ### 5. Installation et Démarrage du Frontend
 
 ```bash
-cd client
+cd frontend
 npm install
 npm start
 ```
@@ -183,7 +183,7 @@ Les collections sont créées automatiquement par Mongoose lors de la première 
 ### Build du Frontend
 
 ```bash
-cd client
+cd frontend
 npm run build
 ```
 

@@ -1,55 +1,52 @@
 #!/bin/bash
 
 echo "==================================="
-echo "ADEI Website Development Server"
+echo "ADEI Website - Développement"
 echo "==================================="
 echo ""
 
-# Check if MongoDB is running
-if ! pgrep -x "mongod" > /dev/null
-then
-    echo "⚠️  MongoDB is not running!"
-    echo "Please start MongoDB first:"
-    echo "  Linux/Mac: sudo systemctl start mongod"
-    echo "  Windows: net start MongoDB"
-    echo ""
-    exit 1
+# Vérifier si MySQL Docker est en cours d'exécution
+if ! docker ps | grep -q "adei_mysql"; then
+    echo "🐳 Démarrage de MySQL et phpMyAdmin..."
+    docker-compose up -d
+    echo "⏳ Attente du démarrage de MySQL..."
+    sleep 10
+else
+    echo "✅ MySQL Docker déjà en cours d'exécution"
 fi
 
-echo "✓ MongoDB is running"
 echo ""
-
-# Start backend server
-echo "Starting backend server on port 5000..."
+echo "🔧 Démarrage du backend Node.js..."
 cd server
 npm start &
 BACKEND_PID=$!
 cd ..
 
-# Wait a bit for backend to start
+# Attendre un peu pour que le backend démarre
 sleep 3
 
-# Start frontend
-echo "Starting frontend on port 3000..."
-cd client
+echo ""
+echo "🌐 Démarrage du frontend React..."
+cd frontend
 npm start &
 FRONTEND_PID=$!
 cd ..
 
 echo ""
 echo "==================================="
-echo "✓ Development servers started!"
+echo "✅ Services démarrés avec succès!"
 echo "==================================="
-echo "Frontend: http://localhost:3000"
-echo "Backend:  http://localhost:5000"
+echo "🌐 Frontend: http://localhost:3000"
+echo "🔧 Backend:  http://localhost:5001"
+echo "🗄️  phpMyAdmin: http://localhost:8082"
 echo ""
-echo "Default admin credentials:"
-echo "  Username: admin"
-echo "  Password: password"
+echo "📝 Identifiants par défaut:"
+echo "   Admin: moslimarabi86@gmail.com / password"
+echo "   MySQL: adei_user / adei_password"
 echo ""
-echo "Press Ctrl+C to stop all servers"
+echo "🛑 Pour arrêter: Ctrl+C puis 'docker-compose down'"
 echo "==================================="
 
-# Wait for user interrupt
-trap "kill $BACKEND_PID $FRONTEND_PID; exit" INT
+# Attendre l'interruption utilisateur
+trap "kill $BACKEND_PID $FRONTEND_PID; docker-compose down; exit" INT
 wait
