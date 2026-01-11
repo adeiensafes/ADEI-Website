@@ -180,7 +180,28 @@ Les collections sont créées automatiquement par Mongoose lors de la première 
 
 ## 🚀 Déploiement en Production
 
-### Build du Frontend
+### Déploiement Automatique via GitHub Actions
+
+Le projet utilise un workflow GitHub Actions pour déployer automatiquement le frontend vers le serveur de production via FTPS.
+
+**Configuration requise :**
+- Configuration des secrets GitHub (FTP_HOST, FTP_USERNAME, FTP_PASSWORD, FTP_REMOTE_DIR, REACT_APP_API_URL)
+- Serveur avec support FTPS (port 21, TLS explicite)
+- Apache avec mod_rewrite activé
+
+**Déploiement :**
+Le déploiement se déclenche automatiquement à chaque push sur la branche `main`. Le workflow :
+1. Installe les dépendances et build le frontend React
+2. Crée un fichier `.htaccess` pour le support des routes SPA
+3. Déploie vers le serveur via FTPS
+
+📖 **Documentation complète** : Consultez [docs/deployment.md](docs/deployment.md) pour :
+- Configuration détaillée des secrets GitHub
+- Guide de dépannage
+- Monitoring des déploiements
+- Procédures de rollback
+
+### Build Manuel du Frontend
 
 ```bash
 cd frontend
@@ -189,12 +210,17 @@ npm run build
 
 Le dossier `build/` contient les fichiers optimisés pour la production.
 
-### Variables d'Environnement en Production
+### Variables d'Environnement
 
-Assurez-vous de modifier les variables suivantes :
-- Changez `JWT_SECRET` pour une valeur secrète et unique
-- Configurez `MONGODB_URI` pour pointer vers votre base de données de production
-- Changez le mot de passe admin par défaut
+#### Frontend
+- `REACT_APP_API_URL` : URL de l'API backend (configurée via GitHub secrets pour la production)
+
+#### Backend
+- `JWT_SECRET` : Clé secrète pour les tokens JWT (à changer en production)
+- `MONGODB_URI` : URI de connexion à MongoDB (à configurer pour la production)
+- `PORT` : Port du serveur backend (par défaut 5001)
+
+**Important** : Changez le mot de passe admin par défaut après le premier déploiement !
 
 ## 📋 Améliorations Réalisées
 
@@ -208,6 +234,7 @@ Assurez-vous de modifier les variables suivantes :
 ✅ Design cohérent et responsive
 ✅ Collections MongoDB créées automatiquement
 ✅ Documentation complète
+✅ Déploiement automatique via GitHub Actions
 
 ## 🛠️ Technologies Utilisées
 

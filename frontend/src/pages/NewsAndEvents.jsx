@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Typewriter from '../components/ui/Typewriter';
+import { API_ENDPOINTS } from '../config/api';
 
 const NewsAndEvents = () => {
   const [news, setNews] = useState([]);
@@ -15,8 +16,8 @@ const NewsAndEvents = () => {
   const fetchData = useCallback(async () => {
     try {
       const [newsResponse, eventsResponse] = await Promise.all([
-        fetch('http://localhost:5001/api/news'),
-        fetch('http://localhost:5001/api/events')
+        fetch(API_ENDPOINTS.NEWS),
+        fetch(API_ENDPOINTS.EVENTS)
       ]);
       
       const newsData = await newsResponse.json();

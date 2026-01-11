@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Typewriter from '../components/ui/Typewriter';
+import { API_ENDPOINTS } from '../config/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -23,7 +24,7 @@ const Contact = () => {
     setLoading(true);
     
     try {
-      const res = await fetch('http://localhost:5001/api/contact', {
+      const res = await fetch(API_ENDPOINTS.CONTACT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

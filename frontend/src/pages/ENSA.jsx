@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Typewriter from '../components/ui/Typewriter';
+import API_BASE_URL from '../config/api';
 
 const ENSA = () => {
   const [pageReady, setPageReady] = useState(false);
@@ -30,7 +31,7 @@ const ENSA = () => {
 
   const fetchFilieres = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/filieres');
+      const response = await fetch(`${API_BASE_URL}/api/filieres`);
       const data = await response.json();
       
       // Séparer les filières et les classes prépa

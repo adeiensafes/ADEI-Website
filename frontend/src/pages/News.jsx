@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Typewriter from '../components/ui/Typewriter';
+import { API_ENDPOINTS } from '../config/api';
 
 const News = () => {
   const [articles, setArticles] = useState([]);
@@ -12,7 +13,7 @@ const News = () => {
 
   const fetchArticles = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/news');
+      const response = await fetch(API_ENDPOINTS.NEWS);
       const data = await response.json();
       setArticles(data);
     } catch (error) {

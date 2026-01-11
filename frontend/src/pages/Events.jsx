@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Typewriter from '../components/ui/Typewriter';
+import { API_ENDPOINTS } from '../config/api';
 
 const Events = () => {
   const [events, setEvents] = useState([]);
@@ -13,7 +14,7 @@ const Events = () => {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/events');
+      const response = await fetch(API_ENDPOINTS.EVENTS);
       const data = await response.json();
       setEvents(data);
     } catch (error) {
