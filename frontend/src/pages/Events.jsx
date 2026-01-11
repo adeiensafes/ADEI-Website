@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Typewriter from '../components/ui/Typewriter';
 
 const Events = () => {
   const [events, setEvents] = useState([]);
@@ -44,7 +45,21 @@ const Events = () => {
         style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/images/hero-home.png)` }}
       >
         <div className={`hero-content ${pageReady ? 'slide-up' : ''}`}>
-          <h1>Événements</h1>
+          <h1>
+            <Typewriter 
+              words={[
+                "Événements",
+                "Activités Étudiantes",
+                "Rejoignez-nous",
+                "Vivez l'Expérience ADEI"
+              ]} 
+              speed={90} 
+              delayBetweenWords={2000} 
+              cursor={true} 
+              cursorChar="|"
+              className="typewriter-hero"
+            />
+          </h1>
           <p>Découvrez nos activités passionnantes et rejoignez la communauté ADEI</p>
         </div>
       </div>

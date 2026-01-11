@@ -5,6 +5,7 @@ const Event = require('./Event');
 const Club = require('./Club');
 const Feedback = require('./Feedback');
 const ADEIMember = require('./ADEIMember');
+const Filiere = require('./Filiere');
 
 // Définir les associations si nécessaire
 // Exemple : User.hasMany(News);
@@ -16,6 +17,7 @@ const models = {
   Club,
   Feedback,
   ADEIMember,
+  Filiere,
   sequelize
 };
 

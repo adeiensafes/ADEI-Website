@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Typewriter from '../components/ui/Typewriter';
 
 const News = () => {
   const [articles, setArticles] = useState([]);
@@ -38,7 +39,21 @@ const News = () => {
         style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/images/hero-news.png)` }}
       >
         <div className={`hero-content ${pageReady ? 'slide-up' : ''}`}>
-          <h1>Actualités</h1>
+          <h1>
+            <Typewriter 
+              words={[
+                "Actualités",
+                "Dernières Nouvelles",
+                "Restez Informés",
+                "Actualités ADEI"
+              ]} 
+              speed={100} 
+              delayBetweenWords={1800} 
+              cursor={true} 
+              cursorChar="|"
+              className="typewriter-hero"
+            />
+          </h1>
           <p>Restez informés des dernières nouvelles et annonces de l'ADEI</p>
         </div>
       </div>

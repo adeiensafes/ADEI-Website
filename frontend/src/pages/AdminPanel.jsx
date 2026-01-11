@@ -14,6 +14,7 @@ const AdminPanel = () => {
   const [newsData, setNewsData] = useState([]);
   const [eventsData, setEventsData] = useState([]);
   const [clubsData, setClubsData] = useState([]);
+  const [filieresData, setFilieresData] = useState([]);
   const [adeiMembersData, setAdeiMembersData] = useState([]);
   const [feedbacksData, setFeedbacksData] = useState([]);
   const [usersData, setUsersData] = useState([]);
@@ -34,6 +35,11 @@ const AdminPanel = () => {
     }
     fetchData();
     setTimeout(() => setPageReady(true), 100);
+    
+    // Nettoyer le scroll au démontage du composant
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [token, navigate]);
 
   const showNotification = (message, type = 'success') => {
@@ -46,10 +52,11 @@ const AdminPanel = () => {
     try {
       const headers = { Authorization: token };
 
-      const [news, events, clubs, adeiMembers, feedbacks, users] = await Promise.all([
+      const [news, events, clubs, filieres, adeiMembers, feedbacks, users] = await Promise.all([
         fetch('http://localhost:5001/api/news').then(r => r.json()),
         fetch('http://localhost:5001/api/events').then(r => r.json()),
         fetch('http://localhost:5001/api/clubs').then(r => r.json()),
+        fetch('http://localhost:5001/api/filieres').then(r => r.json()),
         fetch('http://localhost:5001/api/adei-members').then(r => r.json()),
         fetch('http://localhost:5001/api/feedbacks', { headers }).then(r => r.json()),
         fetch('http://localhost:5001/api/users', { headers }).then(r => r.json())
@@ -59,6 +66,7 @@ const AdminPanel = () => {
       setNewsData(Array.isArray(news) ? news : []);
       setEventsData(Array.isArray(events) ? events : []);
       setClubsData(Array.isArray(clubs) ? clubs : []);
+      setFilieresData(Array.isArray(filieres) ? filieres : []);
       setAdeiMembersData(Array.isArray(adeiMembers) ? adeiMembers : []);
       setFeedbacksData(Array.isArray(feedbacks) ? feedbacks : []);
       setUsersData(Array.isArray(users) ? users : []);
@@ -68,6 +76,7 @@ const AdminPanel = () => {
       setNewsData([]);
       setEventsData([]);
       setClubsData([]);
+      setFilieresData([]);
       setAdeiMembersData([]);
       setFeedbacksData([]);
       setUsersData([]);
@@ -81,6 +90,8 @@ const AdminPanel = () => {
     setFormData({});
     setImageFile(null);
     setShowModal(true);
+    // Empêcher le scroll de la page en arrière-plan
+    document.body.style.overflow = 'hidden';
   };
 
   const handleEdit = (item) => {
@@ -88,6 +99,8 @@ const AdminPanel = () => {
     setFormData(item);
     setImageFile(null);
     setShowModal(true);
+    // Empêcher le scroll de la page en arrière-plan
+    document.body.style.overflow = 'hidden';
   };
 
   const handleDelete = async (id, type) => {
@@ -125,11 +138,20 @@ const AdminPanel = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    console.log('=== DÉBUT SOUMISSION ===');
+    console.log('activeTab:', activeTab);
+    console.log('editingItem:', editingItem);
+    console.log('formData:', formData);
+    console.log('imageFile:', imageFile);
+
     try {
       const method = editingItem ? 'PUT' : 'POST';
       const url = editingItem
         ? `http://localhost:5001/api/${activeTab}/${editingItem.id || editingItem._id}`
         : `http://localhost:5001/api/${activeTab}`;
+
+      console.log('Method:', method);
+      console.log('URL:', url);
 
       if ((activeTab === 'clubs' || activeTab === 'adei-members') && (imageFile || formData.photo)) {
         const formDataObj = new FormData();
@@ -160,7 +182,11 @@ const AdminPanel = () => {
           body: formDataObj
         });
 
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+
         const result = await response.json();
+        console.log('Response result:', result);
 
         if (response.ok) {
           await fetchData();
@@ -194,7 +220,11 @@ const AdminPanel = () => {
           body: JSON.stringify(cleanedData)
         });
 
+        console.log('Response status (JSON):', response.status);
+        console.log('Response ok (JSON):', response.ok);
+
         const result = await response.json();
+        console.log('Response result (JSON):', result);
 
         if (response.ok) {
           await fetchData();
@@ -225,6 +255,20 @@ const AdminPanel = () => {
     setFormData({});
     setImageFile(null);
     setShowPassword(false);
+    // Restaurer le scroll de la page
+    document.body.style.overflow = 'unset';
+  };
+
+  const openFeedbackModal = (feedback) => {
+    setViewingFeedback(feedback);
+    // Empêcher le scroll de la page en arrière-plan
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeFeedbackModal = () => {
+    setViewingFeedback(null);
+    // Restaurer le scroll de la page
+    document.body.style.overflow = 'unset';
   };
 
   // Handle modal body scroll to show/hide scroll indicator
@@ -244,6 +288,7 @@ const AdminPanel = () => {
         case 'news': return `${action} une actualité`;
         case 'events': return `${action} un événement`;
         case 'clubs': return `${action} un club`;
+        case 'filieres': return `${action} une filière`;
         case 'adei-members': return `${action} un membre ADEI`;
         case 'users': return `${action} un utilisateur`;
         default: return action;
@@ -610,6 +655,144 @@ const AdminPanel = () => {
             </>
           );
 
+        case 'filieres':
+          return (
+            <>
+              <div className="form-grid two-cols">
+                <div className="form-group">
+                  <label className="form-label">Nom de la filière</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.name || ''}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Nom complet de la filière"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Abréviation</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.abbreviation || ''}
+                    onChange={(e) => setFormData({ ...formData, abbreviation: e.target.value })}
+                    placeholder="ex: INFO, GM, ISCSI"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="form-grid two-cols">
+                <div className="form-group">
+                  <label className="form-label">Type</label>
+                  <select
+                    className="form-select form-input"
+                    value={formData.type || 'filiere'}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    required
+                  >
+                    <option value="filiere">Filière d'ingénierie</option>
+                    <option value="prepa">Classe préparatoire</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Délégué</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.delegate || ''}
+                    onChange={(e) => setFormData({ ...formData, delegate: e.target.value })}
+                    placeholder="Nom du délégué"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Années d'étude (une par ligne)</label>
+                <textarea
+                  className="form-textarea"
+                  value={Array.isArray(formData.years) ? formData.years.join('\n') : formData.years || ''}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    years: e.target.value.split('\n').filter(year => year.trim() !== '') 
+                  })}
+                  placeholder="INFO1&#10;INFO2&#10;INFO3"
+                  rows="3"
+                />
+              </div>
+
+              <div className="form-grid two-cols">
+                <div className="form-group">
+                  <label className="form-label">Documentation (URL)</label>
+                  <input
+                    type="url"
+                    className="form-input"
+                    value={formData.documentation || ''}
+                    onChange={(e) => setFormData({ ...formData, documentation: e.target.value })}
+                    placeholder="Lien vers la documentation"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Drive (URL)</label>
+                  <input
+                    type="url"
+                    className="form-input"
+                    value={formData.drive || ''}
+                    onChange={(e) => setFormData({ ...formData, drive: e.target.value })}
+                    placeholder="Lien vers le drive"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Contact du délégué</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={formData.delegateContact || ''}
+                  onChange={(e) => setFormData({ ...formData, delegateContact: e.target.value })}
+                  placeholder="Email ou téléphone du délégué"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Description</label>
+                <textarea
+                  className="form-textarea"
+                  value={formData.description || ''}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Description de la filière..."
+                  rows="4"
+                />
+              </div>
+
+              <div className="form-grid two-cols">
+                <div className="form-group">
+                  <label className="form-label">Ordre d'affichage</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={formData.order_display || 0}
+                    onChange={(e) => setFormData({ ...formData, order_display: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Statut</label>
+                  <select
+                    className="form-select form-input"
+                    value={formData.isActive !== undefined ? formData.isActive : true}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'true' })}
+                  >
+                    <option value={true}>Active</option>
+                    <option value={false}>Inactive</option>
+                  </select>
+                </div>
+              </div>
+            </>
+          );
+
         case 'adei-members':
           return (
             <>
@@ -803,6 +986,7 @@ const AdminPanel = () => {
       case 'news': return newsData;
       case 'events': return eventsData;
       case 'clubs': return clubsData;
+      case 'filieres': return filieresData;
       case 'adei-members': return adeiMembersData;
       case 'feedbacks': return feedbacksData;
       case 'users': return usersData;
@@ -820,6 +1004,7 @@ const AdminPanel = () => {
         item.title?.toLowerCase().includes(searchLower) ||
         item.club?.toLowerCase().includes(searchLower) ||
         item.name?.toLowerCase().includes(searchLower) ||
+        item.abbreviation?.toLowerCase().includes(searchLower) ||
         item.username?.toLowerCase().includes(searchLower) ||
         item.email?.toLowerCase().includes(searchLower) ||
         item.content?.toLowerCase().includes(searchLower) ||
@@ -871,6 +1056,16 @@ const AdminPanel = () => {
               <th>Président</th>
               <th>Email</th>
               <th>Téléphone</th>
+              <th>Actions</th>
+            </>
+          );
+        case 'filieres':
+          return (
+            <>
+              <th>Filière</th>
+              <th>Abréviation</th>
+              <th>Type</th>
+              <th>Délégué</th>
               <th>Actions</th>
             </>
           );
@@ -967,6 +1162,33 @@ const AdminPanel = () => {
               </td>
             </>
           );
+        case 'filieres':
+          return (
+            <>
+              <td>{item.name}</td>
+              <td>
+                <span className={`badge ${item.type === 'prepa' ? 'warning' : 'info'}`}>
+                  {item.abbreviation}
+                </span>
+              </td>
+              <td>
+                <span className={`badge ${item.type === 'prepa' ? 'secondary' : 'primary'}`}>
+                  {item.type === 'prepa' ? 'Classe Prépa' : 'Filière'}
+                </span>
+              </td>
+              <td>{item.delegate}</td>
+              <td>
+                <div className="admin-actions">
+                  <button className="admin-action-btn edit" onClick={() => handleEdit(item)}>
+                    Modifier
+                  </button>
+                  <button className="admin-action-btn delete" onClick={() => handleDelete(item.id || item._id, 'filieres')}>
+                    Supprimer
+                  </button>
+                </div>
+              </td>
+            </>
+          );
         case 'adei-members':
           return (
             <>
@@ -995,7 +1217,7 @@ const AdminPanel = () => {
               <td>{new Date(item.createdAt).toLocaleDateString('fr-FR')}</td>
               <td>
                 <div className="admin-actions">
-                  <button className="admin-action-btn edit" onClick={() => setViewingFeedback(item)}>
+                  <button className="admin-action-btn edit" onClick={() => openFeedbackModal(item)}>
                     Voir
                   </button>
                   <button className="admin-action-btn delete" onClick={() => handleDelete(item.id || item._id, 'feedbacks')}>
@@ -1082,17 +1304,21 @@ const AdminPanel = () => {
           <div className="stat-label">Clubs</div>
         </div>
         <div className="stat-card warning">
+          <div className="stat-number">{filieresData.length}</div>
+          <div className="stat-label">Filières</div>
+        </div>
+        <div className="stat-card info">
           <div className="stat-number">{adeiMembersData.length}</div>
           <div className="stat-label">Membres ADEI</div>
         </div>
-        <div className="stat-card info">
+        <div className="stat-card secondary">
           <div className="stat-number">{Array.isArray(feedbacksData) ? feedbacksData.filter(f => !f.read).length : 0}</div>
           <div className="stat-label">Nouveaux Feedbacks</div>
         </div>
       </div>
 
       <div className="admin-tabs">
-        {['news', 'events', 'clubs', 'adei-members', 'feedbacks', 'users'].map(tab => (
+        {['news', 'events', 'clubs', 'filieres', 'adei-members', 'feedbacks', 'users'].map(tab => (
           <button
             key={tab}
             onClick={() => {
@@ -1104,6 +1330,7 @@ const AdminPanel = () => {
             {tab === 'news' ? 'Actualités' :
              tab === 'events' ? 'Événements' :
              tab === 'clubs' ? 'Clubs' :
+             tab === 'filieres' ? 'Filières' :
              tab === 'adei-members' ? 'Membres ADEI' :
              tab === 'feedbacks' ? 'Feedbacks' :
              'Utilisateurs'}
@@ -1166,7 +1393,7 @@ const AdminPanel = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setViewingFeedback(null)}
+            onClick={closeFeedbackModal}
           >
             <motion.div
               className="modal-container"
@@ -1177,7 +1404,7 @@ const AdminPanel = () => {
             >
               <div className="modal-header">
                 <h2>Détails du Feedback</h2>
-                <button type="button" className="modal-close" onClick={() => setViewingFeedback(null)}>×</button>
+                <button type="button" className="modal-close" onClick={closeFeedbackModal}>×</button>
               </div>
               <div className="modal-body">
                 <div className="feedback-details">
@@ -1212,7 +1439,7 @@ const AdminPanel = () => {
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn-modal secondary" onClick={() => setViewingFeedback(null)}>
+                <button type="button" className="btn-modal secondary" onClick={closeFeedbackModal}>
                   Fermer
                 </button>
               </div>

@@ -15,9 +15,9 @@ const ModernNavbar = () => {
   const navItems = [
     { path: '/', label: 'Accueil', icon: NavIcons.Home },
     { path: '/adei', label: 'ADEI', icon: NavIcons.ADEI },
-    { path: '/news', label: 'Actualités', icon: NavIcons.News },
     { path: '/events', label: 'Événements', icon: NavIcons.Events },
     { path: '/clubs', label: 'Clubs', icon: NavIcons.Clubs },
+    { path: '/ensa', label: 'ENSA', icon: NavIcons.ADEI },
     { path: '/feedbacks', label: 'Feedbacks', icon: NavIcons.Feedbacks },
   ];
 

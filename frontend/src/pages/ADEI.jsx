@@ -1,13 +1,14 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../AuthContext';
+import Typewriter from '../components/ui/Typewriter';
 import '../styles/card-animations.css';
 
 const ADEI = () => {
   const { token } = useContext(AuthContext);
   const [pageReady, setPageReady] = useState(false);
   const [content] = useState({
-    title: "Association des Étudiants Ingénieurs (ADEI)",
+    title: "Association des Élèves Ingénieurs (ADEI)",
     subtitle: "Votre communauté étudiante au cœur de l'ENSAF",
     sections: [
       {
@@ -299,7 +300,21 @@ const ADEI = () => {
           style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/images/hero-about.png)` }}
         >
           <div className={`hero-content ${pageReady ? 'slide-up' : ''}`}>
-            <h1>{content.title}</h1>
+            <h1>
+              <Typewriter 
+                words={[
+                  "Association des Élèves Ingénieurs",
+                  "ADEI - Votre Communauté",
+                  "Excellence et Innovation",
+                  "Ensemble vers l'Avenir"
+                ]} 
+                speed={70} 
+                delayBetweenWords={2300} 
+                cursor={true} 
+                cursorChar="|"
+                className="typewriter-hero"
+              />
+            </h1>
             <p>{content.subtitle}</p>
           </div>
         </div>

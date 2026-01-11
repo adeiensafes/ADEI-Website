@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Typewriter from '../components/ui/Typewriter';
 
 const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -46,7 +47,21 @@ const Contact = () => {
           style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/images/hero-contact.png)` }}
         >
           <div className={`hero-content ${pageReady ? 'slide-up' : ''}`}>
-            <h1>Contactez‑nous</h1>
+            <h1>
+              <Typewriter 
+                words={[
+                  "Contactez‑nous",
+                  "Nous Sommes à Votre Écoute",
+                  "Posez Vos Questions",
+                  "Collaborons Ensemble"
+                ]} 
+                speed={80} 
+                delayBetweenWords={2100} 
+                cursor={true} 
+                cursorChar="|"
+                className="typewriter-hero"
+              />
+            </h1>
             <p>Nous sommes à votre écoute pour toutes vos questions, suggestions et collaborations</p>
           </div>
         </div>

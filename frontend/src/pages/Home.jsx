@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { AuthContext } from '../AuthContext';
+import Typewriter from '../components/ui/Typewriter';
 
 const Home = () => {
   const { token } = useContext(AuthContext);
@@ -50,7 +51,21 @@ const Home = () => {
           style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/images/hero-home.png)` }}
         >
           <div className={`hero-content ${pageReady ? 'slide-up' : ''}`}>
-            <h1>Bienvenue sur l'ADEI</h1>
+            <h1>
+              <Typewriter 
+                words={[
+                  "Bienvenue sur l'ADEI",
+                  "Découvrez notre communauté",
+                  "Rejoignez-nous aujourd'hui",
+                  "Votre avenir commence ici"
+                ]} 
+                speed={80} 
+                delayBetweenWords={2000} 
+                cursor={true} 
+                cursorChar="|"
+                className="typewriter-hero"
+              />
+            </h1>
             <p>
               Découvrez notre communauté dynamique d'étudiants ingénieurs, 
               nos dernières actualités et les événements à venir qui façonnent 

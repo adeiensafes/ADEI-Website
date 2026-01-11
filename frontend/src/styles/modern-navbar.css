@@ -408,6 +408,15 @@
     grid-template-columns: auto 1fr auto;
     padding: 0 1rem;
     height: 70px;
+    position: relative;
+  }
+
+  /* Centrer le logo en mode mobile */
+  .modern-logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
   }
 
   .modern-nav-links {
@@ -490,6 +499,14 @@
 
   .modern-auth-toggle {
     padding: 6px 12px;
+  }
+
+  /* S'assurer que le logo reste centré sur les petits écrans */
+  .modern-logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
   }
 }
 

@@ -8,6 +8,7 @@ import FloatingThemeToggle from './components/FloatingThemeToggle';
 import Home from './pages/Home';
 import News from './pages/News';
 import Events from './pages/Events';
+import NewsAndEvents from './pages/NewsAndEvents';
 import Clubs from './pages/Clubs';
 import ENSA from './pages/ENSA';
 import ADEI from './pages/ADEI';
@@ -33,7 +34,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/news" element={<News />} />
-                <Route path="/events" element={<Events />} />
+                <Route path="/events" element={<NewsAndEvents />} />
                 <Route path="/clubs" element={<Clubs />} />
                 <Route path="/ensa" element={<ENSA />} />
                 <Route path="/adei" element={<ADEI />} />

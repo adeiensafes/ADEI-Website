@@ -18,6 +18,7 @@ const Event = require('./models/Event');
 const Club = require('./models/Club');
 const Feedback = require('./models/Feedback');
 const ADEIMember = require('./models/ADEIMember');
+const Filiere = require('./models/Filiere');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -633,6 +634,76 @@ app.delete('/api/adei-members/:id', authMiddleware, adminMiddleware, async (req,
     }
   } catch (error) {
     res.status(500).json({ message: 'Erreur lors de la suppression du membre ADEI' });
+  }
+});
+
+// Routes Filières
+app.get('/api/filieres', async (req, res) => {
+  try {
+    const filieres = await Filiere.findAll({ 
+      where: { isActive: true },
+      order: [['order_display', 'ASC'], ['abbreviation', 'ASC']] 
+    });
+    res.json(filieres);
+  } catch (error) {
+    console.error('Error fetching filières:', error);
+    res.status(500).json({ message: 'Erreur lors de la récupération des filières' });
+  }
+});
+
+app.post('/api/filieres', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const filiere = await Filiere.create(req.body);
+    res.status(201).json({ 
+      success: true, 
+      message: 'Filière créée avec succès!', 
+      filiere: filiere 
+    });
+  } catch (error) {
+    console.error('Erreur création filière:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur lors de la création de la filière - Veuillez réessayer' 
+    });
+  }
+});
+
+app.put('/api/filieres/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const [updated] = await Filiere.update(req.body, { where: { id: req.params.id } });
+    if (updated) {
+      const filiere = await Filiere.findByPk(req.params.id);
+      res.json({ 
+        success: true, 
+        message: 'Filière modifiée avec succès!', 
+        filiere: filiere 
+      });
+    } else {
+      res.status(404).json({ 
+        success: false, 
+        message: 'Filière non trouvée - Impossible de modifier cette filière' 
+      });
+    }
+  } catch (error) {
+    console.error('Erreur mise à jour filière:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur lors de la mise à jour de la filière - Veuillez réessayer' 
+    });
+  }
+});
+
+app.delete('/api/filieres/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const deleted = await Filiere.destroy({ where: { id: req.params.id } });
+    if (deleted) {
+      res.json({ success: true, message: 'Filière supprimée' });
+    } else {
+      res.status(404).json({ message: 'Filière non trouvée' });
+    }
+  } catch (error) {
+    console.error('Erreur suppression filière:', error);
+    res.status(500).json({ message: 'Erreur lors de la suppression de la filière' });
   }
 });
 
