@@ -38,7 +38,7 @@ jobs:
           cat > frontend/build/.htaccess << 'EOF'
           <IfModule mod_rewrite.c>
             RewriteEngine On
-            RewriteBase /adei/
+            RewriteBase /
 
             # Don't rewrite files or directories
             RewriteCond %{REQUEST_FILENAME} !-f
