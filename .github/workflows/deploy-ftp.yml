@@ -9,7 +9,7 @@ jobs:
   deploy:
     name: Build and Deploy to FTP
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,25 +39,25 @@ jobs:
           <IfModule mod_rewrite.c>
             RewriteEngine On
             RewriteBase /adei/
-            
+
             # Don't rewrite files or directories
             RewriteCond %{REQUEST_FILENAME} !-f
             RewriteCond %{REQUEST_FILENAME} !-d
-            
+
             # Rewrite everything else to index.html
             RewriteRule ^ index.html [L]
           </IfModule>
-          
+
           # Security headers
           <IfModule mod_headers.c>
             Header set X-Content-Type-Options "nosniff"
             Header set X-Frame-Options "SAMEORIGIN"
             Header set X-XSS-Protection "1; mode=block"
           </IfModule>
-          
+
           # Disable directory browsing
           Options -Indexes
-          
+
           # Cache static assets
           <IfModule mod_expires.c>
             ExpiresActive On
