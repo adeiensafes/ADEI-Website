@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
+import { API_ENDPOINTS } from './config/api';
 
 export const AuthContext = createContext();
 
@@ -32,7 +33,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(async (email, password) => {
     try {
-      const response = await fetch('http://localhost:5001/api/login', {
+      const response = await fetch(API_ENDPOINTS.LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -55,7 +56,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = useCallback(async (username, password) => {
     try {
-      const response = await fetch('http://localhost:5001/api/register', {
+      const response = await fetch(API_ENDPOINTS.REGISTER, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -81,7 +82,7 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(async () => {
     try {
       if (token) {
-        await fetch('http://localhost:5001/api/logout', {
+        await fetch(API_ENDPOINTS.LOGOUT, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token }),
@@ -98,7 +99,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchMessages = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/messages', {
+      const response = await fetch(API_ENDPOINTS.FEEDBACKS, {
         headers: { Authorization: token },
       });
       

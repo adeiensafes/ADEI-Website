@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { API_ENDPOINTS, getApiUrl, getImageUrl } from '../config/api';
 import '../styles/admin-panel.css';
 
 const AdminPanel = () => {
@@ -53,13 +54,13 @@ const AdminPanel = () => {
       const headers = { Authorization: token };
 
       const [news, events, clubs, filieres, adeiMembers, feedbacks, users] = await Promise.all([
-        fetch('http://localhost:5001/api/news').then(r => r.json()),
-        fetch('http://localhost:5001/api/events').then(r => r.json()),
-        fetch('http://localhost:5001/api/clubs').then(r => r.json()),
-        fetch('http://localhost:5001/api/filieres').then(r => r.json()),
-        fetch('http://localhost:5001/api/adei-members').then(r => r.json()),
-        fetch('http://localhost:5001/api/feedbacks', { headers }).then(r => r.json()),
-        fetch('http://localhost:5001/api/users', { headers }).then(r => r.json())
+        fetch(API_ENDPOINTS.NEWS).then(r => r.json()),
+        fetch(API_ENDPOINTS.EVENTS).then(r => r.json()),
+        fetch(API_ENDPOINTS.CLUBS).then(r => r.json()),
+        fetch(API_ENDPOINTS.FILIERES).then(r => r.json()),
+        fetch(API_ENDPOINTS.ADEI_MEMBERS).then(r => r.json()),
+        fetch(API_ENDPOINTS.FEEDBACKS, { headers }).then(r => r.json()),
+        fetch(API_ENDPOINTS.USERS, { headers }).then(r => r.json())
       ]);
 
       // S'assurer que toutes les données sont des tableaux
@@ -107,7 +108,7 @@ const AdminPanel = () => {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) return;
 
     try {
-      const response = await fetch(`http://localhost:5001/api/${type}/${id}`, {
+      const response = await fetch(getApiUrl(`${type}/${id}`), {
         method: 'DELETE',
         headers: { Authorization: token }
       });
@@ -147,8 +148,8 @@ const AdminPanel = () => {
     try {
       const method = editingItem ? 'PUT' : 'POST';
       const url = editingItem
-        ? `http://localhost:5001/api/${activeTab}/${editingItem.id || editingItem._id}`
-        : `http://localhost:5001/api/${activeTab}`;
+        ? getApiUrl(`${activeTab}/${editingItem.id || editingItem._id}`)
+        : getApiUrl(activeTab);
 
       console.log('Method:', method);
       console.log('URL:', url);
@@ -480,7 +481,7 @@ const AdminPanel = () => {
                 {(imageFile || formData.image) && (
                   <div className="image-preview">
                     <img
-                      src={imageFile ? URL.createObjectURL(imageFile) : `http://localhost:5001${formData.image}`}
+                      src={imageFile ? URL.createObjectURL(imageFile) : getImageUrl(formData.image)}
                       alt="Preview"
                     />
                   </div>
@@ -807,10 +808,7 @@ const AdminPanel = () => {
                 {(imageFile || formData.photo) && (
                   <div className="image-preview">
                     <img
-                      src={imageFile ? URL.createObjectURL(imageFile) :
-                           (formData.photo?.startsWith('http') ? formData.photo :
-                            formData.photo?.startsWith('/uploads') ? `http://localhost:5001${formData.photo}` :
-                            formData.photo)}
+                      src={imageFile ? URL.createObjectURL(imageFile) : getImageUrl(formData.photo)}
                       alt="Preview"
                     />
                   </div>

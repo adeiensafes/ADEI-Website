@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { AuthContext } from '../AuthContext';
 import Typewriter from '../components/ui/Typewriter';
+import { API_ENDPOINTS } from '../config/api';
 
 const Home = () => {
   const { token } = useContext(AuthContext);
@@ -13,8 +14,8 @@ const Home = () => {
     const fetchData = async () => {
       try {
         const [newsRes, eventsRes] = await Promise.all([
-          fetch('http://localhost:5001/api/news'),
-          fetch('http://localhost:5001/api/events')
+          fetch(API_ENDPOINTS.NEWS),
+          fetch(API_ENDPOINTS.EVENTS)
         ]);
 
         const newsData = await newsRes.json();

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Typewriter from '../components/ui/Typewriter';
+import { API_ENDPOINTS, getImageUrl } from '../config/api';
 
 const Clubs = () => {
   const [clubs, setClubs] = useState([]);
@@ -20,7 +21,7 @@ const Clubs = () => {
 
   const fetchClubs = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/clubs');
+      const response = await fetch(API_ENDPOINTS.CLUBS);
       const data = await response.json();
       setClubs(data);
     } catch (error) {
@@ -150,7 +151,7 @@ const Clubs = () => {
                     {club.image && (
                       <div className="club-profile-image" style={{ flexShrink: 0 }}>
                         <img
-                          src={`http://localhost:5001${club.image}`}
+                          src={getImageUrl(club.image)}
                           alt={club.club}
                           style={{
                             width: '120px',
@@ -319,7 +320,7 @@ const Clubs = () => {
                   {selectedClub.image && (
                     <div style={{ flexShrink: 0 }}>
                       <img
-                        src={`http://localhost:5001${selectedClub.image}`}
+                        src={getImageUrl(selectedClub.image)}
                         alt={selectedClub.club}
                         style={{
                           width: '200px',

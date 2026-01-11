@@ -1,0 +1,90 @@
+name: Deploy to FTP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Build and Deploy to FTP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build React app
+        env:
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Create .htaccess for SPA routing
+        run: |
+          cat > frontend/build/.htaccess << 'EOF'
+          <IfModule mod_rewrite.c>
+            RewriteEngine On
+            RewriteBase /adei/
+
+            # Don't rewrite files or directories
+            RewriteCond %{REQUEST_FILENAME} !-f
+            RewriteCond %{REQUEST_FILENAME} !-d
+
+            # Rewrite everything else to index.html
+            RewriteRule ^ index.html [L]
+          </IfModule>
+
+          # Security headers
+          <IfModule mod_headers.c>
+            Header set X-Content-Type-Options "nosniff"
+            Header set X-Frame-Options "SAMEORIGIN"
+            Header set X-XSS-Protection "1; mode=block"
+          </IfModule>
+
+          # Disable directory browsing
+          Options -Indexes
+
+          # Cache static assets
+          <IfModule mod_expires.c>
+            ExpiresActive On
+            ExpiresByType image/jpg "access plus 1 year"
+            ExpiresByType image/jpeg "access plus 1 year"
+            ExpiresByType image/gif "access plus 1 year"
+            ExpiresByType image/png "access plus 1 year"
+            ExpiresByType image/svg+xml "access plus 1 year"
+            ExpiresByType text/css "access plus 1 month"
+            ExpiresByType application/javascript "access plus 1 month"
+            ExpiresByType application/x-javascript "access plus 1 month"
+            ExpiresByType text/javascript "access plus 1 month"
+          </IfModule>
+          EOF
+
+      - name: Deploy to FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          port: ${{ secrets.FTP_PORT }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./frontend/build/
+          server-dir: ${{ secrets.FTP_REMOTE_DIR }}
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
