@@ -24,6 +24,8 @@ export const API_ENDPOINTS = {
   EVENTS: `${API_BASE_URL}/api/events`,
   CLUBS: `${API_BASE_URL}/api/clubs`,
   CONTACT: `${API_BASE_URL}/api/contact`,
+  FILIERES: `${API_BASE_URL}/api/filieres`,
+  ADEI_MEMBERS: `${API_BASE_URL}/api/adei-members`,
 };
 
 // Helper function to construct full image URLs
@@ -31,6 +33,11 @@ export const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
   if (imagePath.startsWith('http')) return imagePath;
   return `${API_BASE_URL}${imagePath}`;
+};
+
+// Helper function to construct dynamic API URLs (for admin panel and similar use cases)
+export const getApiUrl = (path) => {
+  return `${API_BASE_URL}/api/${path}`;
 };
 
 export default API_BASE_URL;

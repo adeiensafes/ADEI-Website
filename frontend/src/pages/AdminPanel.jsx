@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import API_BASE_URL, { getImageUrl } from '../config/api';
+import { API_ENDPOINTS, getApiUrl, getImageUrl } from '../config/api';
 import '../styles/admin-panel.css';
 
 const AdminPanel = () => {
@@ -54,13 +54,13 @@ const AdminPanel = () => {
       const headers = { Authorization: token };
 
       const [news, events, clubs, filieres, adeiMembers, feedbacks, users] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/news').then(r => r.json()),
-        fetch(`${API_BASE_URL}/api/events').then(r => r.json()),
-        fetch(`${API_BASE_URL}/api/clubs').then(r => r.json()),
-        fetch(`${API_BASE_URL}/api/filieres').then(r => r.json()),
-        fetch(`${API_BASE_URL}/api/adei-members').then(r => r.json()),
-        fetch(`${API_BASE_URL}/api/feedbacks', { headers }).then(r => r.json()),
-        fetch(`${API_BASE_URL}/api/users', { headers }).then(r => r.json())
+        fetch(API_ENDPOINTS.NEWS).then(r => r.json()),
+        fetch(API_ENDPOINTS.EVENTS).then(r => r.json()),
+        fetch(API_ENDPOINTS.CLUBS).then(r => r.json()),
+        fetch(API_ENDPOINTS.FILIERES).then(r => r.json()),
+        fetch(API_ENDPOINTS.ADEI_MEMBERS).then(r => r.json()),
+        fetch(API_ENDPOINTS.FEEDBACKS, { headers }).then(r => r.json()),
+        fetch(API_ENDPOINTS.USERS, { headers }).then(r => r.json())
       ]);
 
       // S'assurer que toutes les données sont des tableaux
@@ -108,7 +108,7 @@ const AdminPanel = () => {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/${type}/${id}`, {
+      const response = await fetch(getApiUrl(`${type}/${id}`), {
         method: 'DELETE',
         headers: { Authorization: token }
       });
@@ -148,8 +148,8 @@ const AdminPanel = () => {
     try {
       const method = editingItem ? 'PUT' : 'POST';
       const url = editingItem
-        ? `${API_BASE_URL}/api/${activeTab}/${editingItem.id || editingItem._id}`
-        : `${API_BASE_URL}/api/${activeTab}`;
+        ? getApiUrl(`${activeTab}/${editingItem.id || editingItem._id}`)
+        : getApiUrl(activeTab);
 
       console.log('Method:', method);
       console.log('URL:', url);

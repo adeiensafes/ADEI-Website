@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../AuthContext';
 import Typewriter from '../components/ui/Typewriter';
-import API_BASE_URL, { getImageUrl } from '../config/api';
+import { API_ENDPOINTS, getImageUrl } from '../config/api';
 import '../styles/card-animations.css';
 
 const ADEI = () => {
@@ -62,7 +62,7 @@ const ADEI = () => {
 
   const fetchMembers = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/adei-members`);
+      const response = await fetch(API_ENDPOINTS.ADEI_MEMBERS);
       const data = await response.json();
       const sortedMembers = data.sort((a, b) => {
         const indexA = roleOrder.indexOf(a.role);
