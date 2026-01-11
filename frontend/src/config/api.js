@@ -26,4 +26,11 @@ export const API_ENDPOINTS = {
   CONTACT: `${API_BASE_URL}/api/contact`,
 };
 
+// Helper function to construct full image URLs
+export const getImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  if (imagePath.startsWith('http')) return imagePath;
+  return `${API_BASE_URL}${imagePath}`;
+};
+
 export default API_BASE_URL;

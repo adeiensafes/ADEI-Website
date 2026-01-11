@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../AuthContext';
 import Typewriter from '../components/ui/Typewriter';
-import API_BASE_URL from '../config/api';
+import API_BASE_URL, { getImageUrl } from '../config/api';
 import '../styles/card-animations.css';
 
 const ADEI = () => {
@@ -107,9 +107,7 @@ const ADEI = () => {
   };
 
   const renderMemberCard = (member) => {
-    const photoUrl = member.photo?.startsWith('http') ? member.photo :
-                    member.photo?.startsWith('/uploads') ? `${API_BASE_URL}${member.photo}` :
-                    member.photo || '/images/default.jpg';
+    const photoUrl = getImageUrl(member.photo) || '/images/default.jpg';
 
     return (
       <motion.div

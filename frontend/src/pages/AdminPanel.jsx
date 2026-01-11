@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import API_BASE_URL from '../config/api';
+import API_BASE_URL, { getImageUrl } from '../config/api';
 import '../styles/admin-panel.css';
 
 const AdminPanel = () => {
@@ -481,7 +481,7 @@ const AdminPanel = () => {
                 {(imageFile || formData.image) && (
                   <div className="image-preview">
                     <img
-                      src={imageFile ? URL.createObjectURL(imageFile) : `${API_BASE_URL}${formData.image}`}
+                      src={imageFile ? URL.createObjectURL(imageFile) : getImageUrl(formData.image)}
                       alt="Preview"
                     />
                   </div>
@@ -808,10 +808,7 @@ const AdminPanel = () => {
                 {(imageFile || formData.photo) && (
                   <div className="image-preview">
                     <img
-                      src={imageFile ? URL.createObjectURL(imageFile) :
-                           (formData.photo?.startsWith('http') ? formData.photo :
-                            formData.photo?.startsWith('/uploads') ? `${API_BASE_URL}${formData.photo}` :
-                            formData.photo)}
+                      src={imageFile ? URL.createObjectURL(imageFile) : getImageUrl(formData.photo)}
                       alt="Preview"
                     />
                   </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Typewriter from '../components/ui/Typewriter';
-import API_BASE_URL, { API_ENDPOINTS } from '../config/api';
+import { API_ENDPOINTS, getImageUrl } from '../config/api';
 
 const Clubs = () => {
   const [clubs, setClubs] = useState([]);
@@ -151,7 +151,7 @@ const Clubs = () => {
                     {club.image && (
                       <div className="club-profile-image" style={{ flexShrink: 0 }}>
                         <img
-                          src={`${API_BASE_URL}${club.image}`}
+                          src={getImageUrl(club.image)}
                           alt={club.club}
                           style={{
                             width: '120px',
@@ -320,7 +320,7 @@ const Clubs = () => {
                   {selectedClub.image && (
                     <div style={{ flexShrink: 0 }}>
                       <img
-                        src={`${API_BASE_URL}${selectedClub.image}`}
+                        src={getImageUrl(selectedClub.image)}
                         alt={selectedClub.club}
                         style={{
                           width: '200px',
