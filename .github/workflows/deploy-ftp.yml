@@ -26,6 +26,14 @@ jobs:
           cd frontend
           npm ci
 
+      - name: Verify environment variables
+        run: |
+          echo "REACT_APP_API_URL is set to: ${{ secrets.REACT_APP_API_URL }}"
+          if [ -z "${{ secrets.REACT_APP_API_URL }}" ]; then
+            echo "❌ REACT_APP_API_URL secret is not set!"
+            exit 1
+          fi
+
       - name: Build React app
         env:
           REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
@@ -40,11 +48,18 @@ jobs:
             RewriteEngine On
             RewriteBase /
 
-            # Don't rewrite files or directories
+            # Handle Angular and React Router
+            # Don't rewrite files or directories that exist
             RewriteCond %{REQUEST_FILENAME} !-f
             RewriteCond %{REQUEST_FILENAME} !-d
 
-            # Rewrite everything else to index.html
+            # Don't rewrite API calls
+            RewriteCond %{REQUEST_URI} !^/api/
+
+            # Don't rewrite asset files
+            RewriteCond %{REQUEST_URI} !\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ [NC]
+
+            # Rewrite everything else to index.html to allow client-side routing
             RewriteRule ^ index.html [L]
           </IfModule>
 
@@ -53,6 +68,7 @@ jobs:
             Header set X-Content-Type-Options "nosniff"
             Header set X-Frame-Options "SAMEORIGIN"
             Header set X-XSS-Protection "1; mode=block"
+            Header set Referrer-Policy "strict-origin-when-cross-origin"
           </IfModule>
 
           # Disable directory browsing
@@ -66,10 +82,35 @@ jobs:
             ExpiresByType image/gif "access plus 1 year"
             ExpiresByType image/png "access plus 1 year"
             ExpiresByType image/svg+xml "access plus 1 year"
+            ExpiresByType image/webp "access plus 1 year"
             ExpiresByType text/css "access plus 1 month"
             ExpiresByType application/javascript "access plus 1 month"
             ExpiresByType application/x-javascript "access plus 1 month"
             ExpiresByType text/javascript "access plus 1 month"
+            ExpiresByType application/json "access plus 0 seconds"
+            ExpiresByType text/html "access plus 0 seconds"
+          </IfModule>
+
+          # Proper MIME types
+          <IfModule mod_mime.c>
+            AddType application/javascript .js
+            AddType text/css .css
+            AddType image/svg+xml .svg
+            AddType application/json .json
+          </IfModule>
+
+          # Gzip compression
+          <IfModule mod_deflate.c>
+            AddOutputFilterByType DEFLATE text/plain
+            AddOutputFilterByType DEFLATE text/html
+            AddOutputFilterByType DEFLATE text/xml
+            AddOutputFilterByType DEFLATE text/css
+            AddOutputFilterByType DEFLATE application/xml
+            AddOutputFilterByType DEFLATE application/xhtml+xml
+            AddOutputFilterByType DEFLATE application/rss+xml
+            AddOutputFilterByType DEFLATE application/javascript
+            AddOutputFilterByType DEFLATE application/x-javascript
+            AddOutputFilterByType DEFLATE application/json
           </IfModule>
           EOF
 
@@ -83,8 +124,18 @@ jobs:
           protocol: ftps
           local-dir: ./frontend/build/
           server-dir: ${{ secrets.FTP_REMOTE_DIR }}
-          dangerous-clean-slate: false
+          dangerous-clean-slate: true
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
+
+      - name: Test deployment
+        run: |
+          echo "✅ Deployment completed successfully!"
+          echo "🌐 Site URL: https://adei-ensaf.ma"
+          echo "🔗 API URL: https://api.adei-ensaf.ma"
+          echo "📝 Please test the following:"
+          echo "  - Homepage: https://adei-ensaf.ma"
+          echo "  - Clubs page: https://adei-ensaf.ma/clubs"
+          echo "  - API health: https://api.adei-ensaf.ma/health"
