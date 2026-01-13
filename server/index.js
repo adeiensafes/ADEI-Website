@@ -114,6 +114,21 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Test endpoint pour vérifier les routes API
+app.get('/api/test', (req, res) => {
+  res.status(200).json({ 
+    message: 'API routes are working',
+    availableRoutes: {
+      'POST /api/login': 'Authentication endpoint',
+      'GET /api/clubs': 'Get clubs data',
+      'GET /api/events': 'Get events data',
+      'GET /api/news': 'Get news data',
+      'GET /api/filieres': 'Get filieres data'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Routes d'authentification
 app.post('/api/login', async (req, res) => {
   try {
