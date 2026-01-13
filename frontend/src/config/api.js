@@ -20,6 +20,11 @@ export const API_ENDPOINTS = {
   MESSAGES: `${API_BASE_URL}/api/messages`,
 };
 
+// Fonction utilitaire pour construire les URLs d'API
+export const getApiUrl = (endpoint) => {
+  return `${API_BASE_URL}/api/${endpoint}`;
+};
+
 // Fonction utilitaire pour construire les URLs d'images
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return '/images/default.jpg';
