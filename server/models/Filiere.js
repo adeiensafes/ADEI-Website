@@ -39,15 +39,15 @@ const Filiere = sequelize.define('Filiere', {
     defaultValue: '',
     comment: 'Lien vers le drive de la filière'
   },
-  delegate: {
+  responsable: {
     type: DataTypes.STRING(255),
     defaultValue: 'À définir',
-    comment: 'Nom du délégué de la filière'
+    comment: 'Nom du responsable de la filière'
   },
-  delegateContact: {
+  RespoContact: {
     type: DataTypes.STRING(255),
     defaultValue: '',
-    comment: 'Contact du délégué (email ou téléphone)'
+    comment: 'Contact du responsable (email ou téléphone)'
   },
   description: {
     type: DataTypes.TEXT,

@@ -155,10 +155,10 @@ const ENSA = () => {
         </div>
       </div>
 
-      {/* Délégué */}
+      {/* Responsable */}
       <div style={{ marginBottom: 'var(--spacing-lg)' }}>
         <p style={{ margin: 0, color: 'var(--text-color)' }}>
-          <strong>Délégué :</strong> {filiere.delegate}
+          <strong>Responsable :</strong> {filiere.responsable}
         </p>
       </div>
 
@@ -685,11 +685,11 @@ const ENSA = () => {
               </div>
             </div>
 
-            {/* Délégué */}
+            {/* Responsable */}
             <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-              <h3 style={{ color: 'var(--text-color)', marginBottom: 'var(--spacing-sm)' }}>Délégué</h3>
+              <h3 style={{ color: 'var(--text-color)', marginBottom: 'var(--spacing-sm)' }}>Responsable</h3>
               <p style={{ color: 'var(--text-muted)', margin: 0 }}>
-                {selectedFiliere.delegate}
+                {selectedFiliere.responsable}
               </p>
             </div>
 

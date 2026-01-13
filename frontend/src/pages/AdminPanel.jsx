@@ -698,13 +698,13 @@ const AdminPanel = () => {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Délégué</label>
+                  <label className="form-label">Responsable</label>
                   <input
                     type="text"
                     className="form-input"
-                    value={formData.delegate || ''}
-                    onChange={(e) => setFormData({ ...formData, delegate: e.target.value })}
-                    placeholder="Nom du délégué"
+                    value={formData.responsable || ''}
+                    onChange={(e) => setFormData({ ...formData, responsable: e.target.value })}
+                    placeholder="Nom du responsable"
                   />
                 </div>
               </div>
@@ -747,13 +747,13 @@ const AdminPanel = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Contact du délégué</label>
+                <label className="form-label">Contact du responsable</label>
                 <input
                   type="text"
                   className="form-input"
-                  value={formData.delegateContact || ''}
-                  onChange={(e) => setFormData({ ...formData, delegateContact: e.target.value })}
-                  placeholder="Email ou téléphone du délégué"
+                  value={formData.RespoContact || ''}
+                  onChange={(e) => setFormData({ ...formData, RespoContact: e.target.value })}
+                  placeholder="Email ou téléphone du responsable"
                 />
               </div>
 
@@ -1063,7 +1063,7 @@ const AdminPanel = () => {
               <th>Filière</th>
               <th>Abréviation</th>
               <th>Type</th>
-              <th>Délégué</th>
+              <th>Responsable</th>
               <th>Actions</th>
             </>
           );
@@ -1174,7 +1174,7 @@ const AdminPanel = () => {
                   {item.type === 'prepa' ? 'Classe Prépa' : 'Filière'}
                 </span>
               </td>
-              <td>{item.delegate}</td>
+              <td>{item.responsable}</td>
               <td>
                 <div className="admin-actions">
                   <button className="admin-action-btn edit" onClick={() => handleEdit(item)}>
@@ -1367,7 +1367,7 @@ const AdminPanel = () => {
             exit={{ opacity: 0, y: -50, x: '-50%' }}
             style={{
               position: 'fixed',
-              top: '20px',
+              top: '100px',
               left: '50%',
               transform: 'translateX(-50%)',
               zIndex: 9999,

@@ -23,7 +23,10 @@ const Filiere = require('./models/Filiere');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-app.use(cors());
+app.use(cors({
+  origin: ["https://adei-ensaf.ma", "https://www.adei-ensaf.ma", "http://localhost:3000"],
+  credentials: true
+}));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -100,6 +103,16 @@ async function connectWithRetry() {
 }
 
 connectWithRetry();
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'ok', 
+    message: 'API ADEI is running',
+    timestamp: new Date().toISOString(),
+    port: PORT
+  });
+});
 
 // Routes d'authentification
 app.post('/api/login', async (req, res) => {

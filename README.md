@@ -10,7 +10,7 @@ Cette application web complète gère le site de l'Association des Étudiants In
 ### Prérequis
 
 - Node.js (version 14 ou supérieure)
-- MongoDB installé localement
+- MySQL installé localement
 - npm ou yarn
 
 ### 1. Configuration de la Base de Données

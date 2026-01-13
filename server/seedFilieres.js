@@ -9,7 +9,7 @@ const filieresSeed = [
     years: ['ISCSI1', 'ISCSI2', 'ISCSI3'],
     documentation: 'https://docs.ensaf.ac.ma/home/fil/ISCSN.pdf',
     drive: '',
-    delegate: 'À définir',
+    responsable: 'À définir',
     description: 'Formation spécialisée dans les systèmes communicants et la sécurité informatique.',
     order: 1
   },
@@ -20,7 +20,7 @@ const filieresSeed = [
     years: ['3IACN1', '3IACN2', '3IACN3'],
     documentation: 'https://docs.ensaf.ac.ma/home/fil/3IACN.pdf',
     drive: '',
-    delegate: 'À définir',
+    responsable: 'À définir',
     description: 'Formation en informatique avec spécialisation en IA et confiance numérique.',
     order: 2
   },
@@ -31,7 +31,7 @@ const filieresSeed = [
     years: ['ISEIA1', 'ISEIA2', 'ISEIA3'],
     documentation: 'https://docs.ensaf.ac.ma/home/fil/ISEIA.pdf',
     drive: '',
-    delegate: 'À définir',
+    responsable: 'À définir',
     description: 'Formation en systèmes embarqués et intelligence artificielle.',
     order: 3
   },
@@ -42,7 +42,7 @@ const filieresSeed = [
     years: ['ILIA1', 'ILIA2', 'ILIA3'],
     documentation: 'https://docs.ensaf.ac.ma/home/fil/ILIAV2.pdf',
     drive: '',
-    delegate: 'À définir',
+    responsable: 'À définir',
     description: 'Formation en ingénierie logicielle et intelligence artificielle.',
     order: 4
   },
@@ -53,7 +53,7 @@ const filieresSeed = [
     years: ['GDNC1', 'GDNC2', 'GDNC3'],
     documentation: 'https://docs.ensaf.ac.ma/home/fil/DNC.pdf',
     drive: '',
-    delegate: 'À définir',
+    responsable: 'À définir',
     description: 'Formation en développement numérique et cybersécurité.',
     order: 5
   },
@@ -64,7 +64,7 @@ const filieresSeed = [
     years: ['ISDIA1', 'ISDIA2', 'ISDIA3'],
     documentation: 'https://docs.ensaf.ac.ma/home/fil/ISDIAV3.pdf',
     drive: '',
-    delegate: 'À définir',
+    responsable: 'À définir',
     description: 'Formation en science de données et intelligence artificielle.',
     order: 6
   },
@@ -75,7 +75,7 @@ const filieresSeed = [
     years: ['INFO1', 'INFO2', 'INFO3'],
     documentation: 'https://docs.ensaf.ac.ma/home/fil/INFO.pdf',
     drive: '',
-    delegate: 'À définir',
+    responsable: 'À définir',
     description: 'Formation généraliste en génie informatique.',
     order: 7
   },
@@ -86,7 +86,7 @@ const filieresSeed = [
     years: ['GM1', 'GM2', 'GM3'],
     documentation: 'https://docs.ensaf.ac.ma/home/fil/GM.pdf',
     drive: '',
-    delegate: 'À définir',
+    responsable: 'À définir',
     description: 'Formation en génie mécanique et systèmes mécaniques.',
     order: 8
   },
@@ -97,7 +97,7 @@ const filieresSeed = [
     years: ['GESI1', 'GESI2', 'GESI3'],
     documentation: 'https://docs.ensaf.ac.ma/home/fil/GESI.pdf',
     drive: '',
-    delegate: 'À définir',
+    responsable: 'À définir',
     description: 'Formation en génie énergétique et systèmes intelligents.',
     order: 9
   },
@@ -108,7 +108,7 @@ const filieresSeed = [
     years: ['GMT1', 'GMT2', 'GMT3'],
     documentation: 'https://docs.ensaf.ac.ma/home/fil/GMT.pdf',
     drive: '',
-    delegate: 'À définir',
+    responsable: 'À définir',
     description: 'Formation en génie mécatronique alliant mécanique, électronique et informatique.',
     order: 10
   },
@@ -119,7 +119,7 @@ const filieresSeed = [
     years: ['GIND1', 'GIND2', 'GIND3'],
     documentation: 'https://docs.ensaf.ac.ma/home/fil/gind.pdf',
     drive: '',
-    delegate: 'À définir',
+    responsable: 'À définir',
     description: 'Formation en génie industriel et optimisation des processus.',
     order: 11
   },
@@ -130,7 +130,7 @@ const filieresSeed = [
     years: ['CPI1', 'CPI2'],
     documentation: '',
     drive: '',
-    delegate: 'À définir',
+    responsable: 'À définir',
     description: 'Cycle préparatoire de 2 ans préparant aux études d\'ingénieur.',
     order: 12
   }
