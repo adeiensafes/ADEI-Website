@@ -123,12 +123,13 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./frontend/build/
-          server-dir: ${{ secrets.FTP_REMOTE_DIR }}
+          server-dir: /public_html/
           dangerous-clean-slate: true
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
+            **/.DS_Store
 
       - name: Test deployment
         run: |
