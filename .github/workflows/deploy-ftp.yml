@@ -146,7 +146,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./frontend/build/
-          server-dir: ./public_html/
+          server-dir: public_html/
           dangerous-clean-slate: true
           exclude: |
             **/.git*
