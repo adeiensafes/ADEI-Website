@@ -28,10 +28,16 @@ jobs:
 
       - name: Verify environment variables
         run: |
-          echo "REACT_APP_API_URL is set to: ${{ secrets.REACT_APP_API_URL }}"
-          if [ -z "${{ secrets.REACT_APP_API_URL }}" ]; then
-            echo "❌ REACT_APP_API_URL secret is not set!"
-            exit 1
+          echo "Checking for .env.production file..."
+          if [ -f "frontend/.env.production" ]; then
+            echo "✅ .env.production file found"
+            cat frontend/.env.production
+          fi
+          
+          if [ -n "${{ secrets.REACT_APP_API_URL }}" ]; then
+            echo "✅ REACT_APP_API_URL secret is set to: ${{ secrets.REACT_APP_API_URL }}"
+          else
+            echo "⚠️ REACT_APP_API_URL secret is not set, using .env.production file"
           fi
 
       - name: Build React app
@@ -39,7 +45,24 @@ jobs:
           REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
         run: |
           cd frontend
+          
+          # Si le secret n'est pas défini, utiliser le fichier .env.production
+          if [ -z "$REACT_APP_API_URL" ] && [ -f ".env.production" ]; then
+            echo "Using .env.production file for build"
+            export $(cat .env.production | grep -v '^#' | xargs)
+          fi
+          
+          echo "Building with REACT_APP_API_URL=$REACT_APP_API_URL"
           npm run build
+          
+          # Vérifier que l'URL de production est dans le build
+          if grep -r "api.adei-ensaf.ma" build/; then
+            echo "✅ Production API URL found in build"
+          else
+            echo "❌ WARNING: Production API URL not found in build!"
+            echo "Checking for localhost references..."
+            grep -r "localhost:5001" build/ || echo "No localhost references found"
+          fi
 
       - name: Create .htaccess for SPA routing
         run: |
@@ -123,7 +146,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./frontend/build/
-          server-dir: /public_html/
+          server-dir: ./public_html/
           dangerous-clean-slate: true
           exclude: |
             **/.git*
