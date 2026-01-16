@@ -34,9 +34,19 @@ const ENSA = () => {
       const response = await fetch(API_ENDPOINTS.FILIERES);
       const data = await response.json();
       
+      // Parser les données et s'assurer que years est un tableau
+      const parsedData = data.map(item => ({
+        ...item,
+        years: Array.isArray(item.years) 
+          ? item.years 
+          : (typeof item.years === 'string' 
+              ? item.years.split('\n').filter(y => y.trim()) 
+              : [])
+      }));
+      
       // Séparer les filières et les classes prépa
-      const filieresData = data.filter(item => item.type === 'filiere');
-      const prepaData = data.filter(item => item.type === 'prepa');
+      const filieresData = parsedData.filter(item => item.type === 'filiere');
+      const prepaData = parsedData.filter(item => item.type === 'prepa');
       
       setFilieres(filieresData);
       setClassesPrepa(prepaData);
@@ -137,7 +147,7 @@ const ENSA = () => {
           gap: 'var(--spacing-sm)', 
           flexWrap: 'wrap' 
         }}>
-          {filiere.years.map((year, yearIndex) => (
+          {(Array.isArray(filiere.years) ? filiere.years : []).map((year, yearIndex) => (
             <span
               key={yearIndex}
               style={{
@@ -666,7 +676,7 @@ const ENSA = () => {
                 gap: 'var(--spacing-sm)', 
                 flexWrap: 'wrap' 
               }}>
-                {selectedFiliere.years.map((year, yearIndex) => (
+                {(Array.isArray(selectedFiliere.years) ? selectedFiliere.years : []).map((year, yearIndex) => (
                   <span
                     key={yearIndex}
                     style={{

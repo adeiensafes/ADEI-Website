@@ -53,15 +53,59 @@ const AdminPanel = () => {
     try {
       const headers = { Authorization: token };
 
-      const [news, events, clubs, filieres, adeiMembers, feedbacks, users] = await Promise.all([
-        fetch(API_ENDPOINTS.NEWS).then(r => r.json()),
-        fetch(API_ENDPOINTS.EVENTS).then(r => r.json()),
-        fetch(API_ENDPOINTS.CLUBS).then(r => r.json()),
-        fetch(API_ENDPOINTS.FILIERES).then(r => r.json()),
-        fetch(API_ENDPOINTS.ADEI_MEMBERS).then(r => r.json()),
-        fetch(API_ENDPOINTS.FEEDBACKS, { headers }).then(r => r.json()),
-        fetch(API_ENDPOINTS.USERS, { headers }).then(r => r.json())
-      ]);
+      // Fetch chaque endpoint individuellement
+      let news = [];
+      let events = [];
+      let clubs = [];
+      let filieres = [];
+      let adeiMembers = [];
+      let feedbacks = [];
+      let users = [];
+
+      try {
+        news = await fetch(API_ENDPOINTS.NEWS).then(r => r.json());
+      } catch (e) {
+        console.error('❌ NEWS failed:', e.message);
+      }
+
+      try {
+        events = await fetch(API_ENDPOINTS.EVENTS).then(r => r.json());
+      } catch (e) {
+        console.error('❌ EVENTS failed:', e.message);
+      }
+
+      try {
+        clubs = await fetch(API_ENDPOINTS.CLUBS).then(r => r.json());
+      } catch (e) {
+        console.error('❌ CLUBS failed:', e.message);
+      }
+
+      try {
+        filieres = await fetch(API_ENDPOINTS.FILIERES).then(r => r.json());
+      } catch (e) {
+        console.error('❌ FILIERES failed:', e.message);
+      }
+
+      try {
+        adeiMembers = await fetch(API_ENDPOINTS.ADEI_MEMBERS).then(r => r.json());
+      } catch (e) {
+        console.error('❌ ADEI_MEMBERS failed:', e.message);
+      }
+
+      try {
+        feedbacks = await fetch(API_ENDPOINTS.FEEDBACKS, { headers }).then(r => r.json());
+      } catch (e) {
+        console.error('❌ FEEDBACKS failed:', e.message);
+      }
+
+      try {
+        const usersResponse = await fetch(API_ENDPOINTS.USERS, { headers });
+        const usersData = await usersResponse.json();
+        console.log('USERS Response:', usersData);
+        users = usersData;
+      } catch (e) {
+        console.error('❌ USERS failed:', e.message);
+      }
 
       // S'assurer que toutes les données sont des tableaux
       setNewsData(Array.isArray(news) ? news : []);
@@ -72,7 +116,7 @@ const AdminPanel = () => {
       setFeedbacksData(Array.isArray(feedbacks) ? feedbacks : []);
       setUsersData(Array.isArray(users) ? users : []);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('❌ Error fetching data:', error);
       // En cas d'erreur, initialiser avec des tableaux vides
       setNewsData([]);
       setEventsData([]);

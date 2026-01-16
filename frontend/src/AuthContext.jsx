@@ -3,9 +3,46 @@ import { API_ENDPOINTS } from './config/api';
 
 export const AuthContext = createContext();
 
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [user, setUser] = useState(null);
+  const [lastActivity, setLastActivity] = useState(Date.now());
+
+  // Logout automatique après inactivité
+  useEffect(() => {
+    if (!token) return;
+
+    const checkInactivity = setInterval(() => {
+      const now = Date.now();
+      if (now - lastActivity > INACTIVITY_TIMEOUT) {
+        console.log('Session expirée par inactivité');
+        logout();
+      }
+    }, 60000); // Vérifier toutes les minutes
+
+    return () => clearInterval(checkInactivity);
+  }, [token, lastActivity]);
+
+  // Mettre à jour l'activité sur les interactions utilisateur
+  useEffect(() => {
+    if (!token) return;
+
+    const updateActivity = () => setLastActivity(Date.now());
+    
+    window.addEventListener('mousedown', updateActivity);
+    window.addEventListener('keydown', updateActivity);
+    window.addEventListener('scroll', updateActivity);
+    window.addEventListener('touchstart', updateActivity);
+
+    return () => {
+      window.removeEventListener('mousedown', updateActivity);
+      window.removeEventListener('keydown', updateActivity);
+      window.removeEventListener('scroll', updateActivity);
+      window.removeEventListener('touchstart', updateActivity);
+    };
+  }, [token]);
 
   useEffect(() => {
     if (token && !user) {
@@ -18,7 +55,7 @@ export const AuthProvider = ({ children }) => {
           email: payload.email,
           role: payload.role
         };
-        console.log('Setting user from token:', userData); // Debug log
+        console.log('Setting user from token:', userData);
         setUser(userData);
       } catch (error) {
         console.error('Error decoding token:', error);
@@ -44,8 +81,9 @@ export const AuthProvider = ({ children }) => {
       if (data.success) {
         setToken(data.token);
         setUser(data.user);
+        setLastActivity(Date.now());
         localStorage.setItem('token', data.token);
-        return { success: true };
+        return { success: true, user: data.user };
       } else {
         return { success: false, message: data.message };
       }
@@ -68,6 +106,7 @@ export const AuthProvider = ({ children }) => {
         if (data.token) {
           setToken(data.token);
           setUser({ username });
+          setLastActivity(Date.now());
           localStorage.setItem('token', data.token);
         }
         return { success: true, message: data.message };

@@ -24,7 +24,12 @@ const Login = () => {
     
     const result = await login(email, password);
     if (result.success) {
-      navigate('/');
+      // Rediriger vers /admin si l'utilisateur est admin, sinon vers /
+      if (result.user && result.user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } else {
       setError(result.message);
     }

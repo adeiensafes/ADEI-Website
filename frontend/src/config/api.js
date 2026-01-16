@@ -20,6 +20,27 @@ export const API_ENDPOINTS = {
   MESSAGES: `${API_BASE_URL}/api/messages`,
 };
 
+// Fonction wrapper pour fetch avec headers anti-bot
+export const apiFetch = async (url, options = {}) => {
+  const defaultHeaders = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+    'Referer': 'https://adei-ensaf.ma/',
+    'Origin': 'https://adei-ensaf.ma',
+  };
+
+  const mergedOptions = {
+    ...options,
+    headers: {
+      ...defaultHeaders,
+      ...options.headers,
+    },
+  };
+
+  return fetch(url, mergedOptions);
+};
+
 // Fonction utilitaire pour construire les URLs d'API
 export const getApiUrl = (endpoint) => {
   return `${API_BASE_URL}/api/${endpoint}`;

@@ -23,7 +23,33 @@ const Clubs = () => {
     try {
       const response = await fetch(API_ENDPOINTS.CLUBS);
       const data = await response.json();
-      setClubs(data);
+      
+      // Parser les données pour s'assurer que activities, achievements, members sont des tableaux
+      const parsedClubs = data.map(club => ({
+        ...club,
+        activities: Array.isArray(club.activities) 
+          ? club.activities 
+          : (typeof club.activities === 'string' 
+              ? (club.activities.trim() ? JSON.parse(club.activities) : [])
+              : []),
+        achievements: Array.isArray(club.achievements) 
+          ? club.achievements 
+          : (typeof club.achievements === 'string' 
+              ? (club.achievements.trim() ? JSON.parse(club.achievements) : [])
+              : []),
+        members: Array.isArray(club.members) 
+          ? club.members 
+          : (typeof club.members === 'string' 
+              ? (club.members.trim() ? JSON.parse(club.members) : [])
+              : []),
+        socialMedia: typeof club.socialMedia === 'object' && club.socialMedia !== null
+          ? club.socialMedia
+          : (typeof club.socialMedia === 'string'
+              ? (club.socialMedia.trim() ? JSON.parse(club.socialMedia) : {})
+              : {})
+      }));
+      
+      setClubs(parsedClubs);
     } catch (error) {
       console.error('Error fetching clubs:', error);
     } finally {
@@ -349,7 +375,7 @@ const Clubs = () => {
                 )}
 
                 {/* Activités */}
-                {selectedClub.activities && selectedClub.activities.length > 0 && (
+                {selectedClub.activities && Array.isArray(selectedClub.activities) && selectedClub.activities.length > 0 && (
                   <div style={{ marginBottom: 'var(--spacing-lg)' }}>
                     <h3 style={{ color: 'var(--color-primary)', marginBottom: 'var(--spacing-sm)' }}>
                       Activités
@@ -365,7 +391,7 @@ const Clubs = () => {
                 )}
 
                 {/* Réalisations */}
-                {selectedClub.achievements && selectedClub.achievements.length > 0 && (
+                {selectedClub.achievements && Array.isArray(selectedClub.achievements) && selectedClub.achievements.length > 0 && (
                   <div style={{ marginBottom: 'var(--spacing-lg)' }}>
                     <h3 style={{ color: 'var(--color-primary)', marginBottom: 'var(--spacing-sm)' }}>
                       Réalisations
@@ -381,7 +407,7 @@ const Clubs = () => {
                 )}
 
                 {/* Membres */}
-                {selectedClub.members && selectedClub.members.length > 0 && (
+                {selectedClub.members && Array.isArray(selectedClub.members) && selectedClub.members.length > 0 && (
                   <div style={{ marginBottom: 'var(--spacing-lg)' }}>
                     <h3 style={{ color: 'var(--color-primary)', marginBottom: 'var(--spacing-sm)' }}>
                       Membres du bureau
