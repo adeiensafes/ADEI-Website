@@ -62,7 +62,7 @@ const upload = multer({
 
 // Connexion à MySQL et synchronisation des modèles
 async function connectWithRetry() {
-  const maxRetries = 10;
+  const maxRetries = 5; // Réduire les tentatives pour Vercel
   let retries = 0;
   
   while (retries < maxRetries) {
@@ -72,7 +72,7 @@ async function connectWithRetry() {
       
       // Synchroniser les modèles avec la base de données
       await sequelize.sync({ force: false });
-      console.log('');
+      console.log('Modèles synchronisés');
 
       // Créer l'utilisateur admin par défaut seulement s'il n'y en a aucun
       const adminCount = await User.count({ where: { role: 'admin' } });
@@ -84,7 +84,7 @@ async function connectWithRetry() {
           password: hashedPassword,
           role: 'admin'
         });
-        console.log('Utilisateur admin par défaut créé (email: admin@adei.tn, password: password)');
+        console.log('Utilisateur admin par défaut créé');
       } else {
         console.log(`${adminCount} administrateur(s) trouvé(s) dans la base de données`);
       }
@@ -92,12 +92,14 @@ async function connectWithRetry() {
     } catch (err) {
       retries++;
       console.log(`Tentative de connexion MySQL ${retries}/${maxRetries}...`);
+      console.error('Erreur MySQL:', err.message);
       if (retries >= maxRetries) {
         console.error('Impossible de se connecter à MySQL après', maxRetries, 'tentatives');
-        process.exit(1);
+        // Ne pas faire process.exit(1) sur Vercel
+        break;
       }
-      // Attendre 5 secondes avant de réessayer
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      // Attendre 2 secondes avant de réessayer (moins que 5s)
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
 }
