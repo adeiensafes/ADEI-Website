@@ -213,7 +213,7 @@ jobs:
           echo "Checking server directory structure..."
           ls -la
           
-          # Copier les fichiers nécessaires (seulement ceux qui existent et ne sont pas vides)
+          # Copier les fichiers nécessaires (SANS node_modules pour éviter les timeouts)
           if [ -d "config" ] && [ "$(ls -A config)" ]; then
             cp -r config ../backend-deploy/
             echo "✅ config folder copied"
@@ -233,14 +233,6 @@ jobs:
             echo "✅ models folder copied"
           else
             echo "⚠️ models folder not found or empty"
-          fi
-          
-          if [ -d "node_modules" ] && [ "$(ls -A node_modules)" ]; then
-            cp -r node_modules ../backend-deploy/
-            echo "✅ node_modules folder copied"
-          else
-            echo "❌ node_modules folder not found or empty"
-            exit 1
           fi
           
           # Copier le dossier api seulement s'il contient des fichiers
@@ -268,7 +260,16 @@ jobs:
             echo "✅ seedFilieres.js copied"
           fi
           
-          echo "✅ All available files copied successfully"
+          # Créer un script d'installation pour le serveur
+          cat > ../backend-deploy/install.sh << 'EOF'
+          #!/bin/bash
+          echo "Installing Node.js dependencies..."
+          npm ci --only=production
+          echo "Dependencies installed successfully!"
+          EOF
+          chmod +x ../backend-deploy/install.sh
+          
+          echo "✅ All available files copied successfully (node_modules excluded)"
           
           # Afficher la structure finale
           echo "=== Backend deployment structure ==="
@@ -296,6 +297,11 @@ jobs:
             Order allow,deny
             Deny from all
           </Files>
+          
+          <Files ~ "install\.sh">
+            Order allow,deny
+            Deny from all
+          </Files>
           EOF
 
       - name: Deploy Backend to FTP
@@ -307,7 +313,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./backend-deploy/
-          server-dir: ${{ secrets.FTP_BACKEND_DIR || 'api/' }}
+          server-dir: ${{ secrets.FTP_BACKEND_DIR || 'public_html/api/' }}
           dangerous-clean-slate: true
           exclude: |
             **/.git*
@@ -319,6 +325,14 @@ jobs:
         run: |
           echo "✅ Backend deployment completed successfully!"
           echo "🔗 API URL: https://api.adei-ensaf.ma"
-          echo "📝 Please test the following:"
+          echo ""
+          echo "📋 IMPORTANT: Manual steps required on your server:"
+          echo "1. SSH to your server: ssh your_username@your_server"
+          echo "2. Navigate to API directory: cd /home/adeiensa/public_html/api"
+          echo "3. Install dependencies: npm ci --only=production"
+          echo "4. Create .env file with your production settings"
+          echo "5. Start/restart your Node.js application"
+          echo ""
+          echo "📝 Test the following after manual setup:"
           echo "  - API health: https://api.adei-ensaf.ma/health"
           echo "  - API endpoints: https://api.adei-ensaf.ma/api/"
