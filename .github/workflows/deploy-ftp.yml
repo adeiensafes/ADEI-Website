@@ -166,7 +166,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./frontend-deploy/
-          server-dir: ${{ secrets.FTP_FRONTEND_DIR || 'public_html/' }}
+          server-dir: ${{ secrets.FTP_FRONTEND_DIR || '/' }}
           dangerous-clean-slate: false
           exclude: |
             **/.git*
@@ -313,7 +313,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./backend-deploy/
-          server-dir: ${{ secrets.FTP_BACKEND_DIR || 'public_html/api/' }}
+          server-dir: ${{ secrets.FTP_BACKEND_DIR || 'api/' }}
           dangerous-clean-slate: true
           exclude: |
             **/.git*
