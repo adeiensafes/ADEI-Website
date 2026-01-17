@@ -157,6 +157,18 @@ jobs:
           echo "=== Frontend deployment structure ==="
           ls -la frontend-deploy/
 
+      - name: Test FTP Connection
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          port: ${{ secrets.FTP_PORT }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: sftp
+          local-dir: ./frontend-deploy/
+          server-dir: ./
+          dry-run: true
+
       - name: Deploy Frontend to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
