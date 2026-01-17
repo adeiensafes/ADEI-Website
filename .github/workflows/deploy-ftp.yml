@@ -164,7 +164,7 @@ jobs:
           port: ${{ secrets.FTP_PORT }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps-legacy
+          protocol: ftp
           local-dir: ./frontend-deploy/
           server-dir: ./
           dry-run: true
@@ -176,7 +176,7 @@ jobs:
           port: ${{ secrets.FTP_PORT }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps-legacy
+          protocol: ftp
           local-dir: ./frontend-deploy/
           server-dir: ${{ secrets.FTP_FRONTEND_DIR || '/' }}
           dangerous-clean-slate: false
@@ -323,7 +323,7 @@ jobs:
           port: ${{ secrets.FTP_PORT }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps-legacy
+          protocol: ftp
           local-dir: ./backend-deploy/
           server-dir: ${{ secrets.FTP_BACKEND_DIR || 'api/' }}
           dangerous-clean-slate: true
