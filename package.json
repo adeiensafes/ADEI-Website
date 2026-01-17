@@ -1,0 +1,16 @@
+{
+  "name": "adei-website",
+  "version": "1.0.0",
+  "description": "ADEI Website - Frontend & Backend",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && npm run build",
+    "start": "cd server && npm start",
+    "dev:frontend": "cd frontend && npm start",
+    "dev:backend": "cd server && npm run dev"
+  },
+  "workspaces": [
+    "frontend",
+    "server"
+  ]
+}
