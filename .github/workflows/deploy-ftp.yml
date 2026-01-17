@@ -146,7 +146,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           local-dir: ./frontend/build/
-          server-dir: ${{ secrets.FTP_FRONTEND_DIR || '/' }}
+          server-dir: ${{ secrets.FTP_FRONTEND_DIR || 'public_html/' }}
           dangerous-clean-slate: false
           exclude: |
             **/.git*
@@ -189,16 +189,58 @@ jobs:
           # Créer un dossier temporaire pour le déploiement
           mkdir -p ../backend-deploy
           
+          # Vérifier que les dossiers existent avant de les copier
+          echo "Checking server directory structure..."
+          ls -la
+          
           # Copier les fichiers nécessaires
-          cp -r api ../backend-deploy/
-          cp -r config ../backend-deploy/
-          cp -r middleware ../backend-deploy/
-          cp -r models ../backend-deploy/
-          cp -r node_modules ../backend-deploy/
+          if [ -d "api" ]; then
+            cp -r api ../backend-deploy/
+            echo "✅ api folder copied"
+          else
+            echo "❌ api folder not found"
+            exit 1
+          fi
+          
+          if [ -d "config" ]; then
+            cp -r config ../backend-deploy/
+            echo "✅ config folder copied"
+          else
+            echo "❌ config folder not found"
+            exit 1
+          fi
+          
+          if [ -d "middleware" ]; then
+            cp -r middleware ../backend-deploy/
+            echo "✅ middleware folder copied"
+          else
+            echo "❌ middleware folder not found"
+            exit 1
+          fi
+          
+          if [ -d "models" ]; then
+            cp -r models ../backend-deploy/
+            echo "✅ models folder copied"
+          else
+            echo "❌ models folder not found"
+            exit 1
+          fi
+          
+          if [ -d "node_modules" ]; then
+            cp -r node_modules ../backend-deploy/
+            echo "✅ node_modules folder copied"
+          else
+            echo "❌ node_modules folder not found"
+            exit 1
+          fi
+          
+          # Copier les fichiers individuels
           cp index.js ../backend-deploy/
           cp package.json ../backend-deploy/
           cp package-lock.json ../backend-deploy/
           cp .env.example ../backend-deploy/
+          
+          echo "✅ All files copied successfully"
           
           # Créer un fichier .htaccess pour le backend
           cat > ../backend-deploy/.htaccess << 'EOF'
