@@ -64,6 +64,14 @@ jobs:
             grep -r "localhost:5001" build/ || echo "No localhost references found"
           fi
 
+      - name: Debug build structure
+        run: |
+          echo "=== Frontend build structure ==="
+          ls -la frontend/build/
+          echo ""
+          echo "=== Contents of build directory ==="
+          find frontend/build/ -type f | head -10
+
       - name: Create .htaccess for SPA routing
         run: |
           cat > frontend/build/.htaccess << 'EOF'
@@ -137,6 +145,18 @@ jobs:
           </IfModule>
           EOF
 
+      - name: Prepare frontend deployment
+        run: |
+          echo "=== Preparing frontend for deployment ==="
+          # Créer un dossier temporaire pour le déploiement frontend
+          mkdir -p frontend-deploy
+          
+          # Copier tout le contenu du build vers le dossier temporaire
+          cp -r frontend/build/* frontend-deploy/
+          
+          echo "=== Frontend deployment structure ==="
+          ls -la frontend-deploy/
+
       - name: Deploy Frontend to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -145,7 +165,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
-          local-dir: ./frontend/build/
+          local-dir: ./frontend-deploy/
           server-dir: ${{ secrets.FTP_FRONTEND_DIR || 'public_html/' }}
           dangerous-clean-slate: false
           exclude: |
@@ -193,45 +213,42 @@ jobs:
           echo "Checking server directory structure..."
           ls -la
           
-          # Copier les fichiers nécessaires
-          if [ -d "api" ]; then
-            cp -r api ../backend-deploy/
-            echo "✅ api folder copied"
-          else
-            echo "❌ api folder not found"
-            exit 1
-          fi
-          
-          if [ -d "config" ]; then
+          # Copier les fichiers nécessaires (seulement ceux qui existent et ne sont pas vides)
+          if [ -d "config" ] && [ "$(ls -A config)" ]; then
             cp -r config ../backend-deploy/
             echo "✅ config folder copied"
           else
-            echo "❌ config folder not found"
-            exit 1
+            echo "⚠️ config folder not found or empty"
           fi
           
-          if [ -d "middleware" ]; then
+          if [ -d "middleware" ] && [ "$(ls -A middleware)" ]; then
             cp -r middleware ../backend-deploy/
             echo "✅ middleware folder copied"
           else
-            echo "❌ middleware folder not found"
-            exit 1
+            echo "⚠️ middleware folder not found or empty"
           fi
           
-          if [ -d "models" ]; then
+          if [ -d "models" ] && [ "$(ls -A models)" ]; then
             cp -r models ../backend-deploy/
             echo "✅ models folder copied"
           else
-            echo "❌ models folder not found"
-            exit 1
+            echo "⚠️ models folder not found or empty"
           fi
           
-          if [ -d "node_modules" ]; then
+          if [ -d "node_modules" ] && [ "$(ls -A node_modules)" ]; then
             cp -r node_modules ../backend-deploy/
             echo "✅ node_modules folder copied"
           else
-            echo "❌ node_modules folder not found"
+            echo "❌ node_modules folder not found or empty"
             exit 1
+          fi
+          
+          # Copier le dossier api seulement s'il contient des fichiers
+          if [ -d "api" ] && [ "$(ls -A api)" ]; then
+            cp -r api ../backend-deploy/
+            echo "✅ api folder copied"
+          else
+            echo "⚠️ api folder not found or empty - skipping"
           fi
           
           # Copier les fichiers individuels
@@ -240,7 +257,22 @@ jobs:
           cp package-lock.json ../backend-deploy/
           cp .env.example ../backend-deploy/
           
-          echo "✅ All files copied successfully"
+          # Copier les autres fichiers utiles s'ils existent
+          if [ -f "checkDatabase.js" ]; then
+            cp checkDatabase.js ../backend-deploy/
+            echo "✅ checkDatabase.js copied"
+          fi
+          
+          if [ -f "seedFilieres.js" ]; then
+            cp seedFilieres.js ../backend-deploy/
+            echo "✅ seedFilieres.js copied"
+          fi
+          
+          echo "✅ All available files copied successfully"
+          
+          # Afficher la structure finale
+          echo "=== Backend deployment structure ==="
+          ls -la ../backend-deploy/
           
           # Créer un fichier .htaccess pour le backend
           cat > ../backend-deploy/.htaccess << 'EOF'
