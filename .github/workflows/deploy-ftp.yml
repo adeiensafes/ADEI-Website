@@ -1,350 +1,353 @@
-name: Deploy to FTP
+# Déploiement FTP temporairement désactivé
 
-on:
-  push:
-    branches:
-      - main
 
-jobs:
-  deploy-frontend:
-    name: Build and Deploy Frontend to FTP
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: |
-          cd frontend
-          npm ci
-
-      - name: Verify environment variables
-        run: |
-          echo "Checking for .env.production file..."
-          if [ -f "frontend/.env.production" ]; then
-            echo "✅ .env.production file found"
-            cat frontend/.env.production
-          fi
-          
-          if [ -n "${{ secrets.REACT_APP_API_URL }}" ]; then
-            echo "✅ REACT_APP_API_URL secret is set to: ${{ secrets.REACT_APP_API_URL }}"
-          else
-            echo "⚠️ REACT_APP_API_URL secret is not set, using .env.production file"
-          fi
-
-      - name: Build React app
-        env:
-          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
-        run: |
-          cd frontend
-          
-          # Si le secret n'est pas défini, utiliser le fichier .env.production
-          if [ -z "$REACT_APP_API_URL" ] && [ -f ".env.production" ]; then
-            echo "Using .env.production file for build"
-            export $(cat .env.production | grep -v '^#' | xargs)
-          fi
-          
-          echo "Building with REACT_APP_API_URL=$REACT_APP_API_URL"
-          npm run build
-          
-          # Vérifier que l'URL de production est dans le build
-          if grep -r "api.adei-ensaf.ma" build/; then
-            echo "✅ Production API URL found in build"
-          else
-            echo "❌ WARNING: Production API URL not found in build!"
-            echo "Checking for localhost references..."
-            grep -r "localhost:5001" build/ || echo "No localhost references found"
-          fi
-
-      - name: Debug build structure
-        run: |
-          echo "=== Frontend build structure ==="
-          ls -la frontend/build/
-          echo ""
-          echo "=== Contents of build directory ==="
-          find frontend/build/ -type f | head -10
-
-      - name: Create .htaccess for SPA routing
-        run: |
-          cat > frontend/build/.htaccess << 'EOF'
-          <IfModule mod_rewrite.c>
-            RewriteEngine On
-            RewriteBase /
-
-            # Handle Angular and React Router
-            # Don't rewrite files or directories that exist
-            RewriteCond %{REQUEST_FILENAME} !-f
-            RewriteCond %{REQUEST_FILENAME} !-d
-
-            # Don't rewrite API calls
-            RewriteCond %{REQUEST_URI} !^/api/
-
-            # Don't rewrite asset files
-            RewriteCond %{REQUEST_URI} !\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ [NC]
-
-            # Rewrite everything else to index.html to allow client-side routing
-            RewriteRule ^ index.html [L]
-          </IfModule>
-
-          # Security headers
-          <IfModule mod_headers.c>
-            Header set X-Content-Type-Options "nosniff"
-            Header set X-Frame-Options "SAMEORIGIN"
-            Header set X-XSS-Protection "1; mode=block"
-            Header set Referrer-Policy "strict-origin-when-cross-origin"
-          </IfModule>
-
-          # Disable directory browsing
-          Options -Indexes
-
-          # Cache static assets
-          <IfModule mod_expires.c>
-            ExpiresActive On
-            ExpiresByType image/jpg "access plus 1 year"
-            ExpiresByType image/jpeg "access plus 1 year"
-            ExpiresByType image/gif "access plus 1 year"
-            ExpiresByType image/png "access plus 1 year"
-            ExpiresByType image/svg+xml "access plus 1 year"
-            ExpiresByType image/webp "access plus 1 year"
-            ExpiresByType text/css "access plus 1 month"
-            ExpiresByType application/javascript "access plus 1 month"
-            ExpiresByType application/x-javascript "access plus 1 month"
-            ExpiresByType text/javascript "access plus 1 month"
-            ExpiresByType application/json "access plus 0 seconds"
-            ExpiresByType text/html "access plus 0 seconds"
-          </IfModule>
-
-          # Proper MIME types
-          <IfModule mod_mime.c>
-            AddType application/javascript .js
-            AddType text/css .css
-            AddType image/svg+xml .svg
-            AddType application/json .json
-          </IfModule>
-
-          # Gzip compression
-          <IfModule mod_deflate.c>
-            AddOutputFilterByType DEFLATE text/plain
-            AddOutputFilterByType DEFLATE text/html
-            AddOutputFilterByType DEFLATE text/xml
-            AddOutputFilterByType DEFLATE text/css
-            AddOutputFilterByType DEFLATE application/xml
-            AddOutputFilterByType DEFLATE application/xhtml+xml
-            AddOutputFilterByType DEFLATE application/rss+xml
-            AddOutputFilterByType DEFLATE application/javascript
-            AddOutputFilterByType DEFLATE application/x-javascript
-            AddOutputFilterByType DEFLATE application/json
-          </IfModule>
-          EOF
-
-      - name: Prepare frontend deployment
-        run: |
-          echo "=== Preparing frontend for deployment ==="
-          # Créer un dossier temporaire pour le déploiement frontend
-          mkdir -p frontend-deploy
-          
-          # Copier tout le contenu du build vers le dossier temporaire
-          cp -r frontend/build/* frontend-deploy/
-          
-          echo "=== Frontend deployment structure ==="
-          ls -la frontend-deploy/
-
-      - name: Test FTP Connection
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          port: ${{ secrets.FTP_PORT }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
-          local-dir: ./frontend-deploy/
-          server-dir: ./
-          dry-run: true
-
-      - name: Deploy Frontend to FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          port: ${{ secrets.FTP_PORT }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
-          local-dir: ./frontend-deploy/
-          server-dir: ${{ secrets.FTP_FRONTEND_DIR || '/' }}
-          dangerous-clean-slate: false
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/.DS_Store
-
-      - name: Test deployment
-        run: |
-          echo "✅ Frontend deployment completed successfully!"
-          echo "🌐 Site URL: https://adei-ensaf.ma"
-          echo "📝 Please test the following:"
-          echo "  - Homepage: https://adei-ensaf.ma"
-          echo "  - Clubs page: https://adei-ensaf.ma/clubs"
-
-  deploy-backend:
-    name: Deploy Backend to FTP
-    runs-on: ubuntu-latest
-    needs: deploy-frontend
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: server/package-lock.json
-
-      - name: Install backend dependencies
-        run: |
-          cd server
-          npm ci --only=production
-
-      - name: Create backend deployment package
-        run: |
-          cd server
-          # Créer un dossier temporaire pour le déploiement
-          mkdir -p ../backend-deploy
-          
-          # Vérifier que les dossiers existent avant de les copier
-          echo "Checking server directory structure..."
-          ls -la
-          
-          # Copier les fichiers nécessaires (SANS node_modules pour éviter les timeouts)
-          if [ -d "config" ] && [ "$(ls -A config)" ]; then
-            cp -r config ../backend-deploy/
-            echo "✅ config folder copied"
-          else
-            echo "⚠️ config folder not found or empty"
-          fi
-          
-          if [ -d "middleware" ] && [ "$(ls -A middleware)" ]; then
-            cp -r middleware ../backend-deploy/
-            echo "✅ middleware folder copied"
-          else
-            echo "⚠️ middleware folder not found or empty"
-          fi
-          
-          if [ -d "models" ] && [ "$(ls -A models)" ]; then
-            cp -r models ../backend-deploy/
-            echo "✅ models folder copied"
-          else
-            echo "⚠️ models folder not found or empty"
-          fi
-          
-          # Copier le dossier api seulement s'il contient des fichiers
-          if [ -d "api" ] && [ "$(ls -A api)" ]; then
-            cp -r api ../backend-deploy/
-            echo "✅ api folder copied"
-          else
-            echo "⚠️ api folder not found or empty - skipping"
-          fi
-          
-          # Copier les fichiers individuels
-          cp index.js ../backend-deploy/
-          cp package.json ../backend-deploy/
-          cp package-lock.json ../backend-deploy/
-          cp .env.example ../backend-deploy/
-          
-          # Copier les autres fichiers utiles s'ils existent
-          if [ -f "checkDatabase.js" ]; then
-            cp checkDatabase.js ../backend-deploy/
-            echo "✅ checkDatabase.js copied"
-          fi
-          
-          if [ -f "seedFilieres.js" ]; then
-            cp seedFilieres.js ../backend-deploy/
-            echo "✅ seedFilieres.js copied"
-          fi
-          
-          # Créer un script d'installation pour le serveur
-          cat > ../backend-deploy/install.sh << 'EOF'
-          #!/bin/bash
-          echo "Installing Node.js dependencies..."
-          npm ci --only=production
-          echo "Dependencies installed successfully!"
-          EOF
-          chmod +x ../backend-deploy/install.sh
-          
-          echo "✅ All available files copied successfully (node_modules excluded)"
-          
-          # Afficher la structure finale
-          echo "=== Backend deployment structure ==="
-          ls -la ../backend-deploy/
-          
-          # Créer un fichier .htaccess pour le backend
-          cat > ../backend-deploy/.htaccess << 'EOF'
-          # Disable directory browsing
-          Options -Indexes
-          
-          # Security headers
-          <IfModule mod_headers.c>
-            Header set X-Content-Type-Options "nosniff"
-            Header set X-Frame-Options "DENY"
-            Header set X-XSS-Protection "1; mode=block"
-          </IfModule>
-          
-          # Protect sensitive files
-          <Files ~ "^\.env">
-            Order allow,deny
-            Deny from all
-          </Files>
-          
-          <Files ~ "package\.json">
-            Order allow,deny
-            Deny from all
-          </Files>
-          
-          <Files ~ "install\.sh">
-            Order allow,deny
-            Deny from all
-          </Files>
-          EOF
-
-      - name: Deploy Backend to FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          port: ${{ secrets.FTP_PORT }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
-          local-dir: ./backend-deploy/
-          server-dir: ${{ secrets.FTP_BACKEND_DIR || 'api/' }}
-          dangerous-clean-slate: true
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.DS_Store
-            **/uploads/**
-
-      - name: Test backend deployment
-        run: |
-          echo "✅ Backend deployment completed successfully!"
-          echo "🔗 API URL: https://api.adei-ensaf.ma"
-          echo ""
-          echo "📋 IMPORTANT: Manual steps required on your server:"
-          echo "1. SSH to your server: ssh your_username@your_server"
-          echo "2. Navigate to API directory: cd /home/adeiensa/public_html/api"
-          echo "3. Install dependencies: npm ci --only=production"
-          echo "4. Create .env file with your production settings"
-          echo "5. Start/restart your Node.js application"
-          echo ""
-          echo "📝 Test the following after manual setup:"
-          echo "  - API health: https://api.adei-ensaf.ma/health"
-          echo "  - API endpoints: https://api.adei-ensaf.ma/api/"
+# name: Deploy to FTP
+# 
+# on:
+#   push:
+#     branches:
+#       - main
+# 
+# jobs:
+#   deploy-frontend:
+#     name: Build and Deploy Frontend to FTP
+#     runs-on: ubuntu-latest
+# 
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+# 
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '20'
+#           cache: 'npm'
+#           cache-dependency-path: frontend/package-lock.json
+# 
+#       - name: Install dependencies
+#         run: |
+#           cd frontend
+#           npm ci
+# 
+#       - name: Verify environment variables
+#         run: |
+#           echo "Checking for .env.production file..."
+#           if [ -f "frontend/.env.production" ]; then
+#             echo "✅ .env.production file found"
+#             cat frontend/.env.production
+#           fi
+#           
+#           if [ -n "${{ secrets.REACT_APP_API_URL }}" ]; then
+#             echo "✅ REACT_APP_API_URL secret is set to: ${{ secrets.REACT_APP_API_URL }}"
+#           else
+#             echo "⚠️ REACT_APP_API_URL secret is not set, using .env.production file"
+#           fi
+# 
+#       - name: Build React app
+#         env:
+#           REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+#         run: |
+#           cd frontend
+#           
+#           # Si le secret n'est pas défini, utiliser le fichier .env.production
+#           if [ -z "$REACT_APP_API_URL" ] && [ -f ".env.production" ]; then
+#             echo "Using .env.production file for build"
+#             export $(cat .env.production | grep -v '^#' | xargs)
+#           fi
+#           
+#           echo "Building with REACT_APP_API_URL=$REACT_APP_API_URL"
+#           npm run build
+#           
+#           # Vérifier que l'URL de production est dans le build
+#           if grep -r "api.adei-ensaf.ma" build/; then
+#             echo "✅ Production API URL found in build"
+#           else
+#             echo "❌ WARNING: Production API URL not found in build!"
+#             echo "Checking for localhost references..."
+#             grep -r "localhost:5001" build/ || echo "No localhost references found"
+#           fi
+# 
+#       - name: Debug build structure
+#         run: |
+#           echo "=== Frontend build structure ==="
+#           ls -la frontend/build/
+#           echo ""
+#           echo "=== Contents of build directory ==="
+#           find frontend/build/ -type f | head -10
+# 
+#       - name: Create .htaccess for SPA routing
+#         run: |
+#           cat > frontend/build/.htaccess << 'EOF'
+#           <IfModule mod_rewrite.c>
+#             RewriteEngine On
+#             RewriteBase /
+# 
+#             # Handle Angular and React Router
+#             # Don't rewrite files or directories that exist
+#             RewriteCond %{REQUEST_FILENAME} !-f
+#             RewriteCond %{REQUEST_FILENAME} !-d
+# 
+#             # Don't rewrite API calls
+#             RewriteCond %{REQUEST_URI} !^/api/
+# 
+#             # Don't rewrite asset files
+#             RewriteCond %{REQUEST_URI} !\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ [NC]
+# 
+#             # Rewrite everything else to index.html to allow client-side routing
+#             RewriteRule ^ index.html [L]
+#           </IfModule>
+# 
+#           # Security headers
+#           <IfModule mod_headers.c>
+#             Header set X-Content-Type-Options "nosniff"
+#             Header set X-Frame-Options "SAMEORIGIN"
+#             Header set X-XSS-Protection "1; mode=block"
+#             Header set Referrer-Policy "strict-origin-when-cross-origin"
+#           </IfModule>
+# 
+#           # Disable directory browsing
+#           Options -Indexes
+# 
+#           # Cache static assets
+#           <IfModule mod_expires.c>
+#             ExpiresActive On
+#             ExpiresByType image/jpg "access plus 1 year"
+#             ExpiresByType image/jpeg "access plus 1 year"
+#             ExpiresByType image/gif "access plus 1 year"
+#             ExpiresByType image/png "access plus 1 year"
+#             ExpiresByType image/svg+xml "access plus 1 year"
+#             ExpiresByType image/webp "access plus 1 year"
+#             ExpiresByType text/css "access plus 1 month"
+#             ExpiresByType application/javascript "access plus 1 month"
+#             ExpiresByType application/x-javascript "access plus 1 month"
+#             ExpiresByType text/javascript "access plus 1 month"
+#             ExpiresByType application/json "access plus 0 seconds"
+#             ExpiresByType text/html "access plus 0 seconds"
+#           </IfModule>
+# 
+#           # Proper MIME types
+#           <IfModule mod_mime.c>
+#             AddType application/javascript .js
+#             AddType text/css .css
+#             AddType image/svg+xml .svg
+#             AddType application/json .json
+#           </IfModule>
+# 
+#           # Gzip compression
+#           <IfModule mod_deflate.c>
+#             AddOutputFilterByType DEFLATE text/plain
+#             AddOutputFilterByType DEFLATE text/html
+#             AddOutputFilterByType DEFLATE text/xml
+#             AddOutputFilterByType DEFLATE text/css
+#             AddOutputFilterByType DEFLATE application/xml
+#             AddOutputFilterByType DEFLATE application/xhtml+xml
+#             AddOutputFilterByType DEFLATE application/rss+xml
+#             AddOutputFilterByType DEFLATE application/javascript
+#             AddOutputFilterByType DEFLATE application/x-javascript
+#             AddOutputFilterByType DEFLATE application/json
+#           </IfModule>
+#           EOF
+# 
+#       - name: Prepare frontend deployment
+#         run: |
+#           echo "=== Preparing frontend for deployment ==="
+#           # Créer un dossier temporaire pour le déploiement frontend
+#           mkdir -p frontend-deploy
+#           
+#           # Copier tout le contenu du build vers le dossier temporaire
+#           cp -r frontend/build/* frontend-deploy/
+#           
+#           echo "=== Frontend deployment structure ==="
+#           ls -la frontend-deploy/
+# 
+#       - name: Test FTP Connection
+#         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+#         with:
+#           server: ${{ secrets.FTP_HOST }}
+#           port: ${{ secrets.FTP_PORT }}
+#           username: ${{ secrets.FTP_USERNAME }}
+#           password: ${{ secrets.FTP_PASSWORD }}
+#           protocol: ftp
+#           local-dir: ./frontend-deploy/
+#           server-dir: ./
+#           dry-run: true
+# 
+#       - name: Deploy Frontend to FTP
+#         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+#         with:
+#           server: ${{ secrets.FTP_HOST }}
+#           port: ${{ secrets.FTP_PORT }}
+#           username: ${{ secrets.FTP_USERNAME }}
+#           password: ${{ secrets.FTP_PASSWORD }}
+#           protocol: ftp
+#           local-dir: ./frontend-deploy/
+#           server-dir: ${{ secrets.FTP_FRONTEND_DIR || '/' }}
+#           dangerous-clean-slate: false
+#           exclude: |
+#             **/.git*
+#             **/.git*/**
+#             **/node_modules/**
+#             **/.DS_Store
+# 
+#       - name: Test deployment
+#         run: |
+#           echo "✅ Frontend deployment completed successfully!"
+#           echo "🌐 Site URL: https://adei-ensaf.ma"
+#           echo "📝 Please test the following:"
+#           echo "  - Homepage: https://adei-ensaf.ma"
+#           echo "  - Clubs page: https://adei-ensaf.ma/clubs"
+# 
+#   deploy-backend:
+#     name: Deploy Backend to FTP
+#     runs-on: ubuntu-latest
+#     needs: deploy-frontend
+# 
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+# 
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: '20'
+#           cache: 'npm'
+#           cache-dependency-path: server/package-lock.json
+# 
+#       - name: Install backend dependencies
+#         run: |
+#           cd server
+#           npm ci --only=production
+# 
+#       - name: Create backend deployment package
+#         run: |
+#           cd server
+#           # Créer un dossier temporaire pour le déploiement
+#           mkdir -p ../backend-deploy
+#           
+#           # Vérifier que les dossiers existent avant de les copier
+#           echo "Checking server directory structure..."
+#           ls -la
+#           
+#           # Copier les fichiers nécessaires (SANS node_modules pour éviter les timeouts)
+#           if [ -d "config" ] && [ "$(ls -A config)" ]; then
+#             cp -r config ../backend-deploy/
+#             echo "✅ config folder copied"
+#           else
+#             echo "⚠️ config folder not found or empty"
+#           fi
+#           
+#           if [ -d "middleware" ] && [ "$(ls -A middleware)" ]; then
+#             cp -r middleware ../backend-deploy/
+#             echo "✅ middleware folder copied"
+#           else
+#             echo "⚠️ middleware folder not found or empty"
+#           fi
+#           
+#           if [ -d "models" ] && [ "$(ls -A models)" ]; then
+#             cp -r models ../backend-deploy/
+#             echo "✅ models folder copied"
+#           else
+#             echo "⚠️ models folder not found or empty"
+#           fi
+#           
+#           # Copier le dossier api seulement s'il contient des fichiers
+#           if [ -d "api" ] && [ "$(ls -A api)" ]; then
+#             cp -r api ../backend-deploy/
+#             echo "✅ api folder copied"
+#           else
+#             echo "⚠️ api folder not found or empty - skipping"
+#           fi
+#           
+#           # Copier les fichiers individuels
+#           cp index.js ../backend-deploy/
+#           cp package.json ../backend-deploy/
+#           cp package-lock.json ../backend-deploy/
+#           cp .env.example ../backend-deploy/
+#           
+#           # Copier les autres fichiers utiles s'ils existent
+#           if [ -f "checkDatabase.js" ]; then
+#             cp checkDatabase.js ../backend-deploy/
+#             echo "✅ checkDatabase.js copied"
+#           fi
+#           
+#           if [ -f "seedFilieres.js" ]; then
+#             cp seedFilieres.js ../backend-deploy/
+#             echo "✅ seedFilieres.js copied"
+#           fi
+#           
+#           # Créer un script d'installation pour le serveur
+#           cat > ../backend-deploy/install.sh << 'EOF'
+#           #!/bin/bash
+#           echo "Installing Node.js dependencies..."
+#           npm ci --only=production
+#           echo "Dependencies installed successfully!"
+#           EOF
+#           chmod +x ../backend-deploy/install.sh
+#           
+#           echo "✅ All available files copied successfully (node_modules excluded)"
+#           
+#           # Afficher la structure finale
+#           echo "=== Backend deployment structure ==="
+#           ls -la ../backend-deploy/
+#           
+#           # Créer un fichier .htaccess pour le backend
+#           cat > ../backend-deploy/.htaccess << 'EOF'
+#           # Disable directory browsing
+#           Options -Indexes
+#           
+#           # Security headers
+#           <IfModule mod_headers.c>
+#             Header set X-Content-Type-Options "nosniff"
+#             Header set X-Frame-Options "DENY"
+#             Header set X-XSS-Protection "1; mode=block"
+#           </IfModule>
+#           
+#           # Protect sensitive files
+#           <Files ~ "^\.env">
+#             Order allow,deny
+#             Deny from all
+#           </Files>
+#           
+#           <Files ~ "package\.json">
+#             Order allow,deny
+#             Deny from all
+#           </Files>
+#           
+#           <Files ~ "install\.sh">
+#             Order allow,deny
+#             Deny from all
+#           </Files>
+#           EOF
+# 
+#       - name: Deploy Backend to FTP
+#         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+#         with:
+#           server: ${{ secrets.FTP_HOST }}
+#           port: ${{ secrets.FTP_PORT }}
+#           username: ${{ secrets.FTP_USERNAME }}
+#           password: ${{ secrets.FTP_PASSWORD }}
+#           protocol: ftp
+#           local-dir: ./backend-deploy/
+#           server-dir: ${{ secrets.FTP_BACKEND_DIR || 'api/' }}
+#           dangerous-clean-slate: true
+#           exclude: |
+#             **/.git*
+#             **/.git*/**
+#             **/.DS_Store
+#             **/uploads/**
+# 
+#       - name: Test backend deployment
+#         run: |
+#           echo "✅ Backend deployment completed successfully!"
+#           echo "🔗 API URL: https://api.adei-ensaf.ma"
+#           echo ""
+#           echo "📋 IMPORTANT: Manual steps required on your server:"
+#           echo "1. SSH to your server: ssh your_username@your_server"
+#           echo "2. Navigate to API directory: cd /home/adeiensa/public_html/api"
+#           echo "3. Install dependencies: npm ci --only=production"
+#           echo "4. Create .env file with your production settings"
+#           echo "5. Start/restart your Node.js application"
+#           echo ""
+#           echo "📝 Test the following after manual setup:"
+#           echo "  - API health: https://api.adei-ensaf.ma/health"
+#           echo "  - API endpoints: https://api.adei-ensaf.ma/api/"

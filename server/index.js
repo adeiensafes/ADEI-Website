@@ -131,6 +131,24 @@ app.get('/api/test', (req, res) => {
   });
 });
 
+// Route pour la racine
+app.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'ADEI API Server',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/api/test',
+      login: '/api/login',
+      clubs: '/api/clubs',
+      events: '/api/events',
+      news: '/api/news',
+      filieres: '/api/filieres'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Routes d'authentification
 app.post('/api/login', async (req, res) => {
   try {
