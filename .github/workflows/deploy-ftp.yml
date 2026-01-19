@@ -136,26 +136,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftp
           local-dir: ./backend-deploy/
-          server-dir: ${{ secrets.FTP_BACKEND_DIR || 'api/' }}
-          dangerous-clean-slate: false
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.DS_Store
-            **/uploads/**
-            **/.env
-            **/node_modules/**
-
-      - name: Deploy Backend to FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          port: ${{ secrets.FTP_PORT }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
-          local-dir: ./backend-deploy/
-          server-dir: ${{ secrets.FTP_BACKEND_DIR || 'api/' }}
+          server-dir: ${{ secrets.FTP_BACKEND_DIR || '/home/adeiensa/api/' }}
           dangerous-clean-slate: false
           exclude: |
             **/.git*
