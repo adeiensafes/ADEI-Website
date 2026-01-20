@@ -16,6 +16,7 @@ const AdminPanel = () => {
   const [eventsData, setEventsData] = useState([]);
   const [clubsData, setClubsData] = useState([]);
   const [filieresData, setFilieresData] = useState([]);
+  const [partnersData, setPartnersData] = useState([]);
   const [adeiMembersData, setAdeiMembersData] = useState([]);
   const [feedbacksData, setFeedbacksData] = useState([]);
   const [usersData, setUsersData] = useState([]);
@@ -58,6 +59,7 @@ const AdminPanel = () => {
       let events = [];
       let clubs = [];
       let filieres = [];
+      let partners = [];
       let adeiMembers = [];
       let feedbacks = [];
       let users = [];
@@ -87,6 +89,12 @@ const AdminPanel = () => {
       }
 
       try {
+        partners = await fetch(API_ENDPOINTS.PARTNERS).then(r => r.json());
+      } catch (e) {
+        console.error('❌ PARTNERS failed:', e.message);
+      }
+
+      try {
         adeiMembers = await fetch(API_ENDPOINTS.ADEI_MEMBERS).then(r => r.json());
       } catch (e) {
         console.error('❌ ADEI_MEMBERS failed:', e.message);
@@ -112,6 +120,7 @@ const AdminPanel = () => {
       setEventsData(Array.isArray(events) ? events : []);
       setClubsData(Array.isArray(clubs) ? clubs : []);
       setFilieresData(Array.isArray(filieres) ? filieres : []);
+      setPartnersData(Array.isArray(partners) ? partners : []);
       setAdeiMembersData(Array.isArray(adeiMembers) ? adeiMembers : []);
       setFeedbacksData(Array.isArray(feedbacks) ? feedbacks : []);
       setUsersData(Array.isArray(users) ? users : []);
@@ -122,6 +131,7 @@ const AdminPanel = () => {
       setEventsData([]);
       setClubsData([]);
       setFilieresData([]);
+      setPartnersData([]);
       setAdeiMembersData([]);
       setFeedbacksData([]);
       setUsersData([]);
@@ -198,7 +208,7 @@ const AdminPanel = () => {
       console.log('Method:', method);
       console.log('URL:', url);
 
-      if ((activeTab === 'clubs' || activeTab === 'adei-members') && (imageFile || formData.photo)) {
+      if ((activeTab === 'clubs' || activeTab === 'partners' || activeTab === 'adei-members') && (imageFile || formData.photo || formData.logo)) {
         const formDataObj = new FormData();
         Object.keys(formData).forEach(key => {
           if (key !== '_id' && key !== 'id' && key !== '__v' && key !== 'createdAt' && key !== 'updatedAt' && key !== 'photo') {
@@ -218,7 +228,13 @@ const AdminPanel = () => {
         });
 
         if (imageFile) {
-          formDataObj.append(activeTab === 'clubs' ? 'image' : 'photo', imageFile);
+          if (activeTab === 'clubs') {
+            formDataObj.append('image', imageFile);
+          } else if (activeTab === 'partners') {
+            formDataObj.append('logo', imageFile);
+          } else {
+            formDataObj.append('photo', imageFile);
+          }
         }
 
         const response = await fetch(url, {
@@ -334,6 +350,7 @@ const AdminPanel = () => {
         case 'events': return `${action} un événement`;
         case 'clubs': return `${action} un club`;
         case 'filieres': return `${action} une filière`;
+        case 'partners': return `${action} un partenaire`;
         case 'adei-members': return `${action} un membre ADEI`;
         case 'users': return `${action} un utilisateur`;
         default: return action;
@@ -838,6 +855,85 @@ const AdminPanel = () => {
             </>
           );
 
+        case 'partners':
+          return (
+            <>
+              <div className="form-group">
+                <label className="form-label">Logo</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setImageFile(e.target.files[0])}
+                  className="form-input"
+                />
+                {(imageFile || formData.logo) && (
+                  <div className="image-preview">
+                    <img
+                      src={imageFile ? URL.createObjectURL(imageFile) : getImageUrl(formData.logo)}
+                      alt="Preview"
+                    />
+                  </div>
+                )}
+              </div>
+              <div className="form-grid two-cols">
+                <div className="form-group">
+                  <label className="form-label">Nom du partenaire</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.name || ''}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Nom de l'entreprise/organisation"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Site web</label>
+                  <input
+                    type="url"
+                    className="form-input"
+                    value={formData.website || ''}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    placeholder="https://example.com"
+                  />
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Description</label>
+                <textarea
+                  className="form-textarea"
+                  value={formData.description || ''}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Description du partenariat..."
+                  rows="4"
+                />
+              </div>
+              <div className="form-grid two-cols">
+                <div className="form-group">
+                  <label className="form-label">Ordre d'affichage</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    value={formData.order_display || 0}
+                    onChange={(e) => setFormData({ ...formData, order_display: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Statut</label>
+                  <select
+                    className="form-select form-input"
+                    value={formData.isActive !== undefined ? formData.isActive : true}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.value === 'true' })}
+                  >
+                    <option value={true}>Actif</option>
+                    <option value={false}>Inactif</option>
+                  </select>
+                </div>
+              </div>
+            </>
+          );
+
         case 'adei-members':
           return (
             <>
@@ -1029,6 +1125,7 @@ const AdminPanel = () => {
       case 'events': return eventsData;
       case 'clubs': return clubsData;
       case 'filieres': return filieresData;
+      case 'partners': return partnersData;
       case 'adei-members': return adeiMembersData;
       case 'feedbacks': return feedbacksData;
       case 'users': return usersData;
@@ -1108,6 +1205,16 @@ const AdminPanel = () => {
               <th>Abréviation</th>
               <th>Type</th>
               <th>Responsable</th>
+              <th>Actions</th>
+            </>
+          );
+        case 'partners':
+          return (
+            <>
+              <th>Nom</th>
+              <th>Description</th>
+              <th>Site web</th>
+              <th>Statut</th>
               <th>Actions</th>
             </>
           );
@@ -1225,6 +1332,47 @@ const AdminPanel = () => {
                     Modifier
                   </button>
                   <button className="admin-action-btn delete" onClick={() => handleDelete(item.id || item._id, 'filieres')}>
+                    Supprimer
+                  </button>
+                </div>
+              </td>
+            </>
+          );
+        case 'partners':
+          return (
+            <>
+              <td>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <img 
+                    src={getImageUrl(item.logo)} 
+                    alt={item.name}
+                    style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'contain' }}
+                    onError={(e) => { e.target.src = '/images/ADEI.png'; }}
+                  />
+                  {item.name}
+                </div>
+              </td>
+              <td>{item.description?.substring(0, 50)}{item.description?.length > 50 ? '...' : ''}</td>
+              <td>
+                {item.website ? (
+                  <a href={item.website} target="_blank" rel="noopener noreferrer" className="link">
+                    Visiter
+                  </a>
+                ) : (
+                  '-'
+                )}
+              </td>
+              <td>
+                <span className={`badge ${item.isActive ? 'success' : 'danger'}`}>
+                  {item.isActive ? 'Actif' : 'Inactif'}
+                </span>
+              </td>
+              <td>
+                <div className="admin-actions">
+                  <button className="admin-action-btn edit" onClick={() => handleEdit(item)}>
+                    Modifier
+                  </button>
+                  <button className="admin-action-btn delete" onClick={() => handleDelete(item.id || item._id, 'partners')}>
                     Supprimer
                   </button>
                 </div>
@@ -1360,7 +1508,7 @@ const AdminPanel = () => {
       </div>
 
       <div className="admin-tabs">
-        {['news', 'events', 'clubs', 'filieres', 'adei-members', 'feedbacks', 'users'].map(tab => (
+        {['news', 'events', 'clubs', 'filieres', 'partners', 'adei-members', 'feedbacks', 'users'].map(tab => (
           <button
             key={tab}
             onClick={() => {
@@ -1373,6 +1521,7 @@ const AdminPanel = () => {
              tab === 'events' ? 'Événements' :
              tab === 'clubs' ? 'Clubs' :
              tab === 'filieres' ? 'Filières' :
+             tab === 'partners' ? 'Partenaires' :
              tab === 'adei-members' ? 'Membres ADEI' :
              tab === 'feedbacks' ? 'Feedbacks' :
              'Utilisateurs'}
