@@ -136,7 +136,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftp
           local-dir: ./backend-deploy/
-          server-dir: ${{ secrets.FTP_BACKEND_DIR || '/home/adeiensa/api/' }}
+          server-dir: ${{ secrets.FTP_BACKEND_DIR || 'api/' }}
           dangerous-clean-slate: false
           exclude: |
             **/.git*
