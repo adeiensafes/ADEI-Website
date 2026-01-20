@@ -141,10 +141,9 @@ const Home = () => {
           <section className={`section ${pageReady ? 'slide-up' : ''}`} style={{ marginTop: 'var(--spacing-3xl)', animationDelay: '0.6s' }}>
             <div className="card text-center highlight-card">
               <h2 className="text-primary">Rejoignez l'ADEI</h2>
-              <p style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--spacing-xl)' }}>
-                Participez à la vie étudiante, développez vos compétences et créez des liens durables 
-                avec vos pairs. L'ADEI vous offre de nombreuses opportunités de croissance personnelle 
-                et professionnelle.
+              <p style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--spacing-xl)' }}>Rejoignez l’ADEI et devenez un acteur de la vie étudiante.
+En tant que membre, vous participez aux décisions, proposez des initiatives
+et contribuez activement à l’évolution de votre école et de votre communauté.
               </p>
               <div style={{ 
                 display: 'flex', 
@@ -152,11 +151,11 @@ const Home = () => {
                 justifyContent: 'center', 
                 flexWrap: 'wrap' 
               }}>
-                <a href="/clubs" className="btn">
-                  Découvrir nos clubs
+                <a href="https://forms.gle/UFx4SFxH9uxJAosN9" className="btn">
+                  Devenir membre
                 </a>
-                <a href="/feedbacks" className="btn secondary">
-                  Nous contacter
+                <a href="/adei" className="btn secondary">
+                  Découvrir l’ADEI
                 </a>
               </div>
             </div>

@@ -13,10 +13,12 @@ export const API_ENDPOINTS = {
   CLUBS: `${API_BASE_URL}/api/clubs`,
   FILIERES: `${API_BASE_URL}/api/filieres`,
   ADEI_MEMBERS: `${API_BASE_URL}/api/adei-members`,
+  PARTNERS: `${API_BASE_URL}/api/partners`,
   
   // User interactions
   CONTACT: `${API_BASE_URL}/api/contact`,
   FEEDBACKS: `${API_BASE_URL}/api/feedbacks`,
+  FEEDBACKS_PUBLIC: `${API_BASE_URL}/api/feedbacks/public`,
   MESSAGES: `${API_BASE_URL}/api/messages`,
 };
 

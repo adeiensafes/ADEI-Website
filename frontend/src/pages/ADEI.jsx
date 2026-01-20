@@ -27,13 +27,12 @@ const ADEI = () => {
       {
         title: "Gouvernance",
         content: "L'ADEI est dirigée par un bureau exécutif élu démocratiquement par les étudiants. Notre structure organisationnelle favorise la participation active de tous les membres et assure une représentation équitable de toutes les filières."
-      },
-      {
-        title: "Partenariats",
-        content: "Nous entretenons des relations privilégiées avec l'administration de l'ENSAF, les entreprises partenaires et d'autres associations étudiantes. Ces partenariats nous permettent d'offrir des opportunités uniques à nos membres."
       }
     ]
   });
+
+  // Partners data
+  const [partners, setPartners] = useState([]);
 
   const [members, setMembers] = useState([]);
 
@@ -57,6 +56,7 @@ const ADEI = () => {
   useEffect(() => {
     const timer = setTimeout(() => setPageReady(true), 200);
     fetchMembers();
+    fetchPartners();
     return () => clearTimeout(timer);
   }, []);
 
@@ -73,6 +73,17 @@ const ADEI = () => {
     } catch (error) {
       console.error('Error fetching ADEI members:', error);
       setMembers([]);
+    }
+  };
+
+  const fetchPartners = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.PARTNERS);
+      const data = await response.json();
+      setPartners(data);
+    } catch (error) {
+      console.error('Error fetching partners:', error);
+      setPartners([]);
     }
   };
 
@@ -291,6 +302,116 @@ const ADEI = () => {
     });
   };
 
+  const renderPartnerCard = (partner) => {
+    const logoUrl = getImageUrl(partner.logo) || '/images/ADEI.png';
+
+    return (
+      <motion.div
+        key={partner.id}
+        variants={itemVariants}
+        whileHover={{
+          y: -5,
+          scale: 1.02,
+          transition: { duration: 0.3 }
+        }}
+        className="partner-card"
+        style={{
+          background: 'var(--card-bg)',
+          borderRadius: 'var(--radius-lg)',
+          padding: 'var(--spacing-lg)',
+          textAlign: 'center',
+          boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+          border: '1px solid var(--card-border)',
+          transition: 'all 0.3s ease',
+          cursor: partner.website ? 'pointer' : 'default',
+          minHeight: '200px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between'
+        }}
+        onClick={() => {
+          if (partner.website) {
+            window.open(partner.website, '_blank', 'noopener,noreferrer');
+          }
+        }}
+      >
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          flex: 1
+        }}>
+          <div style={{
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            margin: '0 auto var(--spacing-md) auto',
+            border: '2px solid var(--primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'var(--bg-secondary)'
+          }}>
+            <img
+              src={logoUrl}
+              alt={partner.name}
+              style={{
+                width: '60px',
+                height: '60px',
+                objectFit: 'contain',
+                transition: 'transform 0.3s ease'
+              }}
+              onError={(e) => {
+                e.target.src = '/images/ADEI.png';
+              }}
+            />
+          </div>
+
+          <h3 style={{
+            margin: '0 0 var(--spacing-sm) 0',
+            fontSize: 'var(--font-size-md)',
+            fontWeight: 'bold',
+            color: 'var(--text-primary)',
+            textAlign: 'center',
+            lineHeight: '1.3'
+          }}>
+            {partner.name}
+          </h3>
+
+          <p style={{
+            margin: '0',
+            fontSize: 'var(--font-size-sm)',
+            color: 'var(--text-muted)',
+            textAlign: 'center',
+            lineHeight: '1.4'
+          }}>
+            {partner.description}
+          </p>
+        </div>
+
+        {partner.website && (
+          <div style={{ marginTop: 'var(--spacing-md)' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 'var(--spacing-xs)',
+                color: 'var(--primary)',
+                fontSize: 'var(--font-size-sm)',
+                fontWeight: '600',
+                textDecoration: 'none',
+                transition: 'color 0.3s ease'
+              }}
+            >
+              🔗 Visiter le site
+            </div>
+          </div>
+        )}
+      </motion.div>
+    );
+  };
+
   return (
     <div className={`page-container ${pageReady ? 'fade-in' : ''}`}>
       <>
@@ -328,10 +449,48 @@ const ADEI = () => {
             ))}
           </div>
 
+          {/* Partners Section */}
+          <div className={`partners-section ${pageReady ? 'fade-in' : ''}`} style={{ 
+            marginTop: 'var(--spacing-3xl)',
+            animationDelay: '0.6s'
+          }}>
+            <div className="section-header" style={{
+              textAlign: 'center',
+              marginBottom: 'var(--spacing-2xl)'
+            }}>
+              <h2 className="text-primary" style={{ margin: '0 0 var(--spacing-md) 0' }}>Nos Partenaires</h2>
+              <p style={{ 
+                color: 'var(--text-muted)', 
+                fontSize: 'var(--font-size-lg)',
+                maxWidth: '600px',
+                margin: '0 auto'
+              }}>
+                Nous entretenons des relations privilégiées avec l'administration de l'ENSAF, 
+                les entreprises partenaires et d'autres associations étudiantes.
+              </p>
+            </div>
+
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: 'var(--spacing-xl)',
+                maxWidth: '1200px',
+                margin: '0 auto'
+              }}
+            >
+              {partners.map(partner => renderPartnerCard(partner))}
+            </motion.div>
+          </div>
+
           {/* Members Section */}
           <div className={`members-section ${pageReady ? 'fade-in' : ''}`} style={{ 
             marginTop: 'var(--spacing-3xl)',
-            animationDelay: '0.7s'
+            animationDelay: '0.8s'
           }}>
             <div className="section-header" style={{
               display: 'flex',

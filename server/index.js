@@ -19,6 +19,7 @@ const Club = require('./models/Club');
 const Feedback = require('./models/Feedback');
 const ADEIMember = require('./models/ADEIMember');
 const Filiere = require('./models/Filiere');
+const Partner = require('./models/Partner');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -491,6 +492,20 @@ app.delete('/api/clubs/:id', authMiddleware, adminMiddleware, async (req, res) =
 });
 
 // Routes Feedbacks
+// Public endpoint to get all feedbacks (for display on feedbacks page)
+app.get('/api/feedbacks/public', async (req, res) => {
+  try {
+    const feedbacks = await Feedback.findAll({ 
+      order: [['createdAt', 'DESC']],
+      attributes: ['id', 'name', 'type', 'message', 'createdAt'] // Exclude email for privacy
+    });
+    res.json(feedbacks);
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur lors de la récupération des feedbacks' });
+  }
+});
+
+// Admin endpoint to get all feedbacks (with full details)
 app.get('/api/feedbacks', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const feedbacks = await Feedback.findAll({ order: [['createdAt', 'DESC']] });
@@ -752,6 +767,93 @@ app.delete('/api/filieres/:id', authMiddleware, adminMiddleware, async (req, res
   } catch (error) {
     console.error('Erreur suppression filière:', error);
     res.status(500).json({ message: 'Erreur lors de la suppression de la filière' });
+  }
+});
+
+// Routes Partners
+app.get('/api/partners', async (req, res) => {
+  try {
+    const partners = await Partner.findAll({ 
+      where: { isActive: true },
+      order: [['order_display', 'ASC'], ['name', 'ASC']] 
+    });
+    res.json(partners);
+  } catch (error) {
+    console.error('Error fetching partners:', error);
+    res.status(500).json({ message: 'Erreur lors de la récupération des partenaires' });
+  }
+});
+
+app.post('/api/partners', authMiddleware, adminMiddleware, upload.single('logo'), async (req, res) => {
+  try {
+    const partnerData = { ...req.body };
+    if (req.file) {
+      partnerData.logo = `/uploads/${req.file.filename}`;
+    }
+
+    const partner = await Partner.create(partnerData);
+    res.status(201).json({ 
+      success: true, 
+      message: 'Partenaire créé avec succès!', 
+      partner: partner 
+    });
+  } catch (error) {
+    console.error('Erreur création partenaire:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur lors de la création du partenaire - Veuillez réessayer' 
+    });
+  }
+});
+
+app.put('/api/partners/:id', authMiddleware, adminMiddleware, upload.single('logo'), async (req, res) => {
+  try {
+    const partnerData = { ...req.body };
+    if (req.file) {
+      partnerData.logo = `/uploads/${req.file.filename}`;
+    }
+
+    const [updated] = await Partner.update(partnerData, { where: { id: req.params.id } });
+    if (updated) {
+      const partner = await Partner.findByPk(req.params.id);
+      res.json({ 
+        success: true, 
+        message: 'Partenaire modifié avec succès!', 
+        partner: partner 
+      });
+    } else {
+      res.status(404).json({ 
+        success: false, 
+        message: 'Partenaire non trouvé - Impossible de modifier ce partenaire' 
+      });
+    }
+  } catch (error) {
+    console.error('Erreur mise à jour partenaire:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur lors de la mise à jour du partenaire - Veuillez réessayer' 
+    });
+  }
+});
+
+app.delete('/api/partners/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const partner = await Partner.findByPk(req.params.id);
+    if (partner && partner.logo && partner.logo !== '/images/default.jpg') {
+      const logoPath = path.join(__dirname, partner.logo);
+      if (fs.existsSync(logoPath)) {
+        fs.unlinkSync(logoPath);
+      }
+    }
+    const deleted = await Partner.destroy({ where: { id: req.params.id } });
+    if (deleted) {
+      res.json({ success: true, message: 'Partenaire supprimé' });
+    } else {
+      res.status(404).json({ message: 'Partenaire non trouvé' });
+    }
+  } catch (error) {
+    console.error('Erreur suppression partenaire:', error);
+    res.status(500).json({ message: 'Erreur lors de la suppression du partenaire' });
   }
 });
 

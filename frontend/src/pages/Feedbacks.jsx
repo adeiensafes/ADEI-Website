@@ -1,16 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Typewriter from '../components/ui/Typewriter';
 import { API_ENDPOINTS } from '../config/api';
+import { AuthContext } from '../AuthContext';
 
 const Feedbacks = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', type: 'avis', message: '' });
+  const { user, token } = useContext(AuthContext);
+  const [formData, setFormData] = useState({ name: '', type: 'avis', message: '' });
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [pageReady, setPageReady] = useState(false);
+  const [existingFeedbacks, setExistingFeedbacks] = useState([]);
+  const [feedbacksLoading, setFeedbacksLoading] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => setPageReady(true), 200);
     return () => clearTimeout(timer);
+  }, []);
+
+  // Set default name from user when user is available
+  useEffect(() => {
+    if (user && user.username) {
+      setFormData(prev => ({ ...prev, name: user.username }));
+    }
+  }, [user]);
+
+  // Fetch existing feedbacks
+  useEffect(() => {
+    const fetchFeedbacks = async () => {
+      try {
+        const response = await fetch(API_ENDPOINTS.FEEDBACKS_PUBLIC);
+        if (response.ok) {
+          const data = await response.json();
+          setExistingFeedbacks(data);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des feedbacks:', error);
+      } finally {
+        setFeedbacksLoading(false);
+      }
+    };
+
+    fetchFeedbacks();
   }, []);
 
   const handleChange = (e) => {
@@ -23,20 +53,65 @@ const Feedbacks = () => {
     setLoading(true);
 
     try {
+      // Add user email from context for backend processing
+      const submitData = {
+        ...formData,
+        email: user.email // Include email for backend but don't show in form
+      };
+
       const res = await fetch(API_ENDPOINTS.FEEDBACKS, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(submitData),
       });
       const data = await res.json();
       setSuccess(data.message);
-      setFormData({ name: '', email: '', type: 'avis', message: '' });
+      setFormData({ name: user.username, type: 'avis', message: '' }); // Reset but keep username
       setTimeout(() => setSuccess(''), 5001);
+      
+      // Refresh feedbacks after successful submission
+      const refreshResponse = await fetch(API_ENDPOINTS.FEEDBACKS_PUBLIC);
+      if (refreshResponse.ok) {
+        const refreshData = await refreshResponse.json();
+        setExistingFeedbacks(refreshData);
+      }
     } catch (error) {
       setSuccess("Une erreur s'est produite. Veuillez réessayer.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getTypeLabel = (type) => {
+    const types = {
+      'avis': 'Avis',
+      'recommandation': 'Recommandation',
+      'autre': 'Autre'
+    };
+    return types[type] || type;
+  };
+
+  const getTypeColor = (type) => {
+    const colors = {
+      'avis': '#4CAF50',
+      'recommandation': '#2196F3',
+      'autre': '#FF9800'
+    };
+    return colors[type] || '#757575';
   };
 
   return (
@@ -66,12 +141,99 @@ const Feedbacks = () => {
       </div>
 
       <div className={`content ${pageReady ? 'fade-in' : ''}`} style={{ animationDelay: '0.2s' }}>
-        <div style={{
-          display: 'grid',
-          gap: 'var(--spacing-3xl)',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))'
-        }}>
-          <div className={`card ${pageReady ? 'zoom-in' : ''}`} style={{ animationDelay: '0.3s' }}>
+        
+        {/* Existing Feedbacks Section */}
+        <div className={`card ${pageReady ? 'zoom-in' : ''}`} style={{ animationDelay: '0.3s', marginBottom: 'var(--spacing-3xl)' }}>
+          <h2 className="text-primary mt-0">Feedbacks de la Communauté</h2>
+          
+          {feedbacksLoading ? (
+            <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}>
+              <div className="spinner" style={{ width: '32px', height: '32px', margin: '0 auto' }}></div>
+              <p style={{ marginTop: 'var(--spacing-md)' }}>Chargement des feedbacks...</p>
+            </div>
+          ) : existingFeedbacks.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)', color: 'var(--text-muted)' }}>
+              <p>Aucun feedback pour le moment. Soyez le premier à partager votre avis !</p>
+            </div>
+          ) : (
+            <div style={{ 
+              display: 'grid', 
+              gap: 'var(--spacing-lg)',
+              maxHeight: '600px',
+              overflowY: 'auto',
+              padding: 'var(--spacing-sm)'
+            }}>
+              {existingFeedbacks.map((feedback) => (
+                <div 
+                  key={feedback.id} 
+                  style={{
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--border-radius)',
+                    padding: 'var(--spacing-lg)',
+                    backgroundColor: 'var(--card-bg)',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'flex-start',
+                    marginBottom: 'var(--spacing-md)',
+                    flexWrap: 'wrap',
+                    gap: 'var(--spacing-sm)'
+                  }}>
+                    <div>
+                      <h4 style={{ margin: 0, color: 'var(--text-primary)' }}>
+                        {feedback.name}
+                      </h4>
+                      <span 
+                        style={{
+                          display: 'inline-block',
+                          padding: '4px 8px',
+                          borderRadius: '12px',
+                          fontSize: '0.8rem',
+                          fontWeight: '500',
+                          color: 'white',
+                          backgroundColor: getTypeColor(feedback.type),
+                          marginTop: 'var(--spacing-xs)'
+                        }}
+                      >
+                        {getTypeLabel(feedback.type)}
+                      </span>
+                    </div>
+                    <span style={{ 
+                      fontSize: '0.9rem', 
+                      color: 'var(--text-muted)',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {formatDate(feedback.createdAt)}
+                    </span>
+                  </div>
+                  <p style={{ 
+                    margin: 0, 
+                    lineHeight: '1.6',
+                    color: 'var(--text-secondary)'
+                  }}>
+                    {feedback.message}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Conseil Section - Above the form */}
+        <div className={`card ${pageReady ? 'zoom-in' : ''}`} style={{ animationDelay: '0.4s', marginBottom: 'var(--spacing-3xl)' }}>
+          <h2 className="text-primary mt-0">💡 Conseil</h2>
+          <p>
+            Votre feedback est précieux pour nous ! N'hésitez pas à partager vos avis,
+            recommandations ou toute autre suggestion pour améliorer nos services.
+          </p>
+        </div>
+
+        {/* Feedback Form - Only for logged in users */}
+        {user ? (
+          <div className={`card ${pageReady ? 'zoom-in' : ''}`} style={{ animationDelay: '0.5s', marginBottom: 'var(--spacing-3xl)' }}>
             <h2 className="text-primary mt-0">Envoyez-nous votre feedback</h2>
 
             {success && (
@@ -83,7 +245,7 @@ const Feedbacks = () => {
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label htmlFor="name" className="form-label">
-                  Nom complet
+                  Nom d'utilisateur
                 </label>
                 <input
                   id="name"
@@ -92,24 +254,9 @@ const Feedbacks = () => {
                   value={formData.name}
                   onChange={handleChange}
                   className="form-input"
-                  placeholder="Votre nom et prénom"
+                  placeholder="Votre nom d'utilisateur"
                   required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="email" className="form-label">
-                  Adresse email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="form-input"
-                  placeholder="votre.email@exemple.com"
-                  required
+                  readOnly
                 />
               </div>
 
@@ -164,80 +311,40 @@ const Feedbacks = () => {
               </button>
             </form>
           </div>
-
-          <div className={`card ${pageReady ? 'zoom-in' : ''}`} style={{ animationDelay: '0.4s' }}>
-            <h2 className="text-primary mt-0">Informations de contact</h2>
-
-            <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-              <h3>📍 Adresse</h3>
-              <p>
-                École Nationale des Sciences Appliquées de Fès<br />
-                Université Sidi Mohamed Ben Abdellah<br />
-                Route d'Imouzzer, BP 72<br />
-                30000 Fès, Maroc
-              </p>
-            </div>
-
-            <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-              <h3>📞 Téléphone</h3>
-              <p>
-                <a href="tel:+212600000000" className="text-primary">
-                  +212 600 000 000
-                </a>
-              </p>
-            </div>
-
-            <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-              <h3>📧 Email</h3>
-              <p>
-                <a href="mailto:contact@adei.org" className="text-primary">
-                  contact@adei.org
-                </a>
-              </p>
-            </div>
-
-            <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-              <h3>🕐 Horaires</h3>
-              <p>
-                <strong>Lundi - Vendredi :</strong> 8h00 - 18h00<br />
-                <strong>Samedi :</strong> 9h00 - 13h00<br />
-                <strong>Dimanche :</strong> Fermé
-              </p>
-            </div>
-
-            <div className="info-card">
-              <h4>💡 Conseil</h4>
-              <p>
-                Votre feedback est précieux pour nous ! N'hésitez pas à partager vos avis,
-                recommandations ou toute autre suggestion pour améliorer nos services.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className={`card text-center highlight-card ${pageReady ? 'slide-up' : ''}`} style={{
-          marginTop: 'var(--spacing-3xl)',
-          animationDelay: '0.5s'
-        }}>
-          <h2 className="text-primary">Vous êtes étudiant à l'ENSAF ?</h2>
-          <p style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--spacing-xl)' }}>
-            Découvrez comment vous pouvez vous impliquer dans la vie associative
-            et profiter de toutes les opportunités qu'offre l'ADEI.
-          </p>
-          <div style={{
-            display: 'flex',
-            gap: 'var(--spacing-md)',
-            justifyContent: 'center',
-            flexWrap: 'wrap'
-          }}>
-            <a href="/clubs" className="btn">
-              Rejoindre un club
-            </a>
-            <a href="/events" className="btn secondary">
-              Voir les événements
+        ) : (
+          /* Login prompt for non-authenticated users */
+          <div className={`card text-center ${pageReady ? 'zoom-in' : ''}`} style={{ animationDelay: '0.5s', marginBottom: 'var(--spacing-3xl)' }}>
+            <h2 className="text-primary">Connectez-vous pour partager votre feedback</h2>
+            <p style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--spacing-xl)', color: 'var(--text-muted)' }}>
+              Vous devez être connecté pour pouvoir soumettre un feedback.
+            </p>
+            <a href="/login" className="btn">
+              Se connecter
             </a>
           </div>
-        </div>
+        )}
+        <section className={`section ${pageReady ? 'slide-up' : ''}`} style={{ marginTop: 'var(--spacing-3xl)', animationDelay: '0.6s' }}>
+            <div className="card text-center highlight-card">
+              <h2 className="text-primary">Rejoignez l'ADEI</h2>
+              <p style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--spacing-xl)' }}>Rejoignez l’ADEI et devenez un acteur de la vie étudiante.
+En tant que membre, vous participez aux décisions, proposez des initiatives
+et contribuez activement à l’évolution de votre école et de votre communauté.
+              </p>
+              <div style={{ 
+                display: 'flex', 
+                gap: 'var(--spacing-md)', 
+                justifyContent: 'center', 
+                flexWrap: 'wrap' 
+              }}>
+                <a href="https://forms.gle/UFx4SFxH9uxJAosN9" className="btn">
+                  Devenir membre
+                </a>
+                <a href="/adei" className="btn secondary">
+                  Découvrir l’ADEI
+                </a>
+              </div>
+            </div>
+          </section>
       </div>
     </div>
   );
