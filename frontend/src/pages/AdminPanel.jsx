@@ -6,7 +6,7 @@ import { API_ENDPOINTS, getApiUrl, getImageUrl } from '../config/api';
 import '../styles/admin-panel.css';
 
 const AdminPanel = () => {
-  const { token } = useContext(AuthContext);
+  const { token, user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('news');
   const [loading, setLoading] = useState(false);
@@ -35,6 +35,19 @@ const AdminPanel = () => {
       navigate('/login');
       return;
     }
+    
+    // Attendre que user soit chargé avant de vérifier le rôle
+    // Si user est null mais qu'on a un token, on attend qu'il se charge
+    if (user === null) {
+      return; // Attendre que AuthContext charge les données utilisateur
+    }
+    
+    // Vérifier si l'utilisateur est admin
+    if (user.role !== 'admin') {
+      navigate('/');
+      return;
+    }
+    
     fetchData();
     setTimeout(() => setPageReady(true), 100);
     
@@ -42,7 +55,7 @@ const AdminPanel = () => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [token, navigate]);
+  }, [token, user, navigate]);
 
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type });
@@ -142,7 +155,64 @@ const AdminPanel = () => {
 
   const handleAdd = () => {
     setEditingItem(null);
-    setFormData({});
+    
+    // Initialiser formData avec des valeurs par défaut selon le type
+    let initialData = {};
+    
+    if (activeTab === 'clubs') {
+      initialData = {
+        club: '',
+        president: '',
+        annees_etude: '',
+        tel: '',
+        email: '',
+        website: '',
+        description: '',
+        activities: [],
+        achievements: [],
+        members: [],
+        meetings: '',
+        socialMedia: { facebook: '', instagram: '', linkedin: '' },
+        observations: ''
+      };
+    } else if (activeTab === 'filieres') {
+      initialData = {
+        name: '',
+        abbreviation: '',
+        type: 'filiere',
+        responsable: '',
+        years: [],
+        documentation: '',
+        drive: '',
+        RespoContact: '',
+        description: '',
+        order_display: 0,
+        isActive: true
+      };
+    } else if (activeTab === 'partners') {
+      initialData = {
+        name: '',
+        website: '',
+        description: '',
+        order_display: 0,
+        isActive: true
+      };
+    } else if (activeTab === 'adei-members') {
+      initialData = {
+        name: '',
+        role: '',
+        email: ''
+      };
+    } else if (activeTab === 'users') {
+      initialData = {
+        username: '',
+        email: '',
+        password: '',
+        role: 'user'
+      };
+    }
+    
+    setFormData(initialData);
     setImageFile(null);
     setShowModal(true);
     // Empêcher le scroll de la page en arrière-plan
@@ -151,7 +221,55 @@ const AdminPanel = () => {
 
   const handleEdit = (item) => {
     setEditingItem(item);
-    setFormData(item);
+    
+    // Préparer les données pour l'édition en s'assurant que les champs JSON sont des tableaux/objets
+    const preparedData = { ...item };
+    
+    // S'assurer que members est un tableau
+    if (typeof preparedData.members === 'string') {
+      try {
+        preparedData.members = JSON.parse(preparedData.members);
+      } catch (e) {
+        preparedData.members = [];
+      }
+    } else if (!Array.isArray(preparedData.members)) {
+      preparedData.members = [];
+    }
+    
+    // S'assurer que activities est un tableau
+    if (typeof preparedData.activities === 'string') {
+      try {
+        preparedData.activities = JSON.parse(preparedData.activities);
+      } catch (e) {
+        preparedData.activities = [];
+      }
+    } else if (!Array.isArray(preparedData.activities)) {
+      preparedData.activities = [];
+    }
+    
+    // S'assurer que achievements est un tableau
+    if (typeof preparedData.achievements === 'string') {
+      try {
+        preparedData.achievements = JSON.parse(preparedData.achievements);
+      } catch (e) {
+        preparedData.achievements = [];
+      }
+    } else if (!Array.isArray(preparedData.achievements)) {
+      preparedData.achievements = [];
+    }
+    
+    // S'assurer que socialMedia est un objet
+    if (typeof preparedData.socialMedia === 'string') {
+      try {
+        preparedData.socialMedia = JSON.parse(preparedData.socialMedia);
+      } catch (e) {
+        preparedData.socialMedia = { facebook: '', instagram: '', linkedin: '' };
+      }
+    } else if (!preparedData.socialMedia || typeof preparedData.socialMedia !== 'object') {
+      preparedData.socialMedia = { facebook: '', instagram: '', linkedin: '' };
+    }
+    
+    setFormData(preparedData);
     setImageFile(null);
     setShowModal(true);
     // Empêcher le scroll de la page en arrière-plan
@@ -587,7 +705,7 @@ const AdminPanel = () => {
               <div className="form-group">
                 <label className="form-label">Membres du club</label>
                 <div className="members-manager">
-                  {(formData.members || []).map((member, index) => (
+                  {Array.isArray(formData.members) ? formData.members.map((member, index) => (
                     <div key={index} className="member-item">
                       <div className="form-grid three-cols">
                         <input
@@ -596,7 +714,8 @@ const AdminPanel = () => {
                           placeholder="Nom du membre"
                           value={member.name || ''}
                           onChange={(e) => {
-                            const newMembers = [...(formData.members || [])];
+                            const currentMembers = Array.isArray(formData.members) ? formData.members : [];
+                            const newMembers = [...currentMembers];
                             newMembers[index] = { ...member, name: e.target.value };
                             setFormData({ ...formData, members: newMembers });
                           }}
@@ -607,7 +726,8 @@ const AdminPanel = () => {
                           placeholder="Rôle"
                           value={member.role || ''}
                           onChange={(e) => {
-                            const newMembers = [...(formData.members || [])];
+                            const currentMembers = Array.isArray(formData.members) ? formData.members : [];
+                            const newMembers = [...currentMembers];
                             newMembers[index] = { ...member, role: e.target.value };
                             setFormData({ ...formData, members: newMembers });
                           }}
@@ -619,7 +739,8 @@ const AdminPanel = () => {
                             placeholder="Année"
                             value={member.year || ''}
                             onChange={(e) => {
-                              const newMembers = [...(formData.members || [])];
+                              const currentMembers = Array.isArray(formData.members) ? formData.members : [];
+                              const newMembers = [...currentMembers];
                               newMembers[index] = { ...member, year: e.target.value };
                               setFormData({ ...formData, members: newMembers });
                             }}
@@ -628,7 +749,8 @@ const AdminPanel = () => {
                             type="button"
                             className="remove-member-btn"
                             onClick={() => {
-                              const newMembers = formData.members.filter((_, i) => i !== index);
+                              const currentMembers = Array.isArray(formData.members) ? formData.members : [];
+                              const newMembers = currentMembers.filter((_, i) => i !== index);
                               setFormData({ ...formData, members: newMembers });
                             }}
                           >
@@ -637,12 +759,13 @@ const AdminPanel = () => {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  )) : null}
                   <button
                     type="button"
                     className="add-member-btn"
                     onClick={() => {
-                      const newMembers = [...(formData.members || []), { name: '', role: '', year: '' }];
+                      const currentMembers = Array.isArray(formData.members) ? formData.members : [];
+                      const newMembers = [...currentMembers, { name: '', role: '', year: '' }];
                       setFormData({ ...formData, members: newMembers });
                     }}
                   >
@@ -1466,7 +1589,7 @@ const AdminPanel = () => {
     );
   };
 
-  if (loading) {
+  if (loading || user === null) {
     return (
       <div className="loading-spinner">
         <div className="spinner"></div>

@@ -305,28 +305,30 @@
 
 .modal-overlay {
   position: fixed;
-  top: 0;
+  top: 80px;
   left: 0;
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.85);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  z-index: 9999;
-  padding: var(--spacing-xl);
+  z-index: 99999;
+  padding: var(--spacing-2xl);
   backdrop-filter: blur(10px);
+  overflow-y: auto;
 }
 
 .modal-container {
   background: var(--black-card);
   border-radius: var(--radius-xl);
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
+  max-width: 900px;
+  width: 90%;
+  max-height: 70vh;
   overflow-y: auto;
   box-shadow: var(--shadow-xl), var(--shadow-red);
   border: 1px solid var(--gray-800);
+  margin-top: var(--spacing-xl);
 }
 
 .modal-header {
@@ -366,7 +368,7 @@
 }
 
 .modal-body {
-  padding: var(--spacing-2xl);
+  padding: var(--spacing-xl);
   background: var(--black-hover);
 }
 
@@ -1235,10 +1237,13 @@
 
 /* Modal Container Improvements */
 .modal-container {
-  max-height: 90vh;
+  max-width: 900px;
+  width: 90%;
+  max-height: 70vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  margin-top: var(--spacing-xl);
 }
 
 /* Modal Header - Fixed */
@@ -1255,8 +1260,8 @@
 .modal-body {
   flex: 1;
   overflow-y: auto;
-  max-height: calc(90vh - 120px); /* Adjust based on header and footer height */
-  padding: var(--spacing-2xl);
+  max-height: calc(70vh - 120px); /* Adjust based on header and footer height */
+  padding: var(--spacing-xl);
   background: var(--black-hover);
 }
 
@@ -1382,14 +1387,21 @@
 
 /* Responsive Modal Improvements */
 @media (max-width: 768px) {
+  .modal-overlay {
+    top: 70px;
+    padding: var(--spacing-lg);
+  }
+  
   .modal-container {
-    max-height: 95vh;
-    margin: var(--spacing-md);
-    width: calc(100vw - 2 * var(--spacing-md));
+    max-height: 75vh;
+    margin: 0;
+    margin-top: var(--spacing-md);
+    width: 95%;
+    max-width: none;
   }
   
   .modal-body {
-    max-height: calc(95vh - 140px);
+    max-height: calc(75vh - 120px);
     padding: var(--spacing-lg);
   }
   
@@ -1491,4 +1503,153 @@
   border-radius: 50%;
   animation: spin 1s linear infinite;
   color: white;
+}
+
+/* ========================================
+   MODAL STYLES FOR CLUBS PAGE
+   ======================================== */
+
+/* Club Modal Overlay */
+.club-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: var(--spacing-2xl);
+  backdrop-filter: blur(10px);
+  overflow-y: auto;
+}
+
+/* Club Modal Container */
+.club-modal-container {
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  max-width: 900px;
+  width: 90%;
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Club Modal Header */
+.club-modal-header {
+  padding: var(--spacing-xl);
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  background: var(--card-bg);
+}
+
+.club-modal-header h2 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.club-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: var(--spacing-xs);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.club-modal-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Club Modal Body */
+.club-modal-body {
+  padding: var(--spacing-xl);
+  max-height: calc(85vh - 140px);
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Club Modal Footer */
+.club-modal-footer {
+  padding: var(--spacing-xl);
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--card-bg);
+}
+
+/* Responsive Styles for Club Modal */
+@media (max-width: 768px) {
+  .club-modal-overlay {
+    padding: var(--spacing-lg);
+  }
+  
+  .club-modal-container {
+    max-height: 90vh;
+    width: 95%;
+    max-width: none;
+  }
+  
+  .club-modal-body {
+    max-height: calc(90vh - 120px);
+    padding: var(--spacing-lg);
+  }
+  
+  .club-modal-header,
+  .club-modal-footer {
+    padding: var(--spacing-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .club-modal-overlay {
+    padding: var(--spacing-md);
+  }
+  
+  .club-modal-container {
+    max-height: 95vh;
+    width: 98%;
+  }
+  
+  .club-modal-body {
+    max-height: calc(95vh - 120px);
+    padding: var(--spacing-md);
+  }
+  
+  .club-modal-header,
+  .club-modal-footer {
+    padding: var(--spacing-md);
+  }
+}
+
+/* Light Theme Styles for Club Modal */
+[data-theme="light"] .club-modal-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] .club-modal-container {
+  background: var(--card-bg);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .club-modal-header,
+[data-theme="light"] .club-modal-footer {
+  background: var(--card-bg);
+  border-color: var(--card-border);
+}
+
+[data-theme="light"] .club-modal-close:hover {
+  background: var(--bg-hover);
 }

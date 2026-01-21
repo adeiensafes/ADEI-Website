@@ -162,14 +162,16 @@ const ModernNavbar = () => {
             <div className={`modern-auth-menu ${isAuthDropdownOpen ? 'open' : ''}`}>
               {token ? (
                 <>
-                  <Link
-                    to="/admin"
-                    className="modern-auth-item"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <NavIcons.Admin />
-                    <span>Panneau Admin</span>
-                  </Link>
+                  {user?.role === 'admin' && (
+                    <Link
+                      to="/admin"
+                      className="modern-auth-item"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <NavIcons.Admin />
+                      <span>Panneau Admin</span>
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="modern-auth-item logout"

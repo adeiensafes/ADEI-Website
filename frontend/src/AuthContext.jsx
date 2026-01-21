@@ -92,32 +92,6 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const register = useCallback(async (username, password) => {
-    try {
-      const response = await fetch(API_ENDPOINTS.REGISTER, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        if (data.token) {
-          setToken(data.token);
-          setUser({ username });
-          setLastActivity(Date.now());
-          localStorage.setItem('token', data.token);
-        }
-        return { success: true, message: data.message };
-      } else {
-        return { success: false, message: data.message };
-      }
-    } catch (error) {
-      return { success: false, message: 'Erreur lors de la création du compte' };
-    }
-  }, []);
-
   const logout = useCallback(async () => {
     try {
       if (token) {
@@ -159,7 +133,6 @@ export const AuthProvider = ({ children }) => {
       token,
       user,
       login,
-      register,
       logout,
       fetchMessages
     }}>

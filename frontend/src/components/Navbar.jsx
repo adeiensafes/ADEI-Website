@@ -149,14 +149,16 @@ const Navbar = () => {
             <div className={`auth-dropdown-menu ${isAuthDropdownOpen ? 'open' : ''}`}>
               {token ? (
                 <>
-                  <Link
-                    to="/admin"
-                    className="auth-dropdown-item"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <NavIcons.Admin />
-                    <span>Panneau Admin</span>
-                  </Link>
+                  {user?.role === 'admin' && (
+                    <Link
+                      to="/admin"
+                      className="auth-dropdown-item"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <NavIcons.Admin />
+                      <span>Panneau Admin</span>
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="auth-dropdown-item"

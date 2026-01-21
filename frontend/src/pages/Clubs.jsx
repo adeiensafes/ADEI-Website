@@ -63,6 +63,8 @@ const Clubs = () => {
     setShowModal(true);
     // Empêcher le scroll de la page en arrière-plan
     document.body.style.overflow = 'hidden';
+    // Scroll vers le haut pour s'assurer que le modal est visible
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const closeModal = () => {
@@ -114,104 +116,165 @@ const Clubs = () => {
               <div
                 key={club._id}
                 className={`club-card ${pageReady ? 'slide-up' : ''}`}
-                style={{ animationDelay: pageReady ? `${0.4 + index * 0.1}s` : '0s' }}
+                style={{ 
+                  animationDelay: pageReady ? `${0.4 + index * 0.1}s` : '0s',
+                  background: 'var(--card-bg)',
+                  borderRadius: 'var(--radius-xl)',
+                  padding: 'var(--spacing-xl)',
+                  border: '1px solid var(--card-border)',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%' // Assure que toutes les cartes ont la même hauteur
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-5px)';
+                  e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+                }}
               >
-                <div className="club-card-content" style={{ padding: 'var(--spacing-lg)' }}>
-                  {/* Contenu principal avec image à droite */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-lg)', marginBottom: 'var(--spacing-lg)' }}>
-                    <div className="club-card-content-wrapper" style={{ flex: 1 }}>
-                      <div className="club-card-info">
-                        <h2 className="club-card-title">{club.club}</h2>
+                {/* Contenu principal avec image à droite */}
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'flex-start', 
+                  gap: 'var(--spacing-lg)', 
+                  marginBottom: 'var(--spacing-lg)',
+                  flex: 1 // Prend l'espace disponible
+                }}>
+                  <div className="club-card-content-wrapper" style={{ flex: 1 }}>
+                    <div className="club-card-info">
+                      <h2 className="club-card-title" style={{
+                        color: 'var(--color-primary)',
+                        margin: 0,
+                        marginBottom: 'var(--spacing-md)',
+                        fontSize: 'var(--font-size-xl)',
+                        fontWeight: 'bold'
+                      }}>
+                        {club.club}
+                      </h2>
 
-                        <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-                          <p><strong>Président :</strong> {club.president}</p>
-                          <p><strong>Année d'étude :</strong> {club.annees_etude}</p>
-                        </div>
+                      <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+                        <p style={{ margin: '0 0 var(--spacing-xs) 0' }}>
+                          <strong>Président :</strong> {club.president}
+                        </p>
+                        <p style={{ margin: '0 0 var(--spacing-xs) 0' }}>
+                          <strong>Année d'étude :</strong> {club.annees_etude}
+                        </p>
+                      </div>
 
-                        <div style={{ marginBottom: 'var(--spacing-md)' }}>
-                          <p>
-                            <strong>Téléphone :</strong>{' '}
-                            <a href={`tel:${club.tel}`} className="text-primary">
-                              {club.tel}
+                      <div style={{ marginBottom: 'var(--spacing-md)' }}>
+                        <p style={{ margin: '0 0 var(--spacing-xs) 0' }}>
+                          <strong>Téléphone :</strong>{' '}
+                          <a href={`tel:${club.tel}`} className="text-primary">
+                            {club.tel}
+                          </a>
+                        </p>
+                        <p style={{ margin: '0 0 var(--spacing-xs) 0' }}>
+                          <strong>Email :</strong>{' '}
+                          <a href={`mailto:${club.email}`} className="text-primary">
+                            {club.email}
+                          </a>
+                        </p>
+                        {club.website && (
+                          <p style={{ margin: '0 0 var(--spacing-xs) 0' }}>
+                            <strong>Site web :</strong>{' '}
+                            <a
+                              href={club.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary"
+                            >
+                              Visiter le site
                             </a>
                           </p>
-                          <p>
-                            <strong>Email :</strong>{' '}
-                            <a href={`mailto:${club.email}`} className="text-primary">
-                              {club.email}
-                            </a>
-                          </p>
-                          {club.website && (
-                            <p>
-                              <strong>Site web :</strong>{' '}
-                              <a
-                                href={club.website}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary"
-                              >
-                                Visiter le site
-                              </a>
-                            </p>
-                          )}
-                        </div>
-
-                        {club.description && (
-                          <div style={{ marginBottom: 'var(--spacing-md)' }}>
-                            <p><strong>Description :</strong></p>
-                            <p style={{ 
-                              color: 'var(--text-muted)', 
-                              lineHeight: '1.5',
-                              display: '-webkit-box',
-                              WebkitLineClamp: 3,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden'
-                            }}>
-                              {club.description}
-                            </p>
-                          </div>
                         )}
                       </div>
-                    </div>
 
-                    {club.image && (
-                      <div className="club-profile-image" style={{ flexShrink: 0 }}>
-                        <img
-                          src={getImageUrl(club.image)}
-                          alt={club.club}
-                          style={{
-                            width: '120px',
-                            height: '120px',
-                            objectFit: 'cover',
-                            borderRadius: '50%',
-                            border: '3px solid var(--color-primary)',
-                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-                          }}
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
+                      {club.description && (
+                        <div style={{ marginBottom: 'var(--spacing-md)' }}>
+                          <p style={{ margin: '0 0 var(--spacing-xs) 0' }}>
+                            <strong>Description :</strong>
+                          </p>
+                          <p style={{ 
+                            color: 'var(--text-muted)', 
+                            lineHeight: '1.5',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            margin: 0
+                          }}>
+                            {club.description}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Observations si elles existent */}
-                  {club.observations && (
-                    <div className="info-card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-                      <h4>Observations</h4>
-                      <p>{club.observations}</p>
+                  {club.image && (
+                    <div className="club-profile-image" style={{ flexShrink: 0 }}>
+                      <img
+                        src={getImageUrl(club.image)}
+                        alt={club.club}
+                        style={{
+                          width: '120px',
+                          height: '120px',
+                          objectFit: 'cover',
+                          borderRadius: '50%',
+                          border: '3px solid var(--color-primary)',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                        }}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                        }}
+                      />
                     </div>
                   )}
+                </div>
 
-                  {/* Bouton "Voir les détails" en bas à droite */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <button 
-                      onClick={() => handleShowDetails(club)}
-                      className="btn"
-                    >
-                      Voir les détails
-                    </button>
+                {/* Observations si elles existent */}
+                {club.observations && (
+                  <div className="info-card" style={{ 
+                    marginBottom: 'var(--spacing-lg)',
+                    background: 'var(--bg-secondary)',
+                    padding: 'var(--spacing-md)',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px solid var(--card-border)'
+                  }}>
+                    <h4 style={{ 
+                      margin: '0 0 var(--spacing-xs) 0',
+                      color: 'var(--text-primary)',
+                      fontSize: 'var(--font-size-md)'
+                    }}>
+                      Observations
+                    </h4>
+                    <p style={{ margin: 0, color: 'var(--text-muted)' }}>
+                      {club.observations}
+                    </p>
                   </div>
+                )}
+
+                {/* Bouton "Voir les détails" centré en bas */}
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center',
+                  marginTop: 'auto' // Pousse le bouton vers le bas
+                }}>
+                  <button 
+                    onClick={() => handleShowDetails(club)}
+                    className="btn"
+                    style={{ 
+                      fontSize: 'var(--font-size-sm)',
+                      padding: 'var(--spacing-xs) var(--spacing-xl)',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Voir les détails
+                  </button>
                 </div>
               </div>
             ))}
@@ -228,73 +291,32 @@ const Clubs = () => {
       <AnimatePresence>
         {showModal && selectedClub && (
           <motion.div
-            className="modal-overlay"
+            className="club-modal-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeModal}
-            style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              zIndex: 9999,
-              padding: 'var(--spacing-lg)'
-            }}
           >
             <motion.div
-              className="modal-container"
+              className="club-modal-container"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              style={{
-                background: 'var(--card-bg)',
-                borderRadius: 'var(--radius-xl)',
-                maxWidth: '800px',
-                width: '100%',
-                maxHeight: '90vh',
-                overflow: 'hidden',
-                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)'
-              }}
             >
               {/* Header du modal */}
-              <div style={{
-                padding: 'var(--spacing-xl)',
-                borderBottom: '1px solid var(--card-border)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>
-                  {selectedClub.club}
-                </h2>
+              <div className="club-modal-header">
+                <h2>{selectedClub.club}</h2>
                 <button
                   onClick={closeModal}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '24px',
-                    cursor: 'pointer',
-                    color: 'var(--text-muted)',
-                    padding: 'var(--spacing-xs)'
-                  }}
+                  className="club-modal-close"
                 >
                   ×
                 </button>
               </div>
 
               {/* Contenu du modal */}
-              <div style={{
-                padding: 'var(--spacing-xl)',
-                maxHeight: 'calc(90vh - 140px)',
-                overflowY: 'auto'
-              }}>
+              <div className="club-modal-body">
                 <div style={{ display: 'flex', gap: 'var(--spacing-xl)', marginBottom: 'var(--spacing-xl)' }}>
                   {/* Informations principales */}
                   <div style={{ flex: 1 }}>
@@ -539,12 +561,7 @@ const Clubs = () => {
               </div>
 
               {/* Footer du modal */}
-              <div style={{
-                padding: 'var(--spacing-xl)',
-                borderTop: '1px solid var(--card-border)',
-                display: 'flex',
-                justifyContent: 'center'
-              }}>
+              <div className="club-modal-footer">
                 <button onClick={closeModal} className="btn secondary">
                   Fermer
                 </button>
