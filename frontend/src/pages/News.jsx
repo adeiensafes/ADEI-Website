@@ -34,13 +34,11 @@ const News = () => {
   const handleViewDetails = (article) => {
     setSelectedArticle(article);
     setShowModal(true);
-    document.body.style.overflow = 'hidden';
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedArticle(null);
-    document.body.style.overflow = 'unset';
   };
 
   const loadMoreArticles = () => {

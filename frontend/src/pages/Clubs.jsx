@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import Typewriter from '../components/ui/Typewriter';
 import { API_ENDPOINTS, getImageUrl } from '../config/api';
 
@@ -63,8 +64,6 @@ const Clubs = () => {
     setShowModal(true);
     // Empêcher le scroll de la page en arrière-plan
     document.body.style.overflow = 'hidden';
-    // Scroll vers le haut pour s'assurer que le modal est visible
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const closeModal = () => {
@@ -288,14 +287,27 @@ const Clubs = () => {
       </div>
 
       {/* Modal des détails du club */}
-      <AnimatePresence>
-        {showModal && selectedClub && (
+      {showModal && selectedClub && createPortal(
+        <AnimatePresence>
           <motion.div
             className="club-modal-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeModal}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 2147483647,
+              padding: '20px'
+            }}
           >
             <motion.div
               className="club-modal-container"
@@ -303,6 +315,16 @@ const Clubs = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
+              style={{
+                backgroundColor: 'var(--card-bg)',
+                borderRadius: 'var(--radius-lg)',
+                maxWidth: '900px',
+                width: '100%',
+                maxHeight: '90vh',
+                overflow: 'auto',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+                border: '1px solid var(--border-color)'
+              }}
             >
               {/* Header du modal */}
               <div className="club-modal-header">
@@ -568,8 +590,9 @@ const Clubs = () => {
               </div>
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 };

@@ -45,14 +45,12 @@ const NewsAndEvents = () => {
     setSelectedItem(item);
     setSelectedType(type);
     setShowModal(true);
-    document.body.style.overflow = 'hidden';
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedItem(null);
     setSelectedType(null);
-    document.body.style.overflow = 'unset';
   };
 
   const loadMoreItems = () => {

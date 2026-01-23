@@ -1,8 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { getImageUrl } from '../config/api';
 
 const DetailsModal = ({ item, type, isOpen, onClose }) => {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   if (!isOpen || !item) return null;
 
   const handleOverlayClick = (e) => {
@@ -47,10 +60,10 @@ const DetailsModal = ({ item, type, isOpen, onClose }) => {
     });
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <motion.div
-        className="modal-overlay"
+        className="details-modal-overlay"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -65,7 +78,7 @@ const DetailsModal = ({ item, type, isOpen, onClose }) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1000,
+          zIndex: 2147483647,
           padding: '20px'
         }}
       >
@@ -390,7 +403,8 @@ const DetailsModal = ({ item, type, isOpen, onClose }) => {
           </div>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

@@ -35,13 +35,11 @@ const Events = () => {
   const handleViewDetails = (event) => {
     setSelectedEvent(event);
     setShowModal(true);
-    document.body.style.overflow = 'hidden';
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedEvent(null);
-    document.body.style.overflow = 'unset';
   };
 
   const loadMoreEvents = () => {
