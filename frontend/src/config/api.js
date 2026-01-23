@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
   FILIERES: `${API_BASE_URL}/api/filieres`,
   ADEI_MEMBERS: `${API_BASE_URL}/api/adei-members`,
   PARTNERS: `${API_BASE_URL}/api/partners`,
+  USERS: `${API_BASE_URL}/api/users`,
   
   // User interactions
   CONTACT: `${API_BASE_URL}/api/contact`,

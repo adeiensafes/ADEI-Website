@@ -323,7 +323,9 @@ const Feedbacks = () => {
             </a>
           </div>
         )}
-        <section className={`section ${pageReady ? 'slide-up' : ''}`} style={{ marginTop: 'var(--spacing-3xl)', animationDelay: '0.6s' }}>
+        {/* Join ADEI - Only for non-logged users */}
+        {!user && (
+          <section className={`section ${pageReady ? 'slide-up' : ''}`} style={{ marginTop: 'var(--spacing-3xl)', animationDelay: '0.6s' }}>
             <div className="card text-center highlight-card">
               <h2 className="text-primary">Rejoignez l'ADEI</h2>
               <p style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--spacing-xl)' }}>Rejoignez l’ADEI et devenez un acteur de la vie étudiante.
@@ -345,6 +347,7 @@ et contribuez activement à l’évolution de votre école et de votre communaut
               </div>
             </div>
           </section>
+        )}
       </div>
     </div>
   );

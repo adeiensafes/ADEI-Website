@@ -1,12 +1,11 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useContext, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { AuthContext } from '../AuthContext';
 import Typewriter from '../components/ui/Typewriter';
 import { API_ENDPOINTS, getImageUrl } from '../config/api';
 import '../styles/card-animations.css';
 
 const ADEI = () => {
-  const { token } = useContext(AuthContext);
   const [pageReady, setPageReady] = useState(false);
   const [content] = useState({
     title: "Association des Élèves Ingénieurs (ADEI)",
@@ -449,48 +448,10 @@ const ADEI = () => {
             ))}
           </div>
 
-          {/* Partners Section */}
-          <div className={`partners-section ${pageReady ? 'fade-in' : ''}`} style={{ 
-            marginTop: 'var(--spacing-3xl)',
-            animationDelay: '0.6s'
-          }}>
-            <div className="section-header" style={{
-              textAlign: 'center',
-              marginBottom: 'var(--spacing-2xl)'
-            }}>
-              <h2 className="text-primary" style={{ margin: '0 0 var(--spacing-md) 0' }}>Nos Partenaires</h2>
-              <p style={{ 
-                color: 'var(--text-muted)', 
-                fontSize: 'var(--font-size-lg)',
-                maxWidth: '600px',
-                margin: '0 auto'
-              }}>
-                Nous entretenons des relations privilégiées avec l'administration de l'ENSAF, 
-                les entreprises partenaires et d'autres associations étudiantes.
-              </p>
-            </div>
-
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: 'var(--spacing-xl)',
-                maxWidth: '1200px',
-                margin: '0 auto'
-              }}
-            >
-              {partners.map(partner => renderPartnerCard(partner))}
-            </motion.div>
-          </div>
-
           {/* Members Section */}
           <div className={`members-section ${pageReady ? 'fade-in' : ''}`} style={{ 
             marginTop: 'var(--spacing-3xl)',
-            animationDelay: '0.8s'
+            animationDelay: '0.6s'
           }}>
             <div className="section-header" style={{
               display: 'flex',
@@ -511,6 +472,35 @@ const ADEI = () => {
             }}>
               {renderMembersByHierarchy()}
             </div>
+          </div>
+
+          {/* Partners Section */}
+          <div className={`partners-section ${pageReady ? 'fade-in' : ''}`} style={{ 
+            marginTop: 'var(--spacing-3xl)',
+            animationDelay: '0.8s'
+          }}>
+            <div className="section-header" style={{
+              textAlign: 'center',
+              marginBottom: 'var(--spacing-2xl)'
+            }}>
+              <h2 className="text-primary" style={{ margin: '0 0 var(--spacing-md) 0' }}>Nos Partenaires</h2>
+            </div>
+
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gap: 'var(--spacing-xl)',
+                maxWidth: '1200px',
+                margin: '0 auto'
+              }}
+            >
+              {partners.map(partner => renderPartnerCard(partner))}
+            </motion.div>
           </div>
         </div>
 

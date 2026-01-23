@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_ENDPOINTS, getApiUrl, getImageUrl } from '../config/api';
+import { getCategoryLabel, getOrganizerName, CATEGORY_OPTIONS } from '../utils/helpers';
 import '../styles/admin-panel.css';
 
 const AdminPanel = () => {
@@ -27,6 +28,7 @@ const AdminPanel = () => {
   const [imageFile, setImageFile] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewingFeedback, setViewingFeedback] = useState(null);
+  const [viewingDetails, setViewingDetails] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [notification, setNotification] = useState(null);
 
@@ -276,8 +278,36 @@ const AdminPanel = () => {
     document.body.style.overflow = 'hidden';
   };
 
+  const handleViewDetails = (item, type) => {
+    setViewingDetails({ item, type });
+    document.body.style.overflow = 'hidden';
+  };
+
   const handleDelete = async (id, type) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) return;
+    // Special handling for users
+    if (type === 'users') {
+      const user = usersData.find(u => u.id === id);
+      if (user) {
+        // Prevent deleting the last admin
+        if (user.role === 'admin' && usersData.filter(u => u.role === 'admin').length <= 1) {
+          showNotification(
+            'Impossible de supprimer le dernier administrateur du système',
+            'error'
+          );
+          return;
+        }
+        
+        // Enhanced confirmation for user deletion
+        const confirmMessage = user.role === 'admin' 
+          ? `ATTENTION: Vous êtes sur le point de supprimer l'administrateur "${user.username}" (${user.email}).\n\nCette action est irréversible et supprimera définitivement ce compte admin.\n\nÊtes-vous absolument sûr de vouloir continuer ?`
+          : `Êtes-vous sûr de vouloir supprimer l'utilisateur "${user.username}" (${user.email}) ?\n\nCette action est irréversible.`;
+          
+        if (!window.confirm(confirmMessage)) return;
+      }
+    } else {
+      // Standard confirmation for other items
+      if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) return;
+    }
 
     try {
       const response = await fetch(getApiUrl(`${type}/${id}`), {
@@ -308,6 +338,40 @@ const AdminPanel = () => {
     }
   };
 
+  const handleReorder = async (id, direction, type) => {
+    try {
+      const response = await fetch(getApiUrl(`${type}/${id}/reorder`), {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: token 
+        },
+        body: JSON.stringify({ direction })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        await fetchData();
+        showNotification(
+          'Ordre modifié avec succès!',
+          'success'
+        );
+      } else {
+        showNotification(
+          result.message || 'Erreur lors de la modification de l\'ordre',
+          'error'
+        );
+      }
+    } catch (error) {
+      console.error('Error reordering:', error);
+      showNotification(
+        `Erreur lors de la modification de l'ordre: ${error.message}`,
+        'error'
+      );
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -316,6 +380,80 @@ const AdminPanel = () => {
     console.log('editingItem:', editingItem);
     console.log('formData:', formData);
     console.log('imageFile:', imageFile);
+
+    // User validation
+    if (activeTab === 'users') {
+      // Username format validation
+      const usernameRegex = /^[a-zA-Z0-9._]+$/;
+      if (!formData.username || formData.username.length < 3) {
+        showNotification(
+          'Le nom d\'utilisateur doit contenir au moins 3 caractères',
+          'error'
+        );
+        return;
+      }
+      
+      if (!usernameRegex.test(formData.username)) {
+        showNotification(
+          'Le nom d\'utilisateur ne peut contenir que des lettres, chiffres, points (.) et underscores (_)',
+          'error'
+        );
+        return;
+      }
+
+      if (formData.username.includes(' ')) {
+        showNotification(
+          'Le nom d\'utilisateur ne peut pas contenir d\'espaces',
+          'error'
+        );
+        return;
+      }
+
+      // Check for duplicate username
+      const existingUserByUsername = usersData.find(user => 
+        user.username.toLowerCase() === formData.username?.toLowerCase() && 
+        user.id !== editingItem?.id
+      );
+      if (existingUserByUsername) {
+        showNotification(
+          `Le nom d'utilisateur "${formData.username}" est déjà utilisé`,
+          'error'
+        );
+        return;
+      }
+
+      // Check for duplicate email
+      const existingUserByEmail = usersData.find(user => 
+        user.email.toLowerCase() === formData.email?.toLowerCase() && 
+        user.id !== editingItem?.id
+      );
+      if (existingUserByEmail) {
+        showNotification(
+          `L'adresse email "${formData.email}" est déjà utilisée`,
+          'error'
+        );
+        return;
+      }
+
+      // Password validation for new users
+      if (!editingItem && (!formData.password || formData.password.length < 6)) {
+        showNotification(
+          'Le mot de passe doit contenir au moins 6 caractères',
+          'error'
+        );
+        return;
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!formData.email || !emailRegex.test(formData.email)) {
+        showNotification(
+          'Veuillez saisir une adresse email valide',
+          'error'
+        );
+        return;
+      }
+    }
 
     try {
       const method = editingItem ? 'PUT' : 'POST';
@@ -326,33 +464,56 @@ const AdminPanel = () => {
       console.log('Method:', method);
       console.log('URL:', url);
 
-      if ((activeTab === 'clubs' || activeTab === 'partners' || activeTab === 'adei-members') && (imageFile || formData.photo || formData.logo)) {
+      if ((activeTab === 'clubs' || activeTab === 'partners' || activeTab === 'adei-members' || activeTab === 'news' || activeTab === 'events') && (imageFile || formData.documentFile)) {
         const formDataObj = new FormData();
+        
+        // Add all form fields except files and metadata
         Object.keys(formData).forEach(key => {
-          if (key !== '_id' && key !== 'id' && key !== '__v' && key !== 'createdAt' && key !== 'updatedAt' && key !== 'photo') {
+          if (key !== '_id' && key !== 'id' && key !== '__v' && key !== 'createdAt' && key !== 'updatedAt' && key !== 'photo' && key !== 'documentFile') {
             if (key === 'activities' || key === 'achievements') {
-              // Convertir les tableaux en JSON string pour FormData
+              // Convert arrays to JSON string for FormData
               formDataObj.append(key, JSON.stringify(formData[key] || []));
             } else if (key === 'socialMedia') {
-              // Convertir l'objet socialMedia en JSON string
+              // Convert socialMedia object to JSON string
               formDataObj.append(key, JSON.stringify(formData[key] || {}));
             } else if (key === 'members') {
-              // Convertir le tableau des membres en JSON string
+              // Convert members array to JSON string
               formDataObj.append(key, JSON.stringify(formData[key] || []));
-            } else {
-              formDataObj.append(key, formData[key] || '');
+            } else if (key === 'clubId') {
+              // Handle special organizer values
+              if (formData[key] === 'adei' || formData[key] === 'ensa') {
+                // Don't append clubId if it's a special value, let it be null
+                formDataObj.append('organizer', formData[key] === 'adei' ? 'ADEI' : 'Administration ENSA Fès');
+              } else if (formData[key]) {
+                formDataObj.append(key, formData[key]);
+              }
+            } else if (formData[key] !== null && formData[key] !== undefined && formData[key] !== '') {
+              formDataObj.append(key, formData[key]);
             }
           }
         });
 
+        // Add image file
         if (imageFile) {
           if (activeTab === 'clubs') {
             formDataObj.append('image', imageFile);
           } else if (activeTab === 'partners') {
             formDataObj.append('logo', imageFile);
+          } else if (activeTab === 'news' || activeTab === 'events') {
+            formDataObj.append('image', imageFile);
           } else {
             formDataObj.append('photo', imageFile);
           }
+        }
+
+        // Add document file for news and events
+        if (formData.documentFile && (activeTab === 'news' || activeTab === 'events')) {
+          formDataObj.append('document', formData.documentFile);
+        }
+
+        console.log('FormData entries:');
+        for (let [key, value] of formDataObj.entries()) {
+          console.log(key, value);
         }
 
         const response = await fetch(url, {
@@ -381,6 +542,7 @@ const AdminPanel = () => {
           );
         }
       } else {
+        // Handle non-file submissions
         const headers = {
           'Content-Type': 'application/json',
           Authorization: token
@@ -392,6 +554,13 @@ const AdminPanel = () => {
         delete cleanedData.__v;
         delete cleanedData.createdAt;
         delete cleanedData.updatedAt;
+        delete cleanedData.documentFile; // Remove this from JSON submissions
+
+        // Handle special organizer values
+        if (cleanedData.clubId === 'adei' || cleanedData.clubId === 'ensa') {
+          cleanedData.organizer = cleanedData.clubId === 'adei' ? 'ADEI' : 'Administration ENSA Fès';
+          delete cleanedData.clubId; // Remove clubId instead of setting to null
+        }
 
         const response = await fetch(url, {
           method,
@@ -480,34 +649,105 @@ const AdminPanel = () => {
         case 'news':
           return (
             <>
-              <div className="form-group">
-                <label className="form-label">Titre</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={formData.title || ''}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                />
+              <div className="form-grid two-cols">
+                <div className="form-group">
+                  <label className="form-label">Titre</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.title || ''}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Titre de l'actualité"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Date</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={formData.date || new Date().toISOString().split('T')[0]}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    required
+                  />
+                </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Date</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={formData.date || new Date().toISOString().split('T')[0]}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  required
-                />
+
+              <div className="form-grid two-cols">
+                <div className="form-group">
+                  <label className="form-label">Club organisateur</label>
+                  <select
+                    className="form-select form-input"
+                    value={formData.clubId || ''}
+                    onChange={(e) => setFormData({ ...formData, clubId: e.target.value || null })}
+                  >
+                    <option value="">Sélectionner un organisateur</option>
+                    <option value="adei">ADEI</option>
+                    <option value="ensa">Administration ENSA Fès</option>
+                    {clubsData.map(club => (
+                      <option key={club.id} value={club.id}>
+                        {club.club}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Organisateur personnalisé</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.organizer || ''}
+                    onChange={(e) => setFormData({ ...formData, organizer: e.target.value })}
+                    placeholder="Nom de l'organisateur (optionnel)"
+                  />
+                </div>
               </div>
+
               <div className="form-group">
                 <label className="form-label">Contenu</label>
                 <textarea
                   className="form-textarea"
                   value={formData.content || ''}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  placeholder="Contenu détaillé de l'actualité..."
+                  rows="6"
                   required
                 />
+              </div>
+
+              <div className="form-grid two-cols">
+                <div className="form-group">
+                  <label className="form-label">Image (optionnelle)</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageFile(e.target.files[0])}
+                    className="form-input"
+                  />
+                  {(imageFile || formData.image) && (
+                    <div className="image-preview">
+                      <img
+                        src={imageFile ? URL.createObjectURL(imageFile) : getImageUrl(formData.image)}
+                        alt="Preview"
+                        style={{ maxWidth: '200px', maxHeight: '150px', objectFit: 'cover' }}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Document (optionnel)</label>
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                    onChange={(e) => setFormData({ ...formData, documentFile: e.target.files[0] })}
+                    className="form-input"
+                  />
+                  {formData.document && (
+                    <div style={{ marginTop: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                      Document actuel: {formData.document.split('/').pop()}
+                    </div>
+                  )}
+                </div>
               </div>
             </>
           );
@@ -523,19 +763,27 @@ const AdminPanel = () => {
                     className="form-input"
                     value={formData.title || ''}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Titre de l'événement"
                     required
                   />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Catégorie</label>
-                  <input
-                    type="text"
-                    className="form-input"
+                  <select
+                    className="form-select form-input"
                     value={formData.category || ''}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  />
+                    required
+                  >
+                    {CATEGORY_OPTIONS.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
+
               <div className="form-grid two-cols">
                 <div className="form-group">
                   <label className="form-label">Date</label>
@@ -559,6 +807,37 @@ const AdminPanel = () => {
                   />
                 </div>
               </div>
+
+              <div className="form-grid two-cols">
+                <div className="form-group">
+                  <label className="form-label">Club organisateur</label>
+                  <select
+                    className="form-select form-input"
+                    value={formData.clubId || ''}
+                    onChange={(e) => setFormData({ ...formData, clubId: e.target.value || null })}
+                  >
+                    <option value="">Sélectionner un organisateur</option>
+                    <option value="adei">ADEI</option>
+                    <option value="ensa">Administration ENSA Fès</option>
+                    {clubsData.map(club => (
+                      <option key={club.id} value={club.id}>
+                        {club.club}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Organisateur personnalisé</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.organizer || ''}
+                    onChange={(e) => setFormData({ ...formData, organizer: e.target.value })}
+                    placeholder="Nom de l'organisateur (optionnel)"
+                  />
+                </div>
+              </div>
+
               <div className="form-group">
                 <label className="form-label">Lieu</label>
                 <input
@@ -566,17 +845,56 @@ const AdminPanel = () => {
                   className="form-input"
                   value={formData.location || ''}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  placeholder="Amphithéâtre, Salle de conférence..."
                   required
                 />
               </div>
+
               <div className="form-group">
                 <label className="form-label">Description</label>
                 <textarea
                   className="form-textarea"
                   value={formData.description || ''}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Description détaillée de l'événement..."
+                  rows="6"
                   required
                 />
+              </div>
+
+              <div className="form-grid two-cols">
+                <div className="form-group">
+                  <label className="form-label">Image (optionnelle)</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageFile(e.target.files[0])}
+                    className="form-input"
+                  />
+                  {(imageFile || formData.image) && (
+                    <div className="image-preview">
+                      <img
+                        src={imageFile ? URL.createObjectURL(imageFile) : getImageUrl(formData.image)}
+                        alt="Preview"
+                        style={{ maxWidth: '200px', maxHeight: '150px', objectFit: 'cover' }}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Document (optionnel)</label>
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                    onChange={(e) => setFormData({ ...formData, documentFile: e.target.files[0] })}
+                    className="form-input"
+                  />
+                  {formData.document && (
+                    <div style={{ marginTop: '8px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                      Document actuel: {formData.document.split('/').pop()}
+                    </div>
+                  )}
+                </div>
               </div>
             </>
           );
@@ -609,13 +927,19 @@ const AdminPanel = () => {
               <div className="form-grid two-cols">
                 <div className="form-group">
                   <label className="form-label">Année d'étude</label>
-                  <input
-                    type="text"
-                    className="form-input"
+                  <select
+                    className="form-select form-input"
                     value={formData.annees_etude || ''}
                     onChange={(e) => setFormData({ ...formData, annees_etude: e.target.value })}
                     required
-                  />
+                  >
+                    <option value="">Sélectionner une année</option>
+                    <option value="CP1">CP1</option>
+                    <option value="CP2">CP2</option>
+                    <option value="CI1">CI1</option>
+                    <option value="CI2">CI2</option>
+                    <option value="CI3">CI3</option>
+                  </select>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Téléphone</label>
@@ -1130,41 +1454,64 @@ const AdminPanel = () => {
         case 'users':
           return (
             <>
-              <div className="form-group">
-                <label className="form-label">Nom d'utilisateur</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={formData.username || ''}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  required
-                />
+              <div className="form-grid two-cols">
+                <div className="form-group">
+                  <label className="form-label">Nom d'utilisateur</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.username || ''}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    placeholder="ex: john_doe, marie.martin, user123"
+                    required
+                  />
+                  <small style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '4px', display: 'block' }}>
+                    Uniquement lettres, chiffres, points (.) et underscores (_). Pas d'espaces.
+                  </small>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Email</label>
+                  <input
+                    type="email"
+                    className="form-input"
+                    value={formData.email || ''}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="adresse@email.com"
+                    required
+                  />
+                </div>
               </div>
+              
               <div className="form-group">
-                <label className="form-label">Email</label>
-                <input
-                  type="email"
-                  className="form-input"
-                  value={formData.email || ''}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Mot de passe {editingItem && '(laisser vide pour ne pas changer)'}</label>
-                <div className="password-input-container">
+                <label className="form-label">
+                  Mot de passe {editingItem && '(laisser vide pour ne pas changer)'}
+                </label>
+                <div className="password-input-container" style={{ position: 'relative' }}>
                   <input
                     type={showPassword ? "text" : "password"}
                     className="form-input"
                     value={formData.password || ''}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    placeholder={editingItem ? "Nouveau mot de passe (optionnel)" : "Mot de passe"}
                     required={!editingItem}
+                    style={{ paddingRight: '45px' }}
                   />
                   <button
                     type="button"
                     className="password-toggle-btn"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'var(--text-muted)',
+                      padding: '5px'
+                    }}
                   >
                     {showPassword ? (
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1179,18 +1526,69 @@ const AdminPanel = () => {
                     )}
                   </button>
                 </div>
+                {!editingItem && (
+                  <small style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    Minimum 6 caractères recommandés
+                  </small>
+                )}
               </div>
+
               <div className="form-group">
                 <label className="form-label">Rôle</label>
                 <select
                   className="form-select form-input"
                   value={formData.role || 'user'}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  required
                 >
-                  <option value="user">Utilisateur</option>
+                  <option value="user">Utilisateur Standard</option>
                   <option value="admin">Administrateur</option>
                 </select>
+                <small style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                  {formData.role === 'admin' ? 
+                    'Accès complet à l\'administration' : 
+                    'Accès limité aux fonctionnalités utilisateur'
+                  }
+                </small>
               </div>
+
+              {editingItem && (
+                <div className="form-group">
+                  <div style={{
+                    padding: 'var(--spacing-md)',
+                    backgroundColor: 'var(--bg-secondary)',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border-color)'
+                  }}>
+                    <h4 style={{ margin: '0 0 var(--spacing-sm) 0', color: 'var(--text-primary)' }}>
+                      Informations du compte
+                    </h4>
+                    <div style={{ display: 'grid', gap: 'var(--spacing-xs)', fontSize: '0.9rem' }}>
+                      <div>
+                        <strong>Créé le:</strong> {new Date(editingItem.createdAt).toLocaleDateString('fr-FR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                      <div>
+                        <strong>Dernière modification:</strong> {new Date(editingItem.updatedAt).toLocaleDateString('fr-FR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                      <div>
+                        <strong>ID utilisateur:</strong> {editingItem.id}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </>
           );
 
@@ -1297,7 +1695,10 @@ const AdminPanel = () => {
             <>
               <th>Titre</th>
               <th>Date</th>
+              <th>Organisateur</th>
               <th>Contenu</th>
+              <th>Fichiers</th>
+              <th>Ordre</th>
               <th>Actions</th>
             </>
           );
@@ -1308,6 +1709,9 @@ const AdminPanel = () => {
               <th>Date</th>
               <th>Heure</th>
               <th>Lieu</th>
+              <th>Organisateur</th>
+              <th>Fichiers</th>
+              <th>Ordre</th>
               <th>Actions</th>
             </>
           );
@@ -1368,6 +1772,7 @@ const AdminPanel = () => {
               <th>Email</th>
               <th>Rôle</th>
               <th>Date de création</th>
+              <th>Dernière modification</th>
               <th>Actions</th>
             </>
           );
@@ -1381,15 +1786,121 @@ const AdminPanel = () => {
         case 'news':
           return (
             <>
-              <td>{item.title}</td>
+              <td>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {item.image && (
+                    <img 
+                      src={getImageUrl(item.image)} 
+                      alt={item.title}
+                      style={{ width: '40px', height: '30px', borderRadius: '4px', objectFit: 'cover' }}
+                    />
+                  )}
+                  <strong>{item.title}</strong>
+                </div>
+              </td>
               <td>{item.date}</td>
+              <td>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontWeight: '500' }}>
+                    {getOrganizerName(item)}
+                  </span>
+                  {item.club && (
+                    <small style={{ color: 'var(--text-muted)' }}>
+                      Club: {item.club.club}
+                    </small>
+                  )}
+                </div>
+              </td>
               <td>{item.content?.substring(0, 60)}...</td>
               <td>
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                  {item.image && (
+                    <span className="badge info" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '2px' }}>
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21,15 16,10 5,21"/>
+                      </svg>
+                      Image
+                    </span>
+                  )}
+                  {item.document && (
+                    <span className="badge success" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '2px' }}>
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                      </svg>
+                      Doc
+                    </span>
+                  )}
+                  {!item.image && !item.document && (
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>-</span>
+                  )}
+                </div>
+              </td>
+              <td>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <button
+                    onClick={() => handleReorder(item.id || item._id, 'up', 'news')}
+                    style={{
+                      background: 'none',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '4px',
+                      padding: '4px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    title="Monter"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="18,15 12,9 6,15"/>
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => handleReorder(item.id || item._id, 'down', 'news')}
+                    style={{
+                      background: 'none',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '4px',
+                      padding: '4px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    title="Descendre"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="6,9 12,15 18,9"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+              <td>
                 <div className="admin-actions">
+                  <button className="admin-action-btn view" onClick={() => handleViewDetails(item, 'news')}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    Voir
+                  </button>
                   <button className="admin-action-btn edit" onClick={() => handleEdit(item)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
                     Modifier
                   </button>
                   <button className="admin-action-btn delete" onClick={() => handleDelete(item.id || item._id, 'news')}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <polyline points="3,6 5,6 21,6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
                     Supprimer
                   </button>
                 </div>
@@ -1399,16 +1910,131 @@ const AdminPanel = () => {
         case 'events':
           return (
             <>
-              <td>{item.title}</td>
+              <td>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {item.image && (
+                    <img 
+                      src={getImageUrl(item.image)} 
+                      alt={item.title}
+                      style={{ width: '40px', height: '30px', borderRadius: '4px', objectFit: 'cover' }}
+                    />
+                  )}
+                  <div>
+                    <strong>{item.title}</strong>
+                    {item.category && (
+                      <div>
+                        <span className="badge secondary" style={{ fontSize: '0.7rem' }}>
+                          {getCategoryLabel(item.category)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </td>
               <td>{item.date}</td>
               <td>{item.time}</td>
               <td>{item.location}</td>
               <td>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontWeight: '500' }}>
+                    {getOrganizerName(item)}
+                  </span>
+                  {item.club && (
+                    <small style={{ color: 'var(--text-muted)' }}>
+                      Club: {item.club.club}
+                    </small>
+                  )}
+                </div>
+              </td>
+              <td>
+                <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                  {item.image && (
+                    <span className="badge info" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '2px' }}>
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21,15 16,10 5,21"/>
+                      </svg>
+                      Image
+                    </span>
+                  )}
+                  {item.document && (
+                    <span className="badge success" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '2px' }}>
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z"/>
+                        <polyline points="14,2 14,8 20,8"/>
+                      </svg>
+                      Doc
+                    </span>
+                  )}
+                  {!item.image && !item.document && (
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>-</span>
+                  )}
+                </div>
+              </td>
+              <td>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <button
+                    onClick={() => handleReorder(item.id || item._id, 'up', 'events')}
+                    style={{
+                      background: 'none',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '4px',
+                      padding: '4px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    title="Monter"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="18,15 12,9 6,15"/>
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => handleReorder(item.id || item._id, 'down', 'events')}
+                    style={{
+                      background: 'none',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '4px',
+                      padding: '4px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    title="Descendre"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="6,9 12,15 18,9"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+              <td>
                 <div className="admin-actions">
+                  <button className="admin-action-btn view" onClick={() => handleViewDetails(item, 'events')}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    Voir détails
+                  </button>
                   <button className="admin-action-btn edit" onClick={() => handleEdit(item)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
                     Modifier
                   </button>
                   <button className="admin-action-btn delete" onClick={() => handleDelete(item.id || item._id, 'events')}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <polyline points="3,6 5,6 21,6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
                     Supprimer
                   </button>
                 </div>
@@ -1425,9 +2051,19 @@ const AdminPanel = () => {
               <td>
                 <div className="admin-actions">
                   <button className="admin-action-btn edit" onClick={() => handleEdit(item)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
                     Modifier
                   </button>
                   <button className="admin-action-btn delete" onClick={() => handleDelete(item.id || item._id, 'clubs')}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <polyline points="3,6 5,6 21,6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
                     Supprimer
                   </button>
                 </div>
@@ -1452,9 +2088,19 @@ const AdminPanel = () => {
               <td>
                 <div className="admin-actions">
                   <button className="admin-action-btn edit" onClick={() => handleEdit(item)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
                     Modifier
                   </button>
                   <button className="admin-action-btn delete" onClick={() => handleDelete(item.id || item._id, 'filieres')}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <polyline points="3,6 5,6 21,6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
                     Supprimer
                   </button>
                 </div>
@@ -1493,9 +2139,19 @@ const AdminPanel = () => {
               <td>
                 <div className="admin-actions">
                   <button className="admin-action-btn edit" onClick={() => handleEdit(item)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
                     Modifier
                   </button>
                   <button className="admin-action-btn delete" onClick={() => handleDelete(item.id || item._id, 'partners')}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <polyline points="3,6 5,6 21,6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
                     Supprimer
                   </button>
                 </div>
@@ -1511,9 +2167,19 @@ const AdminPanel = () => {
               <td>
                 <div className="admin-actions">
                   <button className="admin-action-btn edit" onClick={() => handleEdit(item)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
                     Modifier
                   </button>
                   <button className="admin-action-btn delete" onClick={() => handleDelete(item.id || item._id, 'adei-members')}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <polyline points="3,6 5,6 21,6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
                     Supprimer
                   </button>
                 </div>
@@ -1531,9 +2197,19 @@ const AdminPanel = () => {
               <td>
                 <div className="admin-actions">
                   <button className="admin-action-btn edit" onClick={() => openFeedbackModal(item)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
                     Voir
                   </button>
                   <button className="admin-action-btn delete" onClick={() => handleDelete(item.id || item._id, 'feedbacks')}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <polyline points="3,6 5,6 21,6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
                     Supprimer
                   </button>
                 </div>
@@ -1543,23 +2219,93 @@ const AdminPanel = () => {
         case 'users':
           return (
             <>
-              <td>{item.username}</td>
-              <td>{item.email}</td>
+              <td>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <strong style={{ color: 'var(--text-primary)' }}>{item.username}</strong>
+                  <small style={{ color: 'var(--text-muted)' }}>ID: {item.id}</small>
+                </div>
+              </td>
+              <td>
+                <a href={`mailto:${item.email}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                  {item.email}
+                </a>
+              </td>
               <td>
                 <span className={`badge ${item.role === 'admin' ? 'danger' : 'info'}`}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                    {item.role === 'admin' ? (
+                      // Crown icon for admin
+                      <path d="M2 20h20l-2-8H4l-2 8zM6 4l2 4h8l2-4M12 2v6"/>
+                    ) : (
+                      // User icon for regular user
+                      <>
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                      </>
+                    )}
+                  </svg>
                   {item.role === 'admin' ? 'Administrateur' : 'Utilisateur'}
                 </span>
               </td>
-              <td>{new Date(item.createdAt).toLocaleDateString('fr-FR')}</td>
+              <td>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span>{new Date(item.createdAt).toLocaleDateString('fr-FR')}</span>
+                  <small style={{ color: 'var(--text-muted)' }}>
+                    {new Date(item.createdAt).toLocaleTimeString('fr-FR', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </small>
+                </div>
+              </td>
+              <td>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span>{new Date(item.updatedAt).toLocaleDateString('fr-FR')}</span>
+                  <small style={{ color: 'var(--text-muted)' }}>
+                    {new Date(item.updatedAt).toLocaleTimeString('fr-FR', { 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </small>
+                </div>
+              </td>
               <td>
                 <div className="admin-actions">
-                  <button className="admin-action-btn edit" onClick={() => handleEdit(item)}>
+                  <button 
+                    className="admin-action-btn edit" 
+                    onClick={() => handleEdit(item)}
+                    title="Modifier cet utilisateur"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
                     Modifier
                   </button>
-                  <button className="admin-action-btn delete" onClick={() => handleDelete(item.id, 'users')}>
+                  <button 
+                    className="admin-action-btn delete" 
+                    onClick={() => handleDelete(item.id, 'users')}
+                    title="Supprimer cet utilisateur"
+                    disabled={item.role === 'admin' && usersData.filter(u => u.role === 'admin').length <= 1}
+                    style={{
+                      opacity: item.role === 'admin' && usersData.filter(u => u.role === 'admin').length <= 1 ? 0.5 : 1,
+                      cursor: item.role === 'admin' && usersData.filter(u => u.role === 'admin').length <= 1 ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                      <polyline points="3,6 5,6 21,6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
                     Supprimer
                   </button>
                 </div>
+                {item.role === 'admin' && usersData.filter(u => u.role === 'admin').length <= 1 && (
+                  <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block', marginTop: '4px' }}>
+                    Dernier admin
+                  </small>
+                )}
               </td>
             </>
           );
@@ -1661,6 +2407,55 @@ const AdminPanel = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          
+          {/* User Statistics */}
+          {activeTab === 'users' && (
+            <div className="user-stats" style={{
+              display: 'flex',
+              gap: 'var(--spacing-md)',
+              alignItems: 'center',
+              marginLeft: 'auto',
+              marginRight: 'var(--spacing-md)'
+            }}>
+              <div className="stat-item" style={{
+                padding: '8px 12px',
+                backgroundColor: 'var(--bg-secondary)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-color)',
+                fontSize: '0.85rem'
+              }}>
+                <strong style={{ color: 'var(--primary)' }}>
+                  {usersData.filter(u => u.role === 'admin').length}
+                </strong>
+                <span style={{ color: 'var(--text-muted)', marginLeft: '4px' }}>Admin(s)</span>
+              </div>
+              <div className="stat-item" style={{
+                padding: '8px 12px',
+                backgroundColor: 'var(--bg-secondary)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-color)',
+                fontSize: '0.85rem'
+              }}>
+                <strong style={{ color: 'var(--success)' }}>
+                  {usersData.filter(u => u.role === 'user').length}
+                </strong>
+                <span style={{ color: 'var(--text-muted)', marginLeft: '4px' }}>Utilisateur(s)</span>
+              </div>
+              <div className="stat-item" style={{
+                padding: '8px 12px',
+                backgroundColor: 'var(--bg-secondary)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-color)',
+                fontSize: '0.85rem'
+              }}>
+                <strong style={{ color: 'var(--text-primary)' }}>
+                  {usersData.length}
+                </strong>
+                <span style={{ color: 'var(--text-muted)', marginLeft: '4px' }}>Total</span>
+              </div>
+            </div>
+          )}
+          
           {activeTab !== 'feedbacks' && (
             <button className="admin-add-btn" onClick={handleAdd}>
               + Ajouter
@@ -1672,6 +2467,268 @@ const AdminPanel = () => {
       </div>
 
       {renderModal()}
+
+      {/* Details Modal */}
+      {viewingDetails && (
+        <div className="modal-overlay" onClick={() => {
+          setViewingDetails(null);
+          document.body.style.overflow = 'unset';
+        }}>
+          <div className="modal-content details-modal" onClick={(e) => e.stopPropagation()} style={{
+            maxWidth: '800px',
+            maxHeight: '90vh',
+            overflow: 'auto'
+          }}>
+            <div className="modal-header">
+              <h2>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px', verticalAlign: 'middle' }}>
+                  {viewingDetails.type === 'news' ? (
+                    // Newspaper icon for news
+                    <>
+                      <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2z"/>
+                      <path d="M10 6h8"/>
+                      <path d="M10 10h8"/>
+                      <path d="M10 14h8"/>
+                      <path d="M10 18h8"/>
+                    </>
+                  ) : (
+                    // Calendar icon for events
+                    <>
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                      <line x1="16" y1="2" x2="16" y2="6"/>
+                      <line x1="8" y1="2" x2="8" y2="6"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                    </>
+                  )}
+                </svg>
+                {viewingDetails.type === 'news' ? 'Détails de l\'actualité' : 'Détails de l\'événement'}
+              </h2>
+              <button 
+                className="modal-close-btn" 
+                onClick={() => {
+                  setViewingDetails(null);
+                  document.body.style.overflow = 'unset';
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div className="modal-body" style={{ padding: 'var(--spacing-xl)' }}>
+              <div style={{ display: 'grid', gap: 'var(--spacing-lg)' }}>
+                
+                {/* Title and basic info */}
+                <div>
+                  <h3 style={{ margin: '0 0 var(--spacing-md) 0', color: 'var(--primary)' }}>
+                    {viewingDetails.item.title}
+                  </h3>
+                  <div style={{ display: 'flex', gap: 'var(--spacing-md)', flexWrap: 'wrap', marginBottom: 'var(--spacing-md)' }}>
+                    <span className="badge info" style={{ display: 'flex', alignItems: 'center' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                      {viewingDetails.item.date}
+                    </span>
+                    {viewingDetails.type === 'events' && (
+                      <>
+                        <span className="badge secondary" style={{ display: 'flex', alignItems: 'center' }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12,6 12,12 16,14"/>
+                          </svg>
+                          {viewingDetails.item.time}
+                        </span>
+                        <span className="badge warning" style={{ display: 'flex', alignItems: 'center' }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                          </svg>
+                          {viewingDetails.item.location}
+                        </span>
+                      </>
+                    )}
+                    {viewingDetails.item.category && (
+                      <span className="badge primary">{viewingDetails.item.category}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Organizer info */}
+                <div style={{
+                  padding: 'var(--spacing-md)',
+                  backgroundColor: 'var(--bg-secondary)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-color)'
+                }}>
+                  <h4 style={{ margin: '0 0 var(--spacing-sm) 0', display: 'flex', alignItems: 'center' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    Organisateur
+                  </h4>
+                  <p style={{ margin: 0, fontWeight: '500' }}>
+                    {getOrganizerName(viewingDetails.item)}
+                  </p>
+                  {viewingDetails.item.club && (
+                    <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                      Président: {viewingDetails.item.club.president}
+                    </p>
+                  )}
+                </div>
+
+                {/* Content/Description */}
+                <div>
+                  <h4 style={{ margin: '0 0 var(--spacing-sm) 0', display: 'flex', alignItems: 'center' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14,2 14,8 20,8"/>
+                      <line x1="16" y1="13" x2="8" y2="13"/>
+                      <line x1="16" y1="17" x2="8" y2="17"/>
+                      <polyline points="10,9 9,9 8,9"/>
+                    </svg>
+                    {viewingDetails.type === 'news' ? 'Contenu' : 'Description'}
+                  </h4>
+                  <div style={{
+                    padding: 'var(--spacing-md)',
+                    backgroundColor: 'var(--card-bg)',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border-color)',
+                    lineHeight: '1.6'
+                  }}>
+                    {viewingDetails.type === 'news' ? viewingDetails.item.content : viewingDetails.item.description}
+                  </div>
+                </div>
+
+                {/* Files */}
+                {(viewingDetails.item.image || viewingDetails.item.document) && (
+                  <div>
+                    <h4 style={{ margin: '0 0 var(--spacing-sm) 0', display: 'flex', alignItems: 'center' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
+                        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                      </svg>
+                      Fichiers attachés
+                    </h4>
+                    <div style={{ display: 'grid', gap: 'var(--spacing-md)' }}>
+                      
+                      {viewingDetails.item.image && (
+                        <div style={{
+                          padding: 'var(--spacing-md)',
+                          backgroundColor: 'var(--bg-secondary)',
+                          borderRadius: 'var(--radius-md)',
+                          border: '1px solid var(--border-color)'
+                        }}>
+                          <h5 style={{ margin: '0 0 var(--spacing-sm) 0', display: 'flex', alignItems: 'center' }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                              <circle cx="8.5" cy="8.5" r="1.5"/>
+                              <polyline points="21,15 16,10 5,21"/>
+                            </svg>
+                            Image
+                          </h5>
+                          <img
+                            src={getImageUrl(viewingDetails.item.image)}
+                            alt={viewingDetails.item.title}
+                            style={{
+                              maxWidth: '100%',
+                              maxHeight: '300px',
+                              objectFit: 'contain',
+                              borderRadius: 'var(--radius-sm)',
+                              border: '1px solid var(--border-color)'
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {viewingDetails.item.document && (
+                        <div style={{
+                          padding: 'var(--spacing-md)',
+                          backgroundColor: 'var(--bg-secondary)',
+                          borderRadius: 'var(--radius-md)',
+                          border: '1px solid var(--border-color)'
+                        }}>
+                          <h5 style={{ margin: '0 0 var(--spacing-sm) 0', display: 'flex', alignItems: 'center' }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z"/>
+                              <polyline points="14,2 14,8 20,8"/>
+                            </svg>
+                            Document
+                          </h5>
+                          <a
+                            href={getImageUrl(viewingDetails.item.document)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn secondary"
+                            style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px', width: 'fit-content' }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                              <polyline points="7,10 12,15 17,10"/>
+                              <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Télécharger le document
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Metadata */}
+                <div style={{
+                  padding: 'var(--spacing-md)',
+                  backgroundColor: 'var(--bg-secondary)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-color)',
+                  fontSize: '0.9rem',
+                  color: 'var(--text-muted)'
+                }}>
+                  <div style={{ display: 'grid', gap: 'var(--spacing-xs)' }}>
+                    <div><strong>Créé le:</strong> {new Date(viewingDetails.item.createdAt).toLocaleDateString('fr-FR', {
+                      year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                    })}</div>
+                    <div><strong>Modifié le:</strong> {new Date(viewingDetails.item.updatedAt).toLocaleDateString('fr-FR', {
+                      year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                    })}</div>
+                    <div><strong>ID:</strong> {viewingDetails.item.id}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="btn secondary" 
+                onClick={() => {
+                  setViewingDetails(null);
+                  document.body.style.overflow = 'unset';
+                }}
+              >
+                Fermer
+              </button>
+              <button 
+                className="btn" 
+                onClick={() => {
+                  setViewingDetails(null);
+                  handleEdit(viewingDetails.item);
+                }}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Modifier
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Notification */}
       <AnimatePresence>
