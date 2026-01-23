@@ -18,6 +18,27 @@ const News = sequelize.define('News', {
   date: {
     type: DataTypes.DATEONLY,
     allowNull: false
+  },
+  clubId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'clubs',
+      key: 'id'
+    }
+  },
+  organizer: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    defaultValue: 'ADEI'
+  },
+  image: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
+  document: {
+    type: DataTypes.STRING(500),
+    allowNull: true
   }
 }, {
   tableName: 'news',

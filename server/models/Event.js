@@ -30,6 +30,27 @@ const Event = sequelize.define('Event', {
   category: {
     type: DataTypes.STRING(100),
     defaultValue: ''
+  },
+  clubId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'clubs',
+      key: 'id'
+    }
+  },
+  organizer: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    defaultValue: 'ADEI'
+  },
+  image: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
+  document: {
+    type: DataTypes.STRING(500),
+    allowNull: true
   }
 }, {
   tableName: 'events',

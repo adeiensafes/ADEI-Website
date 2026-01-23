@@ -21,6 +21,12 @@ const ADEIMember = require('./models/ADEIMember');
 const Filiere = require('./models/Filiere');
 const Partner = require('./models/Partner');
 
+// Define model associations
+News.belongsTo(Club, { foreignKey: 'clubId', as: 'club' });
+Event.belongsTo(Club, { foreignKey: 'clubId', as: 'club' });
+Club.hasMany(News, { foreignKey: 'clubId', as: 'news' });
+Club.hasMany(Event, { foreignKey: 'clubId', as: 'events' });
+
 const app = express();
 const PORT = process.env.PORT || 5001;
 
@@ -47,16 +53,29 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 }, // Increased to 10MB
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    // Allow images and documents
+    const allowedImageTypes = /jpeg|jpg|png|gif|webp/;
+    const allowedDocTypes = /pdf|doc|docx|txt/;
+    const extname = path.extname(file.originalname).toLowerCase();
+    const mimetype = file.mimetype;
 
-    if (mimetype && extname) {
+    // Check if it's an image
+    const isImage = allowedImageTypes.test(extname) && /image/.test(mimetype);
+    
+    // Check if it's a document
+    const isDocument = allowedDocTypes.test(extname) && 
+      (mimetype.includes('pdf') || 
+       mimetype.includes('document') || 
+       mimetype.includes('text') ||
+       mimetype.includes('msword') ||
+       mimetype.includes('wordprocessingml'));
+
+    if (isImage || isDocument) {
       return cb(null, true);
     } else {
-      cb(new Error('Seules les images sont autorisées'));
+      cb(new Error('Seules les images (jpeg, jpg, png, gif, webp) et les documents (pdf, doc, docx, txt) sont autorisés'));
     }
   }
 });
@@ -215,6 +234,7 @@ const clearCache = (key) => {
 };
 
 // Routes News
+// Public endpoint to get all news (for display on news page)
 app.get('/api/news', async (req, res) => {
   try {
     const cacheKey = 'news';
@@ -224,34 +244,95 @@ app.get('/api/news', async (req, res) => {
       return res.json(cachedNews);
     }
     
-    const news = await News.findAll({ order: [['createdAt', 'DESC']] });
+    const news = await News.findAll({ 
+      order: [['createdAt', 'DESC']],
+      include: [{
+        model: Club,
+        as: 'club',
+        attributes: ['id', 'club', 'president'],
+        required: false
+      }]
+    });
     setCachedData(cacheKey, news);
     res.json(news);
   } catch (error) {
+    console.error('Error fetching news:', error);
     res.status(500).json({ message: 'Erreur lors de la récupération des actualités' });
   }
 });
 
-app.post('/api/news', authMiddleware, adminMiddleware, async (req, res) => {
+app.post('/api/news', authMiddleware, adminMiddleware, upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'document', maxCount: 1 }
+]), async (req, res) => {
   try {
-    const news = await News.create(req.body);
-    clearCache('news'); // Vider le cache
-    res.status(201).json(news);
+    console.log('=== NEWS CREATION DEBUG ===');
+    console.log('Request body:', req.body);
+    console.log('Request files:', req.files);
+    
+    const newsData = { ...req.body };
+    
+    if (req.files) {
+      if (req.files.image) {
+        newsData.image = `/uploads/${req.files.image[0].filename}`;
+        console.log('Image file added:', newsData.image);
+      }
+      if (req.files.document) {
+        newsData.document = `/uploads/${req.files.document[0].filename}`;
+        console.log('Document file added:', newsData.document);
+      }
+    }
+
+    console.log('Final newsData:', newsData);
+    const news = await News.create(newsData);
+    console.log('News created successfully:', news.id);
+    
+    clearCache('news');
+    res.status(201).json({ 
+      success: true, 
+      message: 'Actualité créée avec succès!', 
+      news: news 
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la création de l\'actualité' });
+    console.error('Error creating news:', error);
+    console.error('Error details:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      message: `Erreur lors de la création de l'actualité: ${error.message}` 
+    });
   }
 });
 
-app.put('/api/news/:id', authMiddleware, adminMiddleware, async (req, res) => {
+app.put('/api/news/:id', authMiddleware, adminMiddleware, upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'document', maxCount: 1 }
+]), async (req, res) => {
   try {
-    const [updated] = await News.update(req.body, { where: { id: req.params.id } });
+    const newsData = { ...req.body };
+    
+    if (req.files) {
+      if (req.files.image) {
+        newsData.image = `/uploads/${req.files.image[0].filename}`;
+      }
+      if (req.files.document) {
+        newsData.document = `/uploads/${req.files.document[0].filename}`;
+      }
+    }
+
+    const [updated] = await News.update(newsData, { where: { id: req.params.id } });
     if (updated) {
       const news = await News.findByPk(req.params.id);
-      res.json(news);
+      clearCache('news');
+      res.json({ 
+        success: true, 
+        message: 'Actualité modifiée avec succès!', 
+        news: news 
+      });
     } else {
       res.status(404).json({ message: 'Actualité non trouvée' });
     }
   } catch (error) {
+    console.error('Error updating news:', error);
     res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'actualité' });
   }
 });
@@ -279,33 +360,95 @@ app.get('/api/events', async (req, res) => {
       return res.json(cachedEvents);
     }
     
-    const events = await Event.findAll({ order: [['createdAt', 'DESC']] });
+    const events = await Event.findAll({ 
+      order: [['createdAt', 'DESC']],
+      include: [{
+        model: Club,
+        as: 'club',
+        attributes: ['id', 'club', 'president'],
+        required: false
+      }]
+    });
     setCachedData(cacheKey, events);
     res.json(events);
   } catch (error) {
+    console.error('Error fetching events:', error);
     res.status(500).json({ message: 'Erreur lors de la récupération des événements' });
   }
 });
 
-app.post('/api/events', authMiddleware, adminMiddleware, async (req, res) => {
+app.post('/api/events', authMiddleware, adminMiddleware, upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'document', maxCount: 1 }
+]), async (req, res) => {
   try {
-    const event = await Event.create(req.body);
-    res.status(201).json(event);
+    console.log('=== EVENT CREATION DEBUG ===');
+    console.log('Request body:', req.body);
+    console.log('Request files:', req.files);
+    
+    const eventData = { ...req.body };
+    
+    if (req.files) {
+      if (req.files.image) {
+        eventData.image = `/uploads/${req.files.image[0].filename}`;
+        console.log('Image file added:', eventData.image);
+      }
+      if (req.files.document) {
+        eventData.document = `/uploads/${req.files.document[0].filename}`;
+        console.log('Document file added:', eventData.document);
+      }
+    }
+
+    console.log('Final eventData:', eventData);
+    const event = await Event.create(eventData);
+    console.log('Event created successfully:', event.id);
+    
+    clearCache('events');
+    res.status(201).json({ 
+      success: true, 
+      message: 'Événement créé avec succès!', 
+      event: event 
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la création de l\'événement' });
+    console.error('Error creating event:', error);
+    console.error('Error details:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      message: `Erreur lors de la création de l'événement: ${error.message}` 
+    });
   }
 });
 
-app.put('/api/events/:id', authMiddleware, adminMiddleware, async (req, res) => {
+app.put('/api/events/:id', authMiddleware, adminMiddleware, upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'document', maxCount: 1 }
+]), async (req, res) => {
   try {
-    const [updated] = await Event.update(req.body, { where: { id: req.params.id } });
+    const eventData = { ...req.body };
+    
+    if (req.files) {
+      if (req.files.image) {
+        eventData.image = `/uploads/${req.files.image[0].filename}`;
+      }
+      if (req.files.document) {
+        eventData.document = `/uploads/${req.files.document[0].filename}`;
+      }
+    }
+
+    const [updated] = await Event.update(eventData, { where: { id: req.params.id } });
     if (updated) {
       const event = await Event.findByPk(req.params.id);
-      res.json(event);
+      clearCache('events');
+      res.json({ 
+        success: true, 
+        message: 'Événement modifié avec succès!', 
+        event: event 
+      });
     } else {
       res.status(404).json({ message: 'Événement non trouvé' });
     }
   } catch (error) {
+    console.error('Error updating event:', error);
     res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'événement' });
   }
 });
@@ -854,6 +997,90 @@ app.delete('/api/partners/:id', authMiddleware, adminMiddleware, async (req, res
   } catch (error) {
     console.error('Erreur suppression partenaire:', error);
     res.status(500).json({ message: 'Erreur lors de la suppression du partenaire' });
+  }
+});
+
+// Reorder news
+app.patch('/api/news/:id/reorder', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { direction } = req.body;
+    
+    const currentNews = await News.findByPk(id);
+    if (!currentNews) {
+      return res.status(404).json({ message: 'Actualité non trouvée' });
+    }
+
+    const allNews = await News.findAll({ order: [['createdAt', 'DESC']] });
+    const currentIndex = allNews.findIndex(news => news.id == id);
+    
+    if (currentIndex === -1) {
+      return res.status(404).json({ message: 'Actualité non trouvée dans la liste' });
+    }
+
+    let targetIndex;
+    if (direction === 'up' && currentIndex > 0) {
+      targetIndex = currentIndex - 1;
+    } else if (direction === 'down' && currentIndex < allNews.length - 1) {
+      targetIndex = currentIndex + 1;
+    } else {
+      return res.json({ success: true, message: 'Aucun changement nécessaire' });
+    }
+
+    // Swap the created dates to change order
+    const targetNews = allNews[targetIndex];
+    const tempDate = currentNews.createdAt;
+    
+    await currentNews.update({ createdAt: targetNews.createdAt });
+    await targetNews.update({ createdAt: tempDate });
+    
+    clearCache('news');
+    res.json({ success: true, message: 'Ordre modifié avec succès' });
+  } catch (error) {
+    console.error('Erreur reorder news:', error);
+    res.status(500).json({ message: 'Erreur lors de la modification de l\'ordre' });
+  }
+});
+
+// Reorder events
+app.patch('/api/events/:id/reorder', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { direction } = req.body;
+    
+    const currentEvent = await Event.findByPk(id);
+    if (!currentEvent) {
+      return res.status(404).json({ message: 'Événement non trouvé' });
+    }
+
+    const allEvents = await Event.findAll({ order: [['createdAt', 'DESC']] });
+    const currentIndex = allEvents.findIndex(event => event.id == id);
+    
+    if (currentIndex === -1) {
+      return res.status(404).json({ message: 'Événement non trouvé dans la liste' });
+    }
+
+    let targetIndex;
+    if (direction === 'up' && currentIndex > 0) {
+      targetIndex = currentIndex - 1;
+    } else if (direction === 'down' && currentIndex < allEvents.length - 1) {
+      targetIndex = currentIndex + 1;
+    } else {
+      return res.json({ success: true, message: 'Aucun changement nécessaire' });
+    }
+
+    // Swap the created dates to change order
+    const targetEvent = allEvents[targetIndex];
+    const tempDate = currentEvent.createdAt;
+    
+    await currentEvent.update({ createdAt: targetEvent.createdAt });
+    await targetEvent.update({ createdAt: tempDate });
+    
+    clearCache('events');
+    res.json({ success: true, message: 'Ordre modifié avec succès' });
+  } catch (error) {
+    console.error('Erreur reorder events:', error);
+    res.status(500).json({ message: 'Erreur lors de la modification de l\'ordre' });
   }
 });
 
