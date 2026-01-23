@@ -4,6 +4,7 @@ import { AuthContext } from '../AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_ENDPOINTS, getApiUrl, getImageUrl } from '../config/api';
 import { getCategoryLabel, getOrganizerName, CATEGORY_OPTIONS } from '../utils/helpers';
+import logger from '../utils/logger';
 import '../styles/admin-panel.css';
 
 const AdminPanel = () => {
@@ -31,6 +32,7 @@ const AdminPanel = () => {
   const [viewingDetails, setViewingDetails] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [modalNotification, setModalNotification] = useState(null);
 
   useEffect(() => {
     if (!token) {
@@ -64,6 +66,11 @@ const AdminPanel = () => {
     setTimeout(() => setNotification(null), 4000);
   };
 
+  const showModalNotification = (message, type = 'success') => {
+    setModalNotification({ message, type });
+    setTimeout(() => setModalNotification(null), 5000);
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -82,52 +89,51 @@ const AdminPanel = () => {
       try {
         news = await fetch(API_ENDPOINTS.NEWS).then(r => r.json());
       } catch (e) {
-        console.error('❌ NEWS failed:', e.message);
+        logger.error('Erreur lors du chargement des actualités');
       }
 
       try {
         events = await fetch(API_ENDPOINTS.EVENTS).then(r => r.json());
       } catch (e) {
-        console.error('❌ EVENTS failed:', e.message);
+        logger.error('Erreur lors du chargement des événements');
       }
 
       try {
         clubs = await fetch(API_ENDPOINTS.CLUBS).then(r => r.json());
       } catch (e) {
-        console.error('❌ CLUBS failed:', e.message);
+        logger.error('Erreur lors du chargement des clubs');
       }
 
       try {
         filieres = await fetch(API_ENDPOINTS.FILIERES).then(r => r.json());
       } catch (e) {
-        console.error('❌ FILIERES failed:', e.message);
+        logger.error('Erreur lors du chargement des filières');
       }
 
       try {
         partners = await fetch(API_ENDPOINTS.PARTNERS).then(r => r.json());
       } catch (e) {
-        console.error('❌ PARTNERS failed:', e.message);
+        logger.error('Erreur lors du chargement des partenaires');
       }
 
       try {
         adeiMembers = await fetch(API_ENDPOINTS.ADEI_MEMBERS).then(r => r.json());
       } catch (e) {
-        console.error('❌ ADEI_MEMBERS failed:', e.message);
+        logger.error('Erreur lors du chargement des membres ADEI');
       }
 
       try {
         feedbacks = await fetch(API_ENDPOINTS.FEEDBACKS, { headers }).then(r => r.json());
       } catch (e) {
-        console.error('❌ FEEDBACKS failed:', e.message);
+        logger.error('Erreur lors du chargement des feedbacks');
       }
 
       try {
         const usersResponse = await fetch(API_ENDPOINTS.USERS, { headers });
         const usersData = await usersResponse.json();
-        console.log('USERS Response:', usersData);
         users = usersData;
       } catch (e) {
-        console.error('❌ USERS failed:', e.message);
+        logger.error('Erreur lors du chargement des utilisateurs');
       }
 
       // S'assurer que toutes les données sont des tableaux
@@ -140,7 +146,7 @@ const AdminPanel = () => {
       setFeedbacksData(Array.isArray(feedbacks) ? feedbacks : []);
       setUsersData(Array.isArray(users) ? users : []);
     } catch (error) {
-      console.error('❌ Error fetching data:', error);
+      logger.error('Erreur lors du chargement des données');
       // En cas d'erreur, initialiser avec des tableaux vides
       setNewsData([]);
       setEventsData([]);
@@ -330,9 +336,9 @@ const AdminPanel = () => {
         );
       }
     } catch (error) {
-      console.error('Error deleting:', error);
+      logger.error('Erreur lors de la suppression');
       showNotification(
-        `Erreur lors de la suppression: ${error.message}`,
+        'Erreur lors de la suppression',
         'error'
       );
     }
@@ -364,9 +370,9 @@ const AdminPanel = () => {
         );
       }
     } catch (error) {
-      console.error('Error reordering:', error);
+      logger.error('Erreur lors de la modification de l\'ordre');
       showNotification(
-        `Erreur lors de la modification de l'ordre: ${error.message}`,
+        'Erreur lors de la modification de l\'ordre',
         'error'
       );
     }
@@ -375,18 +381,12 @@ const AdminPanel = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log('=== DÉBUT SOUMISSION ===');
-    console.log('activeTab:', activeTab);
-    console.log('editingItem:', editingItem);
-    console.log('formData:', formData);
-    console.log('imageFile:', imageFile);
-
     // User validation
     if (activeTab === 'users') {
       // Username format validation
       const usernameRegex = /^[a-zA-Z0-9._]+$/;
       if (!formData.username || formData.username.length < 3) {
-        showNotification(
+        showModalNotification(
           'Le nom d\'utilisateur doit contenir au moins 3 caractères',
           'error'
         );
@@ -394,7 +394,7 @@ const AdminPanel = () => {
       }
       
       if (!usernameRegex.test(formData.username)) {
-        showNotification(
+        showModalNotification(
           'Le nom d\'utilisateur ne peut contenir que des lettres, chiffres, points (.) et underscores (_)',
           'error'
         );
@@ -402,7 +402,7 @@ const AdminPanel = () => {
       }
 
       if (formData.username.includes(' ')) {
-        showNotification(
+        showModalNotification(
           'Le nom d\'utilisateur ne peut pas contenir d\'espaces',
           'error'
         );
@@ -415,7 +415,7 @@ const AdminPanel = () => {
         user.id !== editingItem?.id
       );
       if (existingUserByUsername) {
-        showNotification(
+        showModalNotification(
           `Le nom d'utilisateur "${formData.username}" est déjà utilisé`,
           'error'
         );
@@ -428,7 +428,7 @@ const AdminPanel = () => {
         user.id !== editingItem?.id
       );
       if (existingUserByEmail) {
-        showNotification(
+        showModalNotification(
           `L'adresse email "${formData.email}" est déjà utilisée`,
           'error'
         );
@@ -437,7 +437,7 @@ const AdminPanel = () => {
 
       // Password validation for new users
       if (!editingItem && (!formData.password || formData.password.length < 6)) {
-        showNotification(
+        showModalNotification(
           'Le mot de passe doit contenir au moins 6 caractères',
           'error'
         );
@@ -447,7 +447,7 @@ const AdminPanel = () => {
       // Email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!formData.email || !emailRegex.test(formData.email)) {
-        showNotification(
+        showModalNotification(
           'Veuillez saisir une adresse email valide',
           'error'
         );
@@ -460,9 +460,6 @@ const AdminPanel = () => {
       const url = editingItem
         ? getApiUrl(`${activeTab}/${editingItem.id || editingItem._id}`)
         : getApiUrl(activeTab);
-
-      console.log('Method:', method);
-      console.log('URL:', url);
 
       if ((activeTab === 'clubs' || activeTab === 'partners' || activeTab === 'adei-members' || activeTab === 'news' || activeTab === 'events') && (imageFile || formData.documentFile)) {
         const formDataObj = new FormData();
@@ -511,22 +508,13 @@ const AdminPanel = () => {
           formDataObj.append('document', formData.documentFile);
         }
 
-        console.log('FormData entries:');
-        for (let [key, value] of formDataObj.entries()) {
-          console.log(key, value);
-        }
-
         const response = await fetch(url, {
           method,
           headers: { Authorization: token },
           body: formDataObj
         });
 
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-
         const result = await response.json();
-        console.log('Response result:', result);
 
         if (response.ok) {
           await fetchData();
@@ -568,11 +556,7 @@ const AdminPanel = () => {
           body: JSON.stringify(cleanedData)
         });
 
-        console.log('Response status (JSON):', response.status);
-        console.log('Response ok (JSON):', response.ok);
-
         const result = await response.json();
-        console.log('Response result (JSON):', result);
 
         if (response.ok) {
           await fetchData();
@@ -589,9 +573,9 @@ const AdminPanel = () => {
         }
       }
     } catch (error) {
-      console.error('Error submitting:', error);
-      showNotification(
-        `Erreur lors de la ${editingItem ? 'modification' : 'création'}: ${error.message}`,
+      logger.error('Erreur lors de la soumission');
+      showModalNotification(
+        `Erreur lors de la ${editingItem ? 'modification' : 'création'}`,
         'error'
       );
     }
@@ -603,6 +587,7 @@ const AdminPanel = () => {
     setFormData({});
     setImageFile(null);
     setShowPassword(false);
+    setModalNotification(null); // Clear modal notifications
     // Restaurer le scroll de la page
     document.body.style.overflow = 'unset';
   };
@@ -1619,6 +1604,44 @@ const AdminPanel = () => {
                   <h2>{getModalTitle()}</h2>
                   <button type="button" className="modal-close" onClick={closeModal}>×</button>
                 </div>
+                
+                {/* Modal Notification */}
+                {modalNotification && (
+                  <div 
+                    className={`modal-notification ${modalNotification.type}`}
+                    style={{
+                      padding: 'var(--spacing-md)',
+                      margin: '0 var(--spacing-lg) var(--spacing-md) var(--spacing-lg)',
+                      borderRadius: 'var(--radius-md)',
+                      fontSize: '0.9rem',
+                      fontWeight: '500',
+                      backgroundColor: modalNotification.type === 'success' ? '#d4edda' : '#f8d7da',
+                      color: modalNotification.type === 'success' ? '#155724' : '#721c24',
+                      border: `1px solid ${modalNotification.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 'var(--spacing-sm)',
+                      animation: 'slideDown 0.3s ease-out'
+                    }}
+                  >
+                    <svg 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2"
+                    >
+                      {modalNotification.type === 'success' ? (
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      ) : (
+                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                      )}
+                    </svg>
+                    {modalNotification.message}
+                  </div>
+                )}
+                
                 <div className="modal-body" onScroll={handleModalScroll}>
                   <div className="form-grid">
                     {renderFormFields()}

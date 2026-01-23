@@ -266,10 +266,6 @@ app.post('/api/news', authMiddleware, adminMiddleware, upload.fields([
   { name: 'document', maxCount: 1 }
 ]), async (req, res) => {
   try {
-    console.log('=== NEWS CREATION DEBUG ===');
-    console.log('Request body:', req.body);
-    console.log('Request files:', req.files);
-    
     const newsData = { ...req.body };
     
     // Handle special organizer values
@@ -283,20 +279,21 @@ app.post('/api/news', authMiddleware, adminMiddleware, upload.fields([
       newsData.clubId = null;
     }
     
+    // Convert clubId to integer if it's a valid number
+    if (newsData.clubId && !isNaN(newsData.clubId)) {
+      newsData.clubId = parseInt(newsData.clubId);
+    }
+    
     if (req.files) {
       if (req.files.image) {
         newsData.image = `/uploads/${req.files.image[0].filename}`;
-        console.log('Image file added:', newsData.image);
       }
       if (req.files.document) {
         newsData.document = `/uploads/${req.files.document[0].filename}`;
-        console.log('Document file added:', newsData.document);
       }
     }
 
-    console.log('Final newsData:', newsData);
     const news = await News.create(newsData);
-    console.log('News created successfully:', news.id);
     
     clearCache('news');
     res.status(201).json({ 
@@ -305,8 +302,7 @@ app.post('/api/news', authMiddleware, adminMiddleware, upload.fields([
       news: news 
     });
   } catch (error) {
-    console.error('Error creating news:', error);
-    console.error('Error details:', error.message);
+    console.error('Error creating news:', error.message);
     res.status(500).json({ 
       success: false, 
       message: `Erreur lors de la création de l'actualité: ${error.message}` 
@@ -404,10 +400,6 @@ app.post('/api/events', authMiddleware, adminMiddleware, upload.fields([
   { name: 'document', maxCount: 1 }
 ]), async (req, res) => {
   try {
-    console.log('=== EVENT CREATION DEBUG ===');
-    console.log('Request body:', req.body);
-    console.log('Request files:', req.files);
-    
     const eventData = { ...req.body };
     
     // Handle special organizer values
@@ -421,20 +413,21 @@ app.post('/api/events', authMiddleware, adminMiddleware, upload.fields([
       eventData.clubId = null;
     }
     
+    // Convert clubId to integer if it's a valid number
+    if (eventData.clubId && !isNaN(eventData.clubId)) {
+      eventData.clubId = parseInt(eventData.clubId);
+    }
+    
     if (req.files) {
       if (req.files.image) {
         eventData.image = `/uploads/${req.files.image[0].filename}`;
-        console.log('Image file added:', eventData.image);
       }
       if (req.files.document) {
         eventData.document = `/uploads/${req.files.document[0].filename}`;
-        console.log('Document file added:', eventData.document);
       }
     }
 
-    console.log('Final eventData:', eventData);
     const event = await Event.create(eventData);
-    console.log('Event created successfully:', event.id);
     
     clearCache('events');
     res.status(201).json({ 
@@ -443,8 +436,7 @@ app.post('/api/events', authMiddleware, adminMiddleware, upload.fields([
       event: event 
     });
   } catch (error) {
-    console.error('Error creating event:', error);
-    console.error('Error details:', error.message);
+    console.error('Error creating event:', error.message);
     res.status(500).json({ 
       success: false, 
       message: `Erreur lors de la création de l'événement: ${error.message}` 

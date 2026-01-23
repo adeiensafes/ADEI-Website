@@ -11,17 +11,6 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [pageReady, setPageReady] = useState(false);
 
-  // Get latest news (most recent)
-  const latestNews = news
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 3);
-
-  // Get nearest events (upcoming events sorted by date)
-  const upcomingEvents = events
-    .filter(event => new Date(event.date) >= new Date())
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
-    .slice(0, 3);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -33,10 +22,14 @@ const Home = () => {
         const newsData = await newsRes.json();
         const eventsData = await eventsRes.json();
 
-        setNews(newsData);
-        setEvents(eventsData);
+        // S'assurer que les données sont des tableaux
+        setNews(Array.isArray(newsData) ? newsData : []);
+        setEvents(Array.isArray(eventsData) ? eventsData : []);
       } catch (error) {
         console.error('Error fetching data:', error);
+        // En cas d'erreur, initialiser avec des tableaux vides
+        setNews([]);
+        setEvents([]);
       } finally {
         setLoading(false);
         setTimeout(() => setPageReady(true), 100);
@@ -45,6 +38,17 @@ const Home = () => {
 
     fetchData();
   }, []);
+
+  // Get latest news
+  const latestNews = Array.isArray(news) ? news
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 3) : [];
+
+  // Get nearest events
+  const upcomingEvents = Array.isArray(events) ? events
+    .filter(event => new Date(event.date) >= new Date())
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 3) : [];
 
   if (loading) {
     return (
