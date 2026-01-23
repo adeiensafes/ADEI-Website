@@ -15,6 +15,12 @@
 
   # Rewrite everything else to index.html to allow client-side routing
   RewriteRule ^ index.html [L]
+
+  # Fallback for older Apache versions
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . index.html [L]
 </IfModule>
 
 # Security headers

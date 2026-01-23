@@ -2,6 +2,7 @@
   "name": "adei-site-frontend",
   "version": "1.0.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "framer-motion": "^12.23.22",
     "react": "^19.0.0",

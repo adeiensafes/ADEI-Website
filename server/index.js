@@ -272,6 +272,17 @@ app.post('/api/news', authMiddleware, adminMiddleware, upload.fields([
     
     const newsData = { ...req.body };
     
+    // Handle special organizer values
+    if (newsData.clubId === 'adei' || newsData.clubId === 'ensa') {
+      newsData.organizer = newsData.clubId === 'adei' ? 'ADEI' : 'Administration ENSA Fès';
+      delete newsData.clubId; // Remove clubId for special values
+    }
+    
+    // Convert clubId to null if empty string
+    if (newsData.clubId === '' || newsData.clubId === 'null' || newsData.clubId === 'undefined') {
+      newsData.clubId = null;
+    }
+    
     if (req.files) {
       if (req.files.image) {
         newsData.image = `/uploads/${req.files.image[0].filename}`;
@@ -309,6 +320,17 @@ app.put('/api/news/:id', authMiddleware, adminMiddleware, upload.fields([
 ]), async (req, res) => {
   try {
     const newsData = { ...req.body };
+    
+    // Handle special organizer values
+    if (newsData.clubId === 'adei' || newsData.clubId === 'ensa') {
+      newsData.organizer = newsData.clubId === 'adei' ? 'ADEI' : 'Administration ENSA Fès';
+      delete newsData.clubId; // Remove clubId for special values
+    }
+    
+    // Convert clubId to null if empty string
+    if (newsData.clubId === '' || newsData.clubId === 'null' || newsData.clubId === 'undefined') {
+      newsData.clubId = null;
+    }
     
     if (req.files) {
       if (req.files.image) {
@@ -388,6 +410,17 @@ app.post('/api/events', authMiddleware, adminMiddleware, upload.fields([
     
     const eventData = { ...req.body };
     
+    // Handle special organizer values
+    if (eventData.clubId === 'adei' || eventData.clubId === 'ensa') {
+      eventData.organizer = eventData.clubId === 'adei' ? 'ADEI' : 'Administration ENSA Fès';
+      delete eventData.clubId; // Remove clubId for special values
+    }
+    
+    // Convert clubId to null if empty string
+    if (eventData.clubId === '' || eventData.clubId === 'null' || eventData.clubId === 'undefined') {
+      eventData.clubId = null;
+    }
+    
     if (req.files) {
       if (req.files.image) {
         eventData.image = `/uploads/${req.files.image[0].filename}`;
@@ -425,6 +458,17 @@ app.put('/api/events/:id', authMiddleware, adminMiddleware, upload.fields([
 ]), async (req, res) => {
   try {
     const eventData = { ...req.body };
+    
+    // Handle special organizer values
+    if (eventData.clubId === 'adei' || eventData.clubId === 'ensa') {
+      eventData.organizer = eventData.clubId === 'adei' ? 'ADEI' : 'Administration ENSA Fès';
+      delete eventData.clubId; // Remove clubId for special values
+    }
+    
+    // Convert clubId to null if empty string
+    if (eventData.clubId === '' || eventData.clubId === 'null' || eventData.clubId === 'undefined') {
+      eventData.clubId = null;
+    }
     
     if (req.files) {
       if (req.files.image) {
