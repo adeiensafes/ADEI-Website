@@ -400,6 +400,7 @@ app.post('/api/events', authMiddleware, adminMiddleware, upload.fields([
   { name: 'document', maxCount: 1 }
 ]), async (req, res) => {
   try {
+<<<<<<< HEAD
     const eventData = { ...req.body };
     
     // Handle special organizer values

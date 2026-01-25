@@ -189,6 +189,25 @@ const AdminPanel = () => {
         abbreviation: '',
         type: 'filiere',
         responsable: '',
+        // Responsable pédagogique commun pour classes préparatoires
+        responsablePedagogique: '',
+        // Délégués étudiants CP1
+        delegueA1: '',
+        telDelegueA1: '',
+        delegueB1: '',
+        telDelegueB1: '',
+        delegueC1: '',
+        telDelegueC1: '',
+        // Délégués étudiants CP2
+        delegueA2: '',
+        telDelegueA2: '',
+        delegueB2: '',
+        telDelegueB2: '',
+        delegueC2: '',
+        telDelegueC2: '',
+        // Délégué filière
+        delegueFiliere: '',
+        telDelegueFiliere: '',
         years: [],
         documentation: '',
         drive: '',
@@ -378,6 +397,40 @@ const AdminPanel = () => {
     }
   };
 
+  const handleReorder = async (id, direction, type) => {
+    try {
+      const response = await fetch(getApiUrl(`${type}/${id}/reorder`), {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: token 
+        },
+        body: JSON.stringify({ direction })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        await fetchData();
+        showNotification(
+          'Ordre modifié avec succès!',
+          'success'
+        );
+      } else {
+        showNotification(
+          result.message || 'Erreur lors de la modification de l\'ordre',
+          'error'
+        );
+      }
+    } catch (error) {
+      console.error('Error reordering:', error);
+      showNotification(
+        `Erreur lors de la modification de l'ordre: ${error.message}`,
+        'error'
+      );
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -455,12 +508,85 @@ const AdminPanel = () => {
       }
     }
 
+    // User validation
+    if (activeTab === 'users') {
+      // Username format validation
+      const usernameRegex = /^[a-zA-Z0-9._]+$/;
+      if (!formData.username || formData.username.length < 3) {
+        showNotification(
+          'Le nom d\'utilisateur doit contenir au moins 3 caractères',
+          'error'
+        );
+        return;
+      }
+      
+      if (!usernameRegex.test(formData.username)) {
+        showNotification(
+          'Le nom d\'utilisateur ne peut contenir que des lettres, chiffres, points (.) et underscores (_)',
+          'error'
+        );
+        return;
+      }
+
+      if (formData.username.includes(' ')) {
+        showNotification(
+          'Le nom d\'utilisateur ne peut pas contenir d\'espaces',
+          'error'
+        );
+        return;
+      }
+
+      // Check for duplicate username
+      const existingUserByUsername = usersData.find(user => 
+        user.username.toLowerCase() === formData.username?.toLowerCase() && 
+        user.id !== editingItem?.id
+      );
+      if (existingUserByUsername) {
+        showNotification(
+          `Le nom d'utilisateur "${formData.username}" est déjà utilisé`,
+          'error'
+        );
+        return;
+      }
+
+      // Check for duplicate email
+      const existingUserByEmail = usersData.find(user => 
+        user.email.toLowerCase() === formData.email?.toLowerCase() && 
+        user.id !== editingItem?.id
+      );
+      if (existingUserByEmail) {
+        showNotification(
+          `L'adresse email "${formData.email}" est déjà utilisée`,
+          'error'
+        );
+        return;
+      }
+
+      // Password validation for new users
+      if (!editingItem && (!formData.password || formData.password.length < 6)) {
+        showNotification(
+          'Le mot de passe doit contenir au moins 6 caractères',
+          'error'
+        );
+        return;
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!formData.email || !emailRegex.test(formData.email)) {
+        showNotification(
+          'Veuillez saisir une adresse email valide',
+          'error'
+        );
+        return;
+      }
+    }
+
     try {
       const method = editingItem ? 'PUT' : 'POST';
       const url = editingItem
         ? getApiUrl(`${activeTab}/${editingItem.id || editingItem._id}`)
         : getApiUrl(activeTab);
-
       if ((activeTab === 'clubs' || activeTab === 'partners' || activeTab === 'adei-members' || activeTab === 'news' || activeTab === 'events') && (imageFile || formData.documentFile)) {
         const formDataObj = new FormData();
         
@@ -1190,17 +1316,312 @@ const AdminPanel = () => {
                     <option value="prepa">Classe préparatoire</option>
                   </select>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Responsable</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value={formData.responsable || ''}
-                    onChange={(e) => setFormData({ ...formData, responsable: e.target.value })}
-                    placeholder="Nom du responsable"
-                  />
-                </div>
+                {formData.type === 'prepa' ? (
+                  <div className="form-group">
+                    <label className="form-label">Responsable Section A</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={formData.responsableA || ''}
+                      onChange={(e) => setFormData({ ...formData, responsableA: e.target.value })}
+                      placeholder="Responsable section A"
+                    />
+                  </div>
+                ) : (
+                  <div className="form-group">
+                    <label className="form-label">Responsable</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={formData.responsable || ''}
+                      onChange={(e) => setFormData({ ...formData, responsable: e.target.value })}
+                      placeholder="Nom du responsable"
+                    />
+                  </div>
+                )}
               </div>
+
+              {/* Responsable simple pour les filières */}
+              {formData.type === 'filiere' && (
+                <>
+                  <div className="form-group">
+                    <label className="form-label">Responsable de filière (3 ans)</label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={formData.responsable || ''}
+                      onChange={(e) => setFormData({ ...formData, responsable: e.target.value })}
+                      placeholder="Prof. Nom du responsable"
+                    />
+                  </div>
+                  
+                  <div style={{ 
+                    border: '2px solid #16A34A', 
+                    borderRadius: 'var(--radius-lg)', 
+                    padding: 'var(--spacing-lg)', 
+                    marginTop: 'var(--spacing-lg)',
+                    background: 'var(--bg-secondary)'
+                  }}>
+                    <h3 style={{ color: '#16A34A', marginTop: 0, marginBottom: 'var(--spacing-md)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#16A34A"/>
+                        <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="#16A34A"/>
+                        <path d="M15 2L17 4L21 0" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Délégué Étudiant Représentant
+                    </h3>
+                    
+                    <div className="form-grid two-cols">
+                      <div className="form-group">
+                        <label className="form-label">Nom complet du délégué</label>
+                        <input
+                          type="text"
+                          className="form-input"
+                          value={formData.delegueFiliere || ''}
+                          onChange={(e) => setFormData({ ...formData, delegueFiliere: e.target.value })}
+                          placeholder="Nom complet de l'étudiant délégué"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Numéro de téléphone</label>
+                        <input
+                          type="tel"
+                          className="form-input"
+                          value={formData.telDelegueFiliere || ''}
+                          onChange={(e) => setFormData({ ...formData, telDelegueFiliere: e.target.value })}
+                          placeholder="+212 6 12 34 56 78"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Structure pour les classes préparatoires */}
+              {formData.type === 'prepa' && (
+                <>
+                  {/* Responsable pédagogique commun */}
+                  <div style={{ 
+                    border: '2px solid var(--color-primary)', 
+                    borderRadius: 'var(--radius-lg)', 
+                    padding: 'var(--spacing-lg)', 
+                    marginTop: 'var(--spacing-lg)',
+                    background: 'var(--bg-secondary)'
+                  }}>
+                    <h3 style={{ color: 'var(--color-primary)', marginTop: 0, marginBottom: 'var(--spacing-md)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="var(--color-primary)"/>
+                        <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="var(--color-primary)"/>
+                        <path d="M20 8H22V10H20V12H18V10H16V8H18V6H20V8Z" fill="var(--color-primary)"/>
+                      </svg>
+                      Responsable Pédagogique Commun
+                    </h3>
+                    
+                    <div className="form-group">
+                      <label className="form-label">Responsable pédagogique (toutes sections)</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        value={formData.responsablePedagogique || ''}
+                        onChange={(e) => setFormData({ ...formData, responsablePedagogique: e.target.value })}
+                        placeholder="Prof. Nom du responsable pédagogique"
+                      />
+                    </div>
+                  </div>
+
+                  {/* CP1 - Délégués étudiants */}
+                  <div style={{ 
+                    border: '2px solid #DC2626', 
+                    borderRadius: 'var(--radius-lg)', 
+                    padding: 'var(--spacing-lg)', 
+                    marginTop: 'var(--spacing-lg)',
+                    background: 'var(--bg-secondary)'
+                  }}>
+                    <h3 style={{ color: '#DC2626', marginTop: 0, marginBottom: 'var(--spacing-md)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#DC2626"/>
+                        <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="#DC2626"/>
+                        <path d="M15 2L17 4L21 0" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Délégués Étudiants CP1 (Sections A1, B1, C1)
+                    </h3>
+                    
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(3, 1fr)', 
+                      gap: 'var(--spacing-lg)' 
+                    }}>
+                      <div>
+                        <h4 style={{ color: '#DC2626', marginBottom: 'var(--spacing-sm)' }}>Section A1</h4>
+                        <div className="form-group">
+                          <label className="form-label">Nom complet</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={formData.delegueA1 || ''}
+                            onChange={(e) => setFormData({ ...formData, delegueA1: e.target.value })}
+                            placeholder="Nom complet délégué A1"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Téléphone</label>
+                          <input
+                            type="tel"
+                            className="form-input"
+                            value={formData.telDelegueA1 || ''}
+                            onChange={(e) => setFormData({ ...formData, telDelegueA1: e.target.value })}
+                            placeholder="+212 6 12 34 56 78"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 style={{ color: '#DC2626', marginBottom: 'var(--spacing-sm)' }}>Section B1</h4>
+                        <div className="form-group">
+                          <label className="form-label">Nom complet</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={formData.delegueB1 || ''}
+                            onChange={(e) => setFormData({ ...formData, delegueB1: e.target.value })}
+                            placeholder="Nom complet délégué B1"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Téléphone</label>
+                          <input
+                            type="tel"
+                            className="form-input"
+                            value={formData.telDelegueB1 || ''}
+                            onChange={(e) => setFormData({ ...formData, telDelegueB1: e.target.value })}
+                            placeholder="+212 6 12 34 56 78"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 style={{ color: '#DC2626', marginBottom: 'var(--spacing-sm)' }}>Section C1</h4>
+                        <div className="form-group">
+                          <label className="form-label">Nom complet</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={formData.delegueC1 || ''}
+                            onChange={(e) => setFormData({ ...formData, delegueC1: e.target.value })}
+                            placeholder="Nom complet délégué C1"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Téléphone</label>
+                          <input
+                            type="tel"
+                            className="form-input"
+                            value={formData.telDelegueC1 || ''}
+                            onChange={(e) => setFormData({ ...formData, telDelegueC1: e.target.value })}
+                            placeholder="+212 6 12 34 56 78"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CP2 - Délégués étudiants */}
+                  <div style={{ 
+                    border: '2px solid #DC2626', 
+                    borderRadius: 'var(--radius-lg)', 
+                    padding: 'var(--spacing-lg)', 
+                    marginTop: 'var(--spacing-lg)',
+                    background: 'var(--bg-secondary)'
+                  }}>
+                    <h3 style={{ color: '#DC2626', marginTop: 0, marginBottom: 'var(--spacing-md)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#DC2626"/>
+                        <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="#DC2626"/>
+                        <path d="M15 2L17 4L21 0" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Délégués Étudiants CP2 (Sections A2, B2, C2)
+                    </h3>
+                    
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(3, 1fr)', 
+                      gap: 'var(--spacing-lg)' 
+                    }}>
+                      <div>
+                        <h4 style={{ color: '#DC2626', marginBottom: 'var(--spacing-sm)' }}>Section A2</h4>
+                        <div className="form-group">
+                          <label className="form-label">Nom complet</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={formData.delegueA2 || ''}
+                            onChange={(e) => setFormData({ ...formData, delegueA2: e.target.value })}
+                            placeholder="Nom complet délégué A2"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Téléphone</label>
+                          <input
+                            type="tel"
+                            className="form-input"
+                            value={formData.telDelegueA2 || ''}
+                            onChange={(e) => setFormData({ ...formData, telDelegueA2: e.target.value })}
+                            placeholder="+212 6 12 34 56 78"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 style={{ color: '#DC2626', marginBottom: 'var(--spacing-sm)' }}>Section B2</h4>
+                        <div className="form-group">
+                          <label className="form-label">Nom complet</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={formData.delegueB2 || ''}
+                            onChange={(e) => setFormData({ ...formData, delegueB2: e.target.value })}
+                            placeholder="Nom complet délégué B2"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Téléphone</label>
+                          <input
+                            type="tel"
+                            className="form-input"
+                            value={formData.telDelegueB2 || ''}
+                            onChange={(e) => setFormData({ ...formData, telDelegueB2: e.target.value })}
+                            placeholder="+212 6 12 34 56 78"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 style={{ color: '#DC2626', marginBottom: 'var(--spacing-sm)' }}>Section C2</h4>
+                        <div className="form-group">
+                          <label className="form-label">Nom complet</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={formData.delegueC2 || ''}
+                            onChange={(e) => setFormData({ ...formData, delegueC2: e.target.value })}
+                            placeholder="Nom complet délégué C2"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Téléphone</label>
+                          <input
+                            type="tel"
+                            className="form-input"
+                            value={formData.telDelegueC2 || ''}
+                            onChange={(e) => setFormData({ ...formData, telDelegueC2: e.target.value })}
+                            placeholder="+212 6 12 34 56 78"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div className="form-group">
                 <label className="form-label">Années d'étude (une par ligne)</label>

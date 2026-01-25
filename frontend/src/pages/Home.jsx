@@ -11,6 +11,17 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [pageReady, setPageReady] = useState(false);
 
+  // Get latest news (most recent)
+  const latestNews = news
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 3);
+
+  // Get nearest events (upcoming events sorted by date)
+  const upcomingEvents = events
+    .filter(event => new Date(event.date) >= new Date())
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 3);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
