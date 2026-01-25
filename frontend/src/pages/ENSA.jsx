@@ -4,7 +4,8 @@ import { API_ENDPOINTS } from '../config/api';
 
 const ENSA = () => {
   const [pageReady, setPageReady] = useState(false);
-  const [activeSection, setActiveSection] = useState('filieres');
+  const [activeSection, setActiveSection] = useState('cp1');
+  const [contentTransition, setContentTransition] = useState(false);
   const [filieres, setFilieres] = useState([]);
   const [classesPrepa, setClassesPrepa] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -70,6 +71,152 @@ const ENSA = () => {
     setSelectedFiliere(null);
   };
 
+  // Handle section change with transition
+  const handleSectionChange = (newSection) => {
+    if (newSection !== activeSection) {
+      setContentTransition(true);
+      setTimeout(() => {
+        setActiveSection(newSection);
+        setContentTransition(false);
+      }, 150);
+    }
+  };
+
+  // Function to get filtered data based on active section
+  const getFilteredData = () => {
+    if (activeSection === 'cp1') {
+      // For CP1, create 3 separate sections (A1, B1, C1)
+      const cp1Data = classesPrepa.filter(item => item.type === 'prepa');
+      if (cp1Data.length > 0) {
+        const baseData = cp1Data[0];
+        return [
+          {
+            ...baseData,
+            id: `${baseData.id}-A1`,
+            name: `Classes Préparatoires CP1 - Section A1`,
+            abbreviation: `CP1 - Section A1`,
+            responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
+            delegue: baseData.delegueA1 || 'Étudiant Délégué A1',
+            telDelegue: baseData.telDelegueA1 || '',
+            section: 'A1',
+            level: 'CP1'
+          },
+          {
+            ...baseData,
+            id: `${baseData.id}-B1`,
+            name: `Classes Préparatoires CP1 - Section B1`,
+            abbreviation: `CP1 - Section B1`,
+            responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
+            delegue: baseData.delegueB1 || 'Étudiant Délégué B1',
+            telDelegue: baseData.telDelegueB1 || '',
+            section: 'B1',
+            level: 'CP1'
+          },
+          {
+            ...baseData,
+            id: `${baseData.id}-C1`,
+            name: `Classes Préparatoires CP1 - Section C1`,
+            abbreviation: `CP1 - Section C1`,
+            responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
+            delegue: baseData.delegueC1 || 'Étudiant Délégué C1',
+            telDelegue: baseData.telDelegueC1 || '',
+            section: 'C1',
+            level: 'CP1'
+          }
+        ];
+      }
+      return [];
+    } else if (activeSection === 'cp2') {
+      // For CP2, create 3 separate sections (A2, B2, C2)
+      const cp2Data = classesPrepa.filter(item => item.type === 'prepa');
+      if (cp2Data.length > 0) {
+        const baseData = cp2Data[0];
+        return [
+          {
+            ...baseData,
+            id: `${baseData.id}-A2`,
+            name: `Classes Préparatoires CP2 - Section A2`,
+            abbreviation: `CP2 - Section A2`,
+            responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
+            delegue: baseData.delegueA2 || 'Étudiant Délégué A2',
+            telDelegue: baseData.telDelegueA2 || '',
+            section: 'A2',
+            level: 'CP2'
+          },
+          {
+            ...baseData,
+            id: `${baseData.id}-B2`,
+            name: `Classes Préparatoires CP2 - Section B2`,
+            abbreviation: `CP2 - Section B2`,
+            responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
+            delegue: baseData.delegueB2 || 'Étudiant Délégué B2',
+            telDelegue: baseData.telDelegueB2 || '',
+            section: 'B2',
+            level: 'CP2'
+          },
+          {
+            ...baseData,
+            id: `${baseData.id}-C2`,
+            name: `Classes Préparatoires CP2 - Section C2`,
+            abbreviation: `CP2 - Section C2`,
+            responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
+            delegue: baseData.delegueC2 || 'Étudiant Délégué C2',
+            telDelegue: baseData.telDelegueC2 || '',
+            section: 'C2',
+            level: 'CP2'
+          }
+        ];
+      }
+      return [];
+    } else {
+      // For CI levels, show filières with level suffix
+      const levelNumber = activeSection.replace('ci', '');
+      const filteredFilieres = [];
+      
+      filieres.forEach(filiere => {
+        if (filiere.type === 'filiere') {
+          filteredFilieres.push({
+            ...filiere,
+            id: `${filiere.id}-${activeSection.toUpperCase()}`,
+            name: `${filiere.name}`,
+            abbreviation: `${filiere.abbreviation}${levelNumber}`,
+            displayName: `${filiere.abbreviation} ${levelNumber}`,
+            level: activeSection.toUpperCase(),
+            delegue: filiere.delegueFiliere || 'Étudiant Délégué',
+            telDelegue: filiere.telDelegueFiliere || ''
+          });
+        }
+      });
+      
+      return filteredFilieres;
+    }
+  };
+
+  const getSectionTitle = () => {
+    switch (activeSection) {
+      case 'cp1':
+        return 'Classes Préparatoires - 1ère année';
+      case 'cp2':
+        return 'Classes Préparatoires - 2ème année';
+      case 'ci1':
+        return 'Cycle Ingénieur - 1ère année';
+      case 'ci2':
+        return 'Cycle Ingénieur - 2ème année';
+      case 'ci3':
+        return 'Cycle Ingénieur - 3ème année';
+      default:
+        return 'Formation';
+    }
+  };
+
+  const getSectionDescription = () => {
+    if (activeSection === 'cp1' || activeSection === 'cp2') {
+      return 'Formation préparatoire aux études d\'ingénieur';
+    } else {
+      return 'Filières d\'excellence en ingénierie';
+    }
+  };
+
   const renderFiliereCard = (filiere, index) => (
     <div
       key={filiere.abbreviation}
@@ -110,7 +257,7 @@ const ENSA = () => {
             fontSize: 'var(--font-size-xl)',
             fontWeight: 'bold'
           }}>
-            {filiere.abbreviation}
+            {filiere.displayName || filiere.abbreviation}
           </h3>
           <p style={{ 
             margin: 0, 
@@ -129,47 +276,177 @@ const ENSA = () => {
           fontSize: 'var(--font-size-sm)',
           fontWeight: 'bold'
         }}>
-          {filiere.type === 'prepa' ? 'Prépa' : 'Filière'}
+          {filiere.section ? `Section ${filiere.section}` : 
+           filiere.level ? filiere.level :
+           filiere.type === 'prepa' ? 'Prépa' : 'Filière'}
         </div>
       </div>
 
-      {/* Années d'étude */}
+      {/* Responsables et Délégués */}
       <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <h4 style={{ 
-          color: 'var(--text-color)', 
-          marginBottom: 'var(--spacing-sm)',
-          fontSize: 'var(--font-size-md)'
-        }}>
-          Années d'étude
-        </h4>
-        <div style={{ 
-          display: 'flex', 
-          gap: 'var(--spacing-sm)', 
-          flexWrap: 'wrap' 
-        }}>
-          {(Array.isArray(filiere.years) ? filiere.years : []).map((year, yearIndex) => (
-            <span
-              key={yearIndex}
-              style={{
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-color)',
-                padding: 'var(--spacing-xs) var(--spacing-sm)',
-                borderRadius: 'var(--radius-md)',
-                fontSize: 'var(--font-size-sm)',
-                border: '1px solid var(--card-border)'
-              }}
-            >
-              {year}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Responsable */}
-      <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <p style={{ margin: 0, color: 'var(--text-color)' }}>
-          <strong>Responsable :</strong> {filiere.responsable}
-        </p>
+        {filiere.section ? (
+          // Pour les sections CP1/CP2 - Responsable pédagogique commun + délégué de section
+          <div>
+            <h4 style={{ 
+              color: 'var(--text-color)', 
+              marginBottom: 'var(--spacing-sm)',
+              fontSize: 'var(--font-size-md)'
+            }}>
+              Encadrement
+            </h4>
+            
+            {/* Responsable pédagogique */}
+            <div style={{ 
+              padding: 'var(--spacing-sm)',
+              background: 'var(--bg-secondary)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--card-border)',
+              marginBottom: 'var(--spacing-sm)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginBottom: 'var(--spacing-xs)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="var(--color-primary)"/>
+                  <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="var(--color-primary)"/>
+                  <path d="M20 8H22V10H20V12H18V10H16V8H18V6H20V8Z" fill="var(--color-primary)"/>
+                </svg>
+                <strong style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-sm)' }}>
+                  Responsable Pédagogique
+                </strong>
+              </div>
+              <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-sm)' }}>
+                {filiere.responsablePedagogique}
+              </p>
+            </div>
+            
+            {/* Délégué étudiant de section */}
+            <div style={{ 
+              padding: 'var(--spacing-sm)',
+              background: 'var(--bg-secondary)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--card-border)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginBottom: 'var(--spacing-xs)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#DC2626"/>
+                  <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="#DC2626"/>
+                  <path d="M15 2L17 4L21 0" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <strong style={{ color: '#DC2626', fontSize: 'var(--font-size-sm)' }}>
+                  Délégué Section {filiere.section}
+                </strong>
+              </div>
+              <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-sm)', marginBottom: 'var(--spacing-xs)' }}>
+                {filiere.delegue}
+              </p>
+              {filiere.telDelegue && (
+                <a 
+                  href={`tel:${filiere.telDelegue}`}
+                  style={{
+                    color: 'var(--color-primary)',
+                    textDecoration: 'none',
+                    fontSize: 'var(--font-size-xs)',
+                    fontWeight: '600',
+                    padding: 'var(--spacing-xs) var(--spacing-sm)',
+                    background: 'var(--primary-light)',
+                    borderRadius: 'var(--radius-sm)',
+                    transition: 'all 0.3s ease',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 'var(--spacing-xs)'
+                  }}
+                  onMouseEnter={(e) => e.target.style.opacity = '0.8'}
+                  onMouseLeave={(e) => e.target.style.opacity = '1'}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 16.92V19.92C22 20.52 21.52 21 20.92 21C9.4 21 0 11.6 0 0.08C0 -0.52 0.48 -1 1.08 -1H4.08C4.68 -1 5.16 -0.52 5.16 0.08C5.16 2.08 5.52 4.04 6.2 5.88C6.36 6.24 6.24 6.68 5.92 6.96L4.4 8.48C6.44 12.44 9.56 15.56 13.52 17.6L15.04 16.08C15.32 15.76 15.76 15.64 16.12 15.8C17.96 16.48 19.92 16.84 21.92 16.84C22.52 16.84 23 17.32 23 17.92V20.92Z" fill="currentColor"/>
+                  </svg>
+                  {filiere.telDelegue}
+                </a>
+              )}
+            </div>
+          </div>
+        ) : (
+          // Pour les filières - Responsable + délégué représentant
+          <div>
+            <h4 style={{ 
+              color: 'var(--text-color)', 
+              marginBottom: 'var(--spacing-sm)',
+              fontSize: 'var(--font-size-md)'
+            }}>
+              Encadrement
+            </h4>
+            
+            {/* Responsable de filière */}
+            <div style={{ 
+              padding: 'var(--spacing-sm)',
+              background: 'var(--bg-secondary)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--card-border)',
+              marginBottom: 'var(--spacing-sm)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginBottom: 'var(--spacing-xs)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="var(--color-primary)"/>
+                  <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="var(--color-primary)"/>
+                  <path d="M20 8H22V10H20V12H18V10H16V8H18V6H20V8Z" fill="var(--color-primary)"/>
+                </svg>
+                <strong style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-sm)' }}>
+                  Responsable de Filière (3 ans)
+                </strong>
+              </div>
+              <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-sm)' }}>
+                {filiere.responsable || 'Prof. Responsable'}
+              </p>
+            </div>
+            
+            {/* Délégué représentant */}
+            <div style={{ 
+              padding: 'var(--spacing-sm)',
+              background: 'var(--bg-secondary)',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--card-border)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginBottom: 'var(--spacing-xs)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#16A34A"/>
+                  <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="#16A34A"/>
+                  <path d="M15 2L17 4L21 0" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <strong style={{ color: '#16A34A', fontSize: 'var(--font-size-sm)' }}>
+                  Délégué Représentant
+                </strong>
+              </div>
+              <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-sm)', marginBottom: 'var(--spacing-xs)' }}>
+                {filiere.delegue}
+              </p>
+              {filiere.telDelegue && (
+                <a 
+                  href={`tel:${filiere.telDelegue}`}
+                  style={{
+                    color: 'var(--color-primary)',
+                    textDecoration: 'none',
+                    fontSize: 'var(--font-size-xs)',
+                    fontWeight: '600',
+                    padding: 'var(--spacing-xs) var(--spacing-sm)',
+                    background: 'var(--primary-light)',
+                    borderRadius: 'var(--radius-sm)',
+                    transition: 'all 0.3s ease',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 'var(--spacing-xs)'
+                  }}
+                  onMouseEnter={(e) => e.target.style.opacity = '0.8'}
+                  onMouseLeave={(e) => e.target.style.opacity = '1'}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 16.92V19.92C22 20.52 21.52 21 20.92 21C9.4 21 0 11.6 0 0.08C0 -0.52 0.48 -1 1.08 -1H4.08C4.68 -1 5.16 -0.52 5.16 0.08C5.16 2.08 5.52 4.04 6.2 5.88C6.36 6.24 6.24 6.68 5.92 6.96L4.4 8.48C6.44 12.44 9.56 15.56 13.52 17.6L15.04 16.08C15.32 15.76 15.76 15.64 16.12 15.8C17.96 16.48 19.92 16.84 21.92 16.84C22.52 16.84 23 17.32 23 17.92V20.92Z" fill="currentColor"/>
+                  </svg>
+                  {filiere.telDelegue}
+                </a>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Liens Documentation et Drive */}
@@ -341,163 +618,254 @@ const ENSA = () => {
               </div>
             </div>
 
-            {/* Onglets de navigation */}
+            {/* Section Title - MOVED TO TOP */}
+            <div style={{ 
+              textAlign: 'center', 
+              marginBottom: 'var(--spacing-xl)' 
+            }}>
+              <h2 style={{ color: 'var(--color-primary)' }}>
+                {getSectionTitle()}
+              </h2>
+              <p style={{ color: 'var(--text-muted)' }}>
+                {getSectionDescription()}
+              </p>
+            </div>
+
+            {/* Section d'information selon le type - MOVED ABOVE TABS */}
+            {(activeSection === 'cp1' || activeSection === 'cp2') && (
+              <div className="card" style={{ 
+                textAlign: 'center',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--card-border)',
+                marginBottom: 'var(--spacing-xl)'
+              }}>
+                <h3 style={{ color: 'var(--color-primary)' }}>
+                  À propos des Classes Préparatoires
+                </h3>
+                <p>
+                  Les Classes Préparatoires Intégrées (CPI) constituent un cycle de formation de 2 ans 
+                  qui prépare les étudiants aux études d'ingénieur. Ce cycle couvre les matières 
+                  fondamentales : mathématiques, physique, chimie, informatique et langues.
+                </p>
+                <p>
+                  À l'issue de ce cycle, les étudiants accèdent directement au cycle ingénieur 
+                  dans l'une des filières de l'ENSA Fès selon leurs choix et leurs résultats.
+                </p>
+                <p>
+                  <strong>Organisation :</strong> Les classes préparatoires sont organisées en sections 
+                  (A1, B1, C1 pour la première année et A2, B2, C2 pour la deuxième année), 
+                  chacune encadrée par un responsable pédagogique dédié.
+                </p>
+              </div>
+            )}
+
+            {(activeSection === 'ci1' || activeSection === 'ci2' || activeSection === 'ci3') && (
+              <div className="card" style={{ 
+                textAlign: 'center',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--card-border)',
+                marginBottom: 'var(--spacing-xl)'
+              }}>
+                <h3 style={{ color: 'var(--color-primary)' }}>
+                  À propos du Cycle Ingénieur
+                </h3>
+                <p>
+                  Le Cycle Ingénieur de l'ENSA Fès s'étend sur 3 années et forme des ingénieurs 
+                  d'état dans diverses spécialités. Ce cycle allie formation théorique approfondie, 
+                  travaux pratiques en laboratoire, projets industriels et stages en entreprise.
+                </p>
+                <p>
+                  Les étudiants choisissent leur filière de spécialisation selon leurs aptitudes 
+                  et leurs projets professionnels. Chaque filière propose un cursus adapté aux 
+                  besoins du marché du travail et aux évolutions technologiques.
+                </p>
+                <p>
+                  <strong>Débouchés :</strong> Nos diplômés intègrent les secteurs de l'industrie, 
+                  des services, de la recherche et développement, ou poursuivent leurs études 
+                  en doctorat. Le diplôme d'ingénieur ENSA est reconnu par l'État marocain 
+                  et bénéficie d'une excellente réputation auprès des employeurs.
+                </p>
+              </div>
+            )}
+
+            {/* Onglets de navigation - MOVED BELOW INTRODUCTION */}
             <div style={{ 
               display: 'flex', 
               justifyContent: 'center', 
               marginBottom: 'var(--spacing-xl)',
-              gap: 'var(--spacing-md)',
+              gap: 'var(--spacing-sm)',
               background: 'var(--card-bg)',
               padding: 'var(--spacing-md)',
               borderRadius: 'var(--radius-xl)',
               border: '1px solid var(--card-border)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+              flexWrap: 'wrap'
             }}>
               <button
-                onClick={() => setActiveSection('filieres')}
-                className={`tab-button ${activeSection === 'filieres' ? 'active' : ''}`}
+                onClick={() => handleSectionChange('cp1')}
+                className={`tab-button ${activeSection === 'cp1' ? 'active' : ''}`}
                 style={{
-                  padding: 'var(--spacing-md) var(--spacing-xl)',
-                  border: activeSection === 'filieres' ? 'none' : '1px solid #d1d5db',
+                  padding: 'var(--spacing-sm) var(--spacing-lg)',
+                  border: activeSection === 'cp1' ? 'none' : '1px solid #d1d5db',
                   borderRadius: 'var(--radius-lg)',
-                  background: activeSection === 'filieres' ? '#2563eb' : '#f9fafb',
-                  color: activeSection === 'filieres' ? 'white' : '#374151',
+                  background: activeSection === 'cp1' ? '#2563eb' : '#f9fafb',
+                  color: activeSection === 'cp1' ? 'white' : '#374151',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
                   fontWeight: '600',
-                  fontSize: 'var(--font-size-md)',
-                  boxShadow: activeSection === 'filieres' ? '0 4px 12px rgba(37, 99, 235, 0.3)' : 'none'
+                  fontSize: 'var(--font-size-sm)',
+                  boxShadow: activeSection === 'cp1' ? '0 4px 12px rgba(37, 99, 235, 0.3)' : 'none'
                 }}
                 onMouseEnter={(e) => {
-                  if (activeSection !== 'filieres') {
+                  if (activeSection !== 'cp1') {
                     e.currentTarget.style.background = '#e5e7eb';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (activeSection !== 'filieres') {
+                  if (activeSection !== 'cp1') {
                     e.currentTarget.style.background = '#f9fafb';
                   }
                 }}
               >
-                Filières d'Ingénierie ({filieres.length})
+                CP1
               </button>
               <button
-                onClick={() => setActiveSection('prepa')}
-                className={`tab-button ${activeSection === 'prepa' ? 'active' : ''}`}
+                onClick={() => handleSectionChange('cp2')}
+                className={`tab-button ${activeSection === 'cp2' ? 'active' : ''}`}
                 style={{
-                  padding: 'var(--spacing-md) var(--spacing-xl)',
-                  border: activeSection === 'prepa' ? 'none' : '1px solid #d1d5db',
+                  padding: 'var(--spacing-sm) var(--spacing-lg)',
+                  border: activeSection === 'cp2' ? 'none' : '1px solid #d1d5db',
                   borderRadius: 'var(--radius-lg)',
-                  background: activeSection === 'prepa' ? '#2563eb' : '#f9fafb',
-                  color: activeSection === 'prepa' ? 'white' : '#374151',
+                  background: activeSection === 'cp2' ? '#2563eb' : '#f9fafb',
+                  color: activeSection === 'cp2' ? 'white' : '#374151',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
                   fontWeight: '600',
-                  fontSize: 'var(--font-size-md)',
-                  boxShadow: activeSection === 'prepa' ? '0 4px 12px rgba(37, 99, 235, 0.3)' : 'none'
+                  fontSize: 'var(--font-size-sm)',
+                  boxShadow: activeSection === 'cp2' ? '0 4px 12px rgba(37, 99, 235, 0.3)' : 'none'
                 }}
                 onMouseEnter={(e) => {
-                  if (activeSection !== 'prepa') {
+                  if (activeSection !== 'cp2') {
                     e.currentTarget.style.background = '#e5e7eb';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (activeSection !== 'prepa') {
+                  if (activeSection !== 'cp2') {
                     e.currentTarget.style.background = '#f9fafb';
                   }
                 }}
               >
-                Classes Préparatoires ({classesPrepa.length})
+                CP2
+              </button>
+              <button
+                onClick={() => handleSectionChange('ci1')}
+                className={`tab-button ${activeSection === 'ci1' ? 'active' : ''}`}
+                style={{
+                  padding: 'var(--spacing-sm) var(--spacing-lg)',
+                  border: activeSection === 'ci1' ? 'none' : '1px solid #d1d5db',
+                  borderRadius: 'var(--radius-lg)',
+                  background: activeSection === 'ci1' ? '#2563eb' : '#f9fafb',
+                  color: activeSection === 'ci1' ? 'white' : '#374151',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  fontWeight: '600',
+                  fontSize: 'var(--font-size-sm)',
+                  boxShadow: activeSection === 'ci1' ? '0 4px 12px rgba(37, 99, 235, 0.3)' : 'none'
+                }}
+                onMouseEnter={(e) => {
+                  if (activeSection !== 'ci1') {
+                    e.currentTarget.style.background = '#e5e7eb';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeSection !== 'ci1') {
+                    e.currentTarget.style.background = '#f9fafb';
+                  }
+                }}
+              >
+                CI1
+              </button>
+              <button
+                onClick={() => handleSectionChange('ci2')}
+                className={`tab-button ${activeSection === 'ci2' ? 'active' : ''}`}
+                style={{
+                  padding: 'var(--spacing-sm) var(--spacing-lg)',
+                  border: activeSection === 'ci2' ? 'none' : '1px solid #d1d5db',
+                  borderRadius: 'var(--radius-lg)',
+                  background: activeSection === 'ci2' ? '#2563eb' : '#f9fafb',
+                  color: activeSection === 'ci2' ? 'white' : '#374151',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  fontWeight: '600',
+                  fontSize: 'var(--font-size-sm)',
+                  boxShadow: activeSection === 'ci2' ? '0 4px 12px rgba(37, 99, 235, 0.3)' : 'none'
+                }}
+                onMouseEnter={(e) => {
+                  if (activeSection !== 'ci2') {
+                    e.currentTarget.style.background = '#e5e7eb';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeSection !== 'ci2') {
+                    e.currentTarget.style.background = '#f9fafb';
+                  }
+                }}
+              >
+                CI2
+              </button>
+              <button
+                onClick={() => handleSectionChange('ci3')}
+                className={`tab-button ${activeSection === 'ci3' ? 'active' : ''}`}
+                style={{
+                  padding: 'var(--spacing-sm) var(--spacing-lg)',
+                  border: activeSection === 'ci3' ? 'none' : '1px solid #d1d5db',
+                  borderRadius: 'var(--radius-lg)',
+                  background: activeSection === 'ci3' ? '#2563eb' : '#f9fafb',
+                  color: activeSection === 'ci3' ? 'white' : '#374151',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  fontWeight: '600',
+                  fontSize: 'var(--font-size-sm)',
+                  boxShadow: activeSection === 'ci3' ? '0 4px 12px rgba(37, 99, 235, 0.3)' : 'none'
+                }}
+                onMouseEnter={(e) => {
+                  if (activeSection !== 'ci3') {
+                    e.currentTarget.style.background = '#e5e7eb';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeSection !== 'ci3') {
+                    e.currentTarget.style.background = '#f9fafb';
+                  }
+                }}
+              >
+                CI3
               </button>
             </div>
 
-            {/* Contenu des filières */}
-            {activeSection === 'filieres' && (
-              <div>
-                <div style={{ 
-                  textAlign: 'center', 
-                  marginBottom: 'var(--spacing-xl)' 
+            {/* Contenu filtré par niveau */}
+            <div style={{
+              opacity: contentTransition ? 0 : 1,
+              transform: contentTransition ? 'translateY(20px)' : 'translateY(0)',
+              transition: 'all 0.3s ease-in-out'
+            }}>
+              
+              {getFilteredData().length > 0 ? (
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+                  gap: 'var(--spacing-xl)',
+                  marginBottom: 'var(--spacing-3xl)'
                 }}>
-                  <h2 style={{ color: 'var(--color-primary)' }}>
-                    Filières d'Ingénierie
-                  </h2>
-                  <p style={{ color: 'var(--text-muted)' }}>
-                    Découvrez nos {filieres.length} filières d'excellence en ingénierie
-                  </p>
+                  {getFilteredData().map((filiere, index) => renderFiliereCard(filiere, index))}
                 </div>
-                
-                {filieres.length > 0 ? (
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-                    gap: 'var(--spacing-xl)',
-                    marginBottom: 'var(--spacing-3xl)'
-                  }}>
-                    {filieres.map((filiere, index) => renderFiliereCard(filiere, index))}
-                  </div>
-                ) : (
-                  <div className="card text-center">
-                    <h3>Aucune filière disponible</h3>
-                    <p>Les filières apparaîtront ici dès qu'elles seront configurées.</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Contenu des classes préparatoires */}
-            {activeSection === 'prepa' && (
-              <div>
-                <div style={{ 
-                  textAlign: 'center', 
-                  marginBottom: 'var(--spacing-xl)' 
-                }}>
-                  <h2 style={{ color: 'var(--color-primary)' }}>
-                    Classes Préparatoires Intégrées
-                  </h2>
-                  <p style={{ color: 'var(--text-muted)' }}>
-                    Formation préparatoire aux études d'ingénieur
-                  </p>
+              ) : (
+                <div className="card text-center">
+                  <h3>Aucune formation disponible</h3>
+                  <p>Les formations pour ce niveau apparaîtront ici dès qu'elles seront configurées.</p>
                 </div>
-                
-                {classesPrepa.length > 0 ? (
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-                    gap: 'var(--spacing-xl)',
-                    marginBottom: 'var(--spacing-3xl)'
-                  }}>
-                    {classesPrepa.map((classe, index) => renderFiliereCard(classe, index))}
-                  </div>
-                ) : (
-                  <div className="card text-center">
-                    <h3>Aucune classe préparatoire disponible</h3>
-                    <p>Les classes préparatoires apparaîtront ici dès qu'elles seront configurées.</p>
-                  </div>
-                )}
-
-                {/* Informations supplémentaires sur les classes prépa */}
-                {classesPrepa.length > 0 && (
-                  <div className="card" style={{ 
-                    textAlign: 'center',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--card-border)'
-                  }}>
-                    <h3 style={{ color: 'var(--color-primary)' }}>
-                      À propos des Classes Préparatoires
-                    </h3>
-                    <p>
-                      Les Classes Préparatoires Intégrées (CPI) constituent un cycle de formation de 2 ans 
-                      qui prépare les étudiants aux études d'ingénieur. Ce cycle couvre les matières 
-                      fondamentales : mathématiques, physique, chimie, informatique et langues.
-                    </p>
-                    <p>
-                      À l'issue de ce cycle, les étudiants accèdent directement au cycle ingénieur 
-                      dans l'une des filières de l'ENSA Fès selon leurs choix et leurs résultats.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Section d'information générale */}
             <div className="card text-center highlight-card" style={{
@@ -668,39 +1036,197 @@ const ENSA = () => {
               </div>
             )}
 
-            {/* Années d'étude */}
+            {/* Encadrement */}
             <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-              <h3 style={{ color: 'var(--text-color)', marginBottom: 'var(--spacing-sm)' }}>Années d'étude</h3>
-              <div style={{ 
-                display: 'flex', 
-                gap: 'var(--spacing-sm)', 
-                flexWrap: 'wrap' 
-              }}>
-                {(Array.isArray(selectedFiliere.years) ? selectedFiliere.years : []).map((year, yearIndex) => (
-                  <span
-                    key={yearIndex}
-                    style={{
-                      background: 'var(--bg-secondary)',
-                      color: 'var(--text-color)',
-                      padding: 'var(--spacing-sm) var(--spacing-md)',
-                      borderRadius: 'var(--radius-lg)',
-                      fontSize: 'var(--font-size-sm)',
-                      border: '1px solid var(--card-border)',
-                      fontWeight: '500'
-                    }}
-                  >
-                    {year}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Responsable */}
-            <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-              <h3 style={{ color: 'var(--text-color)', marginBottom: 'var(--spacing-sm)' }}>Responsable</h3>
-              <p style={{ color: 'var(--text-muted)', margin: 0 }}>
-                {selectedFiliere.responsable}
-              </p>
+              {selectedFiliere.section ? (
+                // Pour les sections CP1/CP2
+                <div>
+                  <h3 style={{ color: 'var(--text-color)', marginBottom: 'var(--spacing-sm)' }}>
+                    Encadrement Section {selectedFiliere.section}
+                  </h3>
+                  
+                  {/* Responsable pédagogique */}
+                  <div style={{
+                    background: 'var(--bg-secondary)',
+                    padding: 'var(--spacing-lg)',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px solid var(--card-border)',
+                    marginBottom: 'var(--spacing-md)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="var(--color-primary)"/>
+                        <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="var(--color-primary)"/>
+                        <path d="M20 8H22V10H20V12H18V10H16V8H18V6H20V8Z" fill="var(--color-primary)"/>
+                      </svg>
+                      <h4 style={{ 
+                        color: 'var(--color-primary)', 
+                        margin: 0,
+                        fontSize: 'var(--font-size-lg)'
+                      }}>
+                        Responsable Pédagogique
+                      </h4>
+                    </div>
+                    <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-md)' }}>
+                      {selectedFiliere.responsablePedagogique}
+                    </p>
+                    <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)', marginTop: 'var(--spacing-xs)' }}>
+                      Commun à toutes les sections CP1 et CP2
+                    </p>
+                  </div>
+                  
+                  {/* Délégué étudiant */}
+                  <div style={{
+                    background: 'var(--bg-secondary)',
+                    padding: 'var(--spacing-lg)',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px solid var(--card-border)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#DC2626"/>
+                        <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="#DC2626"/>
+                        <path d="M15 2L17 4L21 0" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <h4 style={{ 
+                        color: '#DC2626', 
+                        margin: 0,
+                        fontSize: 'var(--font-size-lg)'
+                      }}>
+                        Délégué Section {selectedFiliere.section}
+                      </h4>
+                    </div>
+                    <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-md)', marginBottom: 'var(--spacing-md)' }}>
+                      {selectedFiliere.delegue}
+                    </p>
+                    {selectedFiliere.telDelegue && (
+                      <a 
+                        href={`tel:${selectedFiliere.telDelegue}`}
+                        style={{
+                          color: 'var(--color-primary)',
+                          textDecoration: 'none',
+                          fontSize: 'var(--font-size-md)',
+                          fontWeight: '600',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 'var(--spacing-sm)',
+                          padding: 'var(--spacing-md) var(--spacing-lg)',
+                          background: 'var(--primary-light)',
+                          borderRadius: 'var(--radius-lg)',
+                          transition: 'all 0.3s ease',
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.opacity = '0.8';
+                          e.target.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.opacity = '1';
+                          e.target.style.transform = 'translateY(0)';
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M22 16.92V19.92C22 20.52 21.52 21 20.92 21C9.4 21 0 11.6 0 0.08C0 -0.52 0.48 -1 1.08 -1H4.08C4.68 -1 5.16 -0.52 5.16 0.08C5.16 2.08 5.52 4.04 6.2 5.88C6.36 6.24 6.24 6.68 5.92 6.96L4.4 8.48C6.44 12.44 9.56 15.56 13.52 17.6L15.04 16.08C15.32 15.76 15.76 15.64 16.12 15.8C17.96 16.48 19.92 16.84 21.92 16.84C22.52 16.84 23 17.32 23 17.92V20.92Z" fill="currentColor"/>
+                        </svg>
+                        Contacter: {selectedFiliere.telDelegue}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                // Pour les filières
+                <div>
+                  <h3 style={{ color: 'var(--text-color)', marginBottom: 'var(--spacing-sm)' }}>Encadrement de Filière</h3>
+                  
+                  {/* Responsable de filière */}
+                  <div style={{
+                    background: 'var(--bg-secondary)',
+                    padding: 'var(--spacing-lg)',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px solid var(--card-border)',
+                    marginBottom: 'var(--spacing-md)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="var(--color-primary)"/>
+                        <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="var(--color-primary)"/>
+                        <path d="M20 8H22V10H20V12H18V10H16V8H18V6H20V8Z" fill="var(--color-primary)"/>
+                      </svg>
+                      <h4 style={{ 
+                        color: 'var(--color-primary)', 
+                        margin: 0,
+                        fontSize: 'var(--font-size-lg)'
+                      }}>
+                        Responsable de Filière
+                      </h4>
+                    </div>
+                    <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-md)' }}>
+                      {selectedFiliere.responsable || 'Prof. Responsable'}
+                    </p>
+                    <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)', marginTop: 'var(--spacing-xs)' }}>
+                      Responsable pour les 3 années du cycle ingénieur
+                    </p>
+                  </div>
+                  
+                  {/* Délégué représentant */}
+                  <div style={{
+                    background: 'var(--bg-secondary)',
+                    padding: 'var(--spacing-lg)',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px solid var(--card-border)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#16A34A"/>
+                        <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="#16A34A"/>
+                        <path d="M15 2L17 4L21 0" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <h4 style={{ 
+                        color: '#16A34A', 
+                        margin: 0,
+                        fontSize: 'var(--font-size-lg)'
+                      }}>
+                        Délégué Représentant
+                      </h4>
+                    </div>
+                    <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-md)', marginBottom: 'var(--spacing-md)' }}>
+                      {selectedFiliere.delegue}
+                    </p>
+                    {selectedFiliere.telDelegue && (
+                      <a 
+                        href={`tel:${selectedFiliere.telDelegue}`}
+                        style={{
+                          color: 'var(--color-primary)',
+                          textDecoration: 'none',
+                          fontSize: 'var(--font-size-md)',
+                          fontWeight: '600',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 'var(--spacing-sm)',
+                          padding: 'var(--spacing-md) var(--spacing-lg)',
+                          background: 'var(--primary-light)',
+                          borderRadius: 'var(--radius-lg)',
+                          transition: 'all 0.3s ease',
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.opacity = '0.8';
+                          e.target.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.opacity = '1';
+                          e.target.style.transform = 'translateY(0)';
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M22 16.92V19.92C22 20.52 21.52 21 20.92 21C9.4 21 0 11.6 0 0.08C0 -0.52 0.48 -1 1.08 -1H4.08C4.68 -1 5.16 -0.52 5.16 0.08C5.16 2.08 5.52 4.04 6.2 5.88C6.36 6.24 6.24 6.68 5.92 6.96L4.4 8.48C6.44 12.44 9.56 15.56 13.52 17.6L15.04 16.08C15.32 15.76 15.76 15.64 16.12 15.8C17.96 16.48 19.92 16.84 21.92 16.84C22.52 16.84 23 17.32 23 17.92V20.92Z" fill="currentColor"/>
+                        </svg>
+                        Contacter: {selectedFiliere.telDelegue}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Actions */}
