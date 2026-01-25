@@ -397,40 +397,6 @@ const AdminPanel = () => {
     }
   };
 
-  const handleReorder = async (id, direction, type) => {
-    try {
-      const response = await fetch(getApiUrl(`${type}/${id}/reorder`), {
-        method: 'PATCH',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: token 
-        },
-        body: JSON.stringify({ direction })
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        await fetchData();
-        showNotification(
-          'Ordre modifié avec succès!',
-          'success'
-        );
-      } else {
-        showNotification(
-          result.message || 'Erreur lors de la modification de l\'ordre',
-          'error'
-        );
-      }
-    } catch (error) {
-      console.error('Error reordering:', error);
-      showNotification(
-        `Erreur lors de la modification de l'ordre: ${error.message}`,
-        'error'
-      );
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
