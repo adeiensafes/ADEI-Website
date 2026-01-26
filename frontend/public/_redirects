@@ -1,2 +1,8 @@
-# Redirects hosting
+# Redirect all routes to index.html for client-side routing
 /*    /index.html   200
+
+# API routes (if you have them)
+/api/*  /api/:splat  200
+
+# Static files
+/static/*  /static/:splat  200

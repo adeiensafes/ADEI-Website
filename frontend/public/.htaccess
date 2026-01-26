@@ -11,17 +11,28 @@
   RewriteCond %{REQUEST_URI} !^/api/
 
   # Don't rewrite asset files
-  RewriteCond %{REQUEST_URI} !\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|map)$ [NC]
+  RewriteCond %{REQUEST_URI} !\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|map|txt|xml|html)$ [NC]
+
+  # Don't rewrite specific files
+  RewriteCond %{REQUEST_URI} !^/robots\.txt$
+  RewriteCond %{REQUEST_URI} !^/sitemap\.xml$
+  RewriteCond %{REQUEST_URI} !^/manifest\.json$
+  RewriteCond %{REQUEST_URI} !^/google-site-verification\.html$
 
   # Rewrite everything else to index.html to allow client-side routing
   RewriteRule ^ index.html [L]
 
-  # Fallback for older Apache versions
+  # Additional fallback rules for better compatibility
   RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
+  
+  # Handle trailing slashes
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . index.html [L]
+  RewriteCond %{REQUEST_URI} (.+)/$
+  RewriteRule ^ %1 [R=301,L]
 </IfModule>
+
+# Error handling - redirect 404s to index.html for SPA
+ErrorDocument 404 /index.html
 
 # Security headers
 <IfModule mod_headers.c>
