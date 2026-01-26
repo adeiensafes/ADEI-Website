@@ -867,74 +867,8 @@ const ENSA = () => {
               )}
             </div>
 
-            {/* Section d'information générale */}
-            <div className="card text-center highlight-card" style={{
-              marginTop: 'var(--spacing-3xl)',
-              background: 'linear-gradient(135deg, var(--color-primary), var(--primary-dark))',
-              color: 'white',
-              border: 'none'
-            }}>
-              <h2>Rejoignez l'ENSA Fès !</h2>
-              <p style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--spacing-xl)' }}>
-                Découvrez nos formations d'excellence et intégrez une communauté d'ingénieurs
-                passionnés par l'innovation et la technologie.
-              </p>
-              <div style={{
-                display: 'flex',
-                gap: 'var(--spacing-md)',
-                justifyContent: 'center',
-                flexWrap: 'wrap'
-              }}>
-                <a href="/clubs" style={{ 
-                  background: 'white', 
-                  color: '#DC2626',
-                  border: 'none',
-                  padding: 'var(--spacing-md) var(--spacing-xl)',
-                  borderRadius: 'var(--radius-lg)',
-                  textDecoration: 'none',
-                  fontWeight: '600',
-                  fontSize: 'var(--font-size-md)',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#f8f9fa';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'white';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-                }}>
-                  Découvrir les clubs
-                </a>
-                <a href="/events" style={{ 
-                  background: 'white', 
-                  color: '#DC2626',
-                  border: 'none',
-                  padding: 'var(--spacing-md) var(--spacing-xl)',
-                  borderRadius: 'var(--radius-lg)',
-                  textDecoration: 'none',
-                  fontWeight: '600',
-                  fontSize: 'var(--font-size-md)',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#f8f9fa';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'white';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-                }}>
-                  Voir les événements
-                </a>
-              </div>
-            </div>
+           
+            
           </>
         )}
       </div>

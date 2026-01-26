@@ -1,9 +1,7 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { AuthContext } from '../AuthContext';
 import Typewriter from '../components/ui/Typewriter';
-import AnimatedMembers from '../components/ui/AnimatedMembers';
-import MembersTable from '../components/ui/MembersTable';
+import MembersOrgChart from '../components/ui/MembersOrgChart';
 import { API_ENDPOINTS, getImageUrl } from '../config/api';
 import '../styles/card-animations.css';
 
@@ -459,27 +457,54 @@ const ADEI = () => {
               textAlign: 'center',
               marginBottom: 'var(--spacing-xl)'
             }}>
-              <h2 className="text-primary" style={{ margin: 0 }}>Membres de l'ADEI</h2>
+              <h2 className="text-primary" style={{ margin: '0 0 var(--spacing-md) 0' }}>Membres de l'ADEI</h2>
             </div>
 
             {members.length > 0 ? (
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 'var(--spacing-3xl)'
-              }}>
-                {/* Affichage animé en premier */}
-                <AnimatedMembers 
-                  members={members} 
-                  autoplay={true}
-                  className="animated-members-section"
-                />
+              <div>
+                {/* Organigramme Section */}
+                <div style={{
+                  textAlign: 'center',
+                  marginBottom: 'var(--spacing-xl)'
+                }}>
+                  <h3 style={{
+                    fontSize: 'var(--font-size-xl)',
+                    fontWeight: 'bold',
+                    color: 'var(--text-primary)',
+                    marginBottom: 'var(--spacing-lg)'
+                  }}>
+                    Organigramme ADEI
+                  </h3>
+                  
+                  <p style={{
+                    fontSize: 'var(--font-size-md)',
+                    color: 'var(--text-muted)',
+                    marginBottom: 'var(--spacing-xl)',
+                    maxWidth: '600px',
+                    margin: '0 auto var(--spacing-xl) auto'
+                  }}>
+                    Découvrez la structure organisationnelle de l'ADEI
+                  </p>
+                </div>
 
-                {/* Tableau en dessous */}
-                <MembersTable 
-                  members={members}
-                  className="members-table-section"
-                />
+                {/* Organigramme Display */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                  style={{
+                    background: 'var(--card-bg)',
+                    borderRadius: 'var(--radius-xl)',
+                    padding: 'var(--spacing-xl)',
+                    border: '1px solid var(--card-border)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+                  }}
+                >
+                  <MembersOrgChart 
+                    members={members}
+                    className="members-orgchart-section"
+                  />
+                </motion.div>
               </div>
             ) : (
               <div style={{

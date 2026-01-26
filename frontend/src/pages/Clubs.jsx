@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import Typewriter from '../components/ui/Typewriter';
+import AnimatedClubs from '../components/ui/AnimatedClubs';
 import { API_ENDPOINTS, getImageUrl } from '../config/api';
 
 const Clubs = () => {
@@ -104,13 +105,57 @@ const Clubs = () => {
               className="typewriter-hero"
             />
           </h1>
-          <p>Découvrez nos associations dynamiques et rejoignez la communauté qui vous correspond</p>
+          <p>Découvrez nos Clubs dynamiques et rejoignez la communauté qui vous correspond</p>
         </div>
       </div>
 
       <div className={`content ${pageReady ? 'fade-in' : ''}`} style={{ animationDelay: '0.2s' }}>
         {clubs && clubs.length > 0 ? (
-          <div className="card-grid">
+          <>
+            {/* Animated Clubs Section */}
+            <div className={`clubs-animation-section ${pageReady ? 'fade-in' : ''}`} style={{ 
+              marginBottom: 'var(--spacing-3xl)',
+              animationDelay: '0.4s'
+            }}>
+              <div className="section-header" style={{
+                textAlign: 'center',
+                marginBottom: 'var(--spacing-xl)'
+              }}>
+                <h2 className="text-primary" style={{ margin: '0 0 var(--spacing-md) 0' }}>Découvrez Nos Clubs</h2>
+                <p style={{
+                  fontSize: 'var(--font-size-md)',
+                  color: 'var(--text-muted)',
+                  maxWidth: '600px',
+                  margin: '0 auto'
+                }}>
+                  Explorez nos associations étudiantes dynamiques et leurs réseaux sociaux
+                </p>
+              </div>
+
+              <AnimatedClubs 
+                clubs={clubs} 
+                autoplay={true}
+                className="animated-clubs-section"
+              />
+            </div>
+
+            {/* Regular Clubs Grid */}
+            <div className="section-header" style={{
+              textAlign: 'center',
+              marginBottom: 'var(--spacing-xl)'
+            }}>
+              <h2 className="text-primary" style={{ margin: '0 0 var(--spacing-md) 0' }}>Tous Nos Clubs</h2>
+              <p style={{
+                fontSize: 'var(--font-size-md)',
+                color: 'var(--text-muted)',
+                maxWidth: '600px',
+                margin: '0 auto'
+              }}>
+                Informations détaillées sur chaque club étudiant
+              </p>
+            </div>
+
+            <div className="card-grid">
             {clubs.map((club, index) => (
               <div
                 key={club._id}
@@ -277,7 +322,8 @@ const Clubs = () => {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          </>
         ) : (
           <div className="card text-center">
             <h3>Aucun club disponible</h3>
