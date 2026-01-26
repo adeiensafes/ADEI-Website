@@ -339,9 +339,9 @@ const Clubs = () => {
 
               {/* Contenu du modal */}
               <div className="club-modal-body">
-                <div style={{ display: 'flex', gap: 'var(--spacing-xl)', marginBottom: 'var(--spacing-xl)' }}>
+                <div className="club-modal-main-content" style={{ display: 'flex', gap: 'var(--spacing-xl)', marginBottom: 'var(--spacing-xl)' }}>
                   {/* Informations principales */}
-                  <div style={{ flex: 1 }}>
+                  <div className="club-modal-info" style={{ flex: 1 }}>
                     <div style={{ marginBottom: 'var(--spacing-lg)' }}>
                       <h3 style={{ color: 'var(--color-primary)', marginBottom: 'var(--spacing-sm)' }}>
                         Informations générales
@@ -388,7 +388,7 @@ const Clubs = () => {
 
                   {/* Image du club */}
                   {selectedClub.image && (
-                    <div style={{ flexShrink: 0 }}>
+                    <div className="club-modal-image" style={{ flexShrink: 0 }}>
                       <img
                         src={getImageUrl(selectedClub.image)}
                         alt={selectedClub.club}

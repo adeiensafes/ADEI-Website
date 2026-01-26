@@ -2,6 +2,8 @@ import React, { useState, useContext, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../AuthContext';
 import Typewriter from '../components/ui/Typewriter';
+import AnimatedMembers from '../components/ui/AnimatedMembers';
+import MembersTable from '../components/ui/MembersTable';
 import { API_ENDPOINTS, getImageUrl } from '../config/api';
 import '../styles/card-animations.css';
 
@@ -454,24 +456,48 @@ const ADEI = () => {
             animationDelay: '0.6s'
           }}>
             <div className="section-header" style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 'var(--spacing-xl)',
-              flexWrap: 'wrap',
-              gap: 'var(--spacing-md)'
+              textAlign: 'center',
+              marginBottom: 'var(--spacing-xl)'
             }}>
               <h2 className="text-primary" style={{ margin: 0 }}>Membres de l'ADEI</h2>
             </div>
 
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--spacing-2xl)',
-              alignItems: 'center'
-            }}>
-              {renderMembersByHierarchy()}
-            </div>
+            {members.length > 0 ? (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--spacing-3xl)'
+              }}>
+                {/* Affichage animé en premier */}
+                <AnimatedMembers 
+                  members={members} 
+                  autoplay={true}
+                  className="animated-members-section"
+                />
+
+                {/* Tableau en dessous */}
+                <MembersTable 
+                  members={members}
+                  className="members-table-section"
+                />
+              </div>
+            ) : (
+              <div style={{
+                textAlign: 'center',
+                padding: 'var(--spacing-3xl)',
+                background: 'var(--card-bg)',
+                borderRadius: 'var(--radius-xl)',
+                border: '1px solid var(--card-border)'
+              }}>
+                <p style={{ 
+                  color: 'var(--text-muted)',
+                  fontSize: 'var(--font-size-lg)',
+                  margin: 0
+                }}>
+                  Aucun membre disponible pour le moment.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Partners Section */}

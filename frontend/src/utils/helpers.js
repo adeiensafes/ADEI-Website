@@ -84,7 +84,7 @@ export const getENSALevelLabel = (level) => {
 
 export const getPrepaResponsables = (filiere) => {
   return {
-    responsable: filiere.responsable || 'Prof. Responsable'
+    responsablePedagogique: filiere.responsablePedagogique || 'Prof. Responsable Pédagogique'
   };
 };
 
@@ -98,7 +98,9 @@ export const createCP1Sections = (prepaData) => {
       id: `${baseData.id}-A1`,
       name: `Classes Préparatoires CP1 - Section A1`,
       abbreviation: `CP1 - Section A1`,
-      responsable: baseData.responsableA1 || 'Prof. Responsable A1',
+      responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
+      delegue: baseData.delegueA1 || 'Étudiant Délégué A1',
+      telDelegue: baseData.telDelegueA1 || '',
       section: 'A1',
       level: 'CP1'
     },
@@ -107,7 +109,9 @@ export const createCP1Sections = (prepaData) => {
       id: `${baseData.id}-B1`,
       name: `Classes Préparatoires CP1 - Section B1`,
       abbreviation: `CP1 - Section B1`,
-      responsable: baseData.responsableB1 || 'Prof. Responsable B1',
+      responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
+      delegue: baseData.delegueB1 || 'Étudiant Délégué B1',
+      telDelegue: baseData.telDelegueB1 || '',
       section: 'B1',
       level: 'CP1'
     },
@@ -116,7 +120,9 @@ export const createCP1Sections = (prepaData) => {
       id: `${baseData.id}-C1`,
       name: `Classes Préparatoires CP1 - Section C1`,
       abbreviation: `CP1 - Section C1`,
-      responsable: baseData.responsableC1 || 'Prof. Responsable C1',
+      responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
+      delegue: baseData.delegueC1 || 'Étudiant Délégué C1',
+      telDelegue: baseData.telDelegueC1 || '',
       section: 'C1',
       level: 'CP1'
     }
@@ -133,7 +139,9 @@ export const createCP2Sections = (prepaData) => {
       id: `${baseData.id}-A2`,
       name: `Classes Préparatoires CP2 - Section A2`,
       abbreviation: `CP2 - Section A2`,
-      responsable: baseData.responsableA2 || 'Prof. Responsable A2',
+      responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
+      delegue: baseData.delegueA2 || 'Étudiant Délégué A2',
+      telDelegue: baseData.telDelegueA2 || '',
       section: 'A2',
       level: 'CP2'
     },
@@ -142,7 +150,9 @@ export const createCP2Sections = (prepaData) => {
       id: `${baseData.id}-B2`,
       name: `Classes Préparatoires CP2 - Section B2`,
       abbreviation: `CP2 - Section B2`,
-      responsable: baseData.responsableB2 || 'Prof. Responsable B2',
+      responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
+      delegue: baseData.delegueB2 || 'Étudiant Délégué B2',
+      telDelegue: baseData.telDelegueB2 || '',
       section: 'B2',
       level: 'CP2'
     },
@@ -151,7 +161,9 @@ export const createCP2Sections = (prepaData) => {
       id: `${baseData.id}-C2`,
       name: `Classes Préparatoires CP2 - Section C2`,
       abbreviation: `CP2 - Section C2`,
-      responsable: baseData.responsableC2 || 'Prof. Responsable C2',
+      responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
+      delegue: baseData.delegueC2 || 'Étudiant Délégué C2',
+      telDelegue: baseData.telDelegueC2 || '',
       section: 'C2',
       level: 'CP2'
     }
@@ -170,7 +182,9 @@ export const createFilieresByLevel = (filieres, level) => {
         name: `${filiere.name}`,
         abbreviation: `${filiere.abbreviation}${levelNumber}`,
         displayName: `${filiere.abbreviation} ${levelNumber}`,
-        level: level.toUpperCase()
+        level: level.toUpperCase(),
+        delegue: filiere.delegueFiliere || 'Étudiant Délégué',
+        telDelegue: filiere.telDelegueFiliere || ''
       });
     }
   });
