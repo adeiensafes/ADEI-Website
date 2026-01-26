@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider } from './AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ModernNavbar from './components/ModernNavbar';
@@ -48,6 +48,8 @@ function AppContent() {
               <AdminPanel />
             </ProtectedRoute>
           } />
+          {/* Catch-all route - redirect unknown paths to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
       {!isAdminPage && <Footer />}

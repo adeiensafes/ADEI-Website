@@ -1,35 +1,29 @@
+Options -MultiViews
+RewriteEngine On
+
+# Handle client-side routing for React Router
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+
+# Alternative fallback
+<IfModule mod_negotiation.c>
+  Options -MultiViews
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
-
-  # Handle Angular and React Router
-  # Don't rewrite files or directories that exist
+  
+  # If the requested resource doesn't exist as a file or directory
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-
-  # Don't rewrite API calls
-  RewriteCond %{REQUEST_URI} !^/api/
-
-  # Don't rewrite asset files
-  RewriteCond %{REQUEST_URI} !\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|map|txt|xml|html)$ [NC]
-
-  # Don't rewrite specific files
-  RewriteCond %{REQUEST_URI} !^/robots\.txt$
-  RewriteCond %{REQUEST_URI} !^/sitemap\.xml$
-  RewriteCond %{REQUEST_URI} !^/manifest\.json$
-  RewriteCond %{REQUEST_URI} !^/google-site-verification\.html$
-
-  # Rewrite everything else to index.html to allow client-side routing
-  RewriteRule ^ index.html [L]
-
-  # Additional fallback rules for better compatibility
-  RewriteRule ^index\.html$ - [L]
   
-  # Handle trailing slashes
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_URI} (.+)/$
-  RewriteRule ^ %1 [R=301,L]
+  # Serve index.html instead
+  RewriteRule ^.*$ /index.html [L,QSA]
 </IfModule>
+
+# Fallback for all routes
+FallbackResource /index.html
 
 # Error handling - redirect 404s to index.html for SPA
 ErrorDocument 404 /index.html
