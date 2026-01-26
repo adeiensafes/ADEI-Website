@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import Typewriter from '../components/ui/Typewriter';
+import UserBadges from '../components/ui/UserBadges';
 import { API_ENDPOINTS } from '../config/api';
 import { AuthContext } from '../AuthContext';
 
@@ -183,9 +184,14 @@ const Feedbacks = () => {
                     gap: 'var(--spacing-sm)'
                   }}>
                     <div>
-                      <h4 style={{ margin: 0, color: 'var(--text-primary)' }}>
-                        {feedback.name}
-                      </h4>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-xs)' }}>
+                        <h4 style={{ margin: 0, color: 'var(--text-primary)' }}>
+                          {feedback.name}
+                        </h4>
+                        {feedback.user && (
+                          <UserBadges user={feedback.user} size="small" />
+                        )}
+                      </div>
                       <span 
                         style={{
                           display: 'inline-block',

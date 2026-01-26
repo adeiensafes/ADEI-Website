@@ -162,6 +162,14 @@ const ModernNavbar = () => {
             <div className={`modern-auth-menu ${isAuthDropdownOpen ? 'open' : ''}`}>
               {token ? (
                 <>
+                  <Link
+                    to="/profile"
+                    className="modern-auth-item"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <NavIcons.Profile />
+                    <span>Mon Profil</span>
+                  </Link>
                   {user?.role === 'admin' && (
                     <Link
                       to="/admin"

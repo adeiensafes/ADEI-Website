@@ -27,6 +27,10 @@ Event.belongsTo(Club, { foreignKey: 'clubId', as: 'club' });
 Club.hasMany(News, { foreignKey: 'clubId', as: 'news' });
 Club.hasMany(Event, { foreignKey: 'clubId', as: 'events' });
 
+// User and Feedback associations
+User.hasMany(Feedback, { foreignKey: 'userId', as: 'feedbacks' });
+Feedback.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
 const app = express();
 const PORT = process.env.PORT || 5001;
 
@@ -676,10 +680,17 @@ app.get('/api/feedbacks/public', async (req, res) => {
   try {
     const feedbacks = await Feedback.findAll({ 
       order: [['createdAt', 'DESC']],
-      attributes: ['id', 'name', 'type', 'message', 'createdAt'] // Exclude email for privacy
+      attributes: ['id', 'name', 'type', 'message', 'createdAt', 'userId'],
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'username', 'is_president', 'is_representant', 'is_membre_adei', 'is_bureau_adei'],
+        required: false // LEFT JOIN to include feedbacks without users
+      }]
     });
     res.json(feedbacks);
   } catch (error) {
+    console.error('Error fetching public feedbacks:', error);
     res.status(500).json({ message: 'Erreur lors de la récupération des feedbacks' });
   }
 });
@@ -687,18 +698,43 @@ app.get('/api/feedbacks/public', async (req, res) => {
 // Admin endpoint to get all feedbacks (with full details)
 app.get('/api/feedbacks', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const feedbacks = await Feedback.findAll({ order: [['createdAt', 'DESC']] });
+    const feedbacks = await Feedback.findAll({ 
+      order: [['createdAt', 'DESC']],
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'username', 'email', 'is_president', 'is_representant', 'is_membre_adei', 'is_bureau_adei'],
+        required: false
+      }]
+    });
     res.json(feedbacks);
   } catch (error) {
+    console.error('Error fetching feedbacks:', error);
     res.status(500).json({ message: 'Erreur lors de la récupération des feedbacks' });
   }
 });
 
 app.post('/api/feedbacks', async (req, res) => {
   try {
-    const feedback = await Feedback.create(req.body);
+    const feedbackData = { ...req.body };
+    
+    // If there's an authorization header, try to get the user ID
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.substring(7);
+        const decoded = jwt.verify(token, JWT_SECRET);
+        feedbackData.userId = decoded.userId;
+      } catch (tokenError) {
+        // Token is invalid, but we still allow anonymous feedback
+        console.log('Invalid token for feedback, proceeding as anonymous');
+      }
+    }
+    
+    const feedback = await Feedback.create(feedbackData);
     res.status(201).json({ success: true, message: 'Votre feedback a été envoyé avec succès!' });
   } catch (error) {
+    console.error('Error creating feedback:', error);
     res.status(500).json({ success: false, message: 'Erreur lors de l\'envoi du feedback' });
   }
 });
@@ -731,6 +767,29 @@ app.delete('/api/feedbacks/:id', authMiddleware, adminMiddleware, async (req, re
 });
 
 // Routes Users
+// Get current user profile (with badges)
+app.get('/api/users/me', authMiddleware, async (req, res) => {
+  try {
+    console.log('=== FETCHING USER PROFILE ===');
+    console.log('User ID from token:', req.user.userId);
+    
+    const user = await User.findByPk(req.user.userId, { 
+      attributes: { exclude: ['password'] }
+    });
+    
+    if (!user) {
+      console.log('User not found in database');
+      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+    }
+    
+    console.log('User found:', user.toJSON());
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching current user:', error);
+    res.status(500).json({ message: 'Erreur lors de la récupération du profil utilisateur' });
+  }
+});
+
 app.get('/api/users', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const users = await User.findAll({ 
@@ -778,21 +837,43 @@ app.post('/api/users', authMiddleware, adminMiddleware, async (req, res) => {
 
 app.put('/api/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { username, email, password, role } = req.body;
+    console.log('=== USER UPDATE REQUEST ===');
+    console.log('User ID:', req.params.id);
+    console.log('Request body:', req.body);
+    
+    const { username, email, password, role, is_president, is_representant, is_membre_adei, is_bureau_adei } = req.body;
     const updateData = { username, email, role };
+
+    // Add badge fields to update data
+    console.log('Badge values received:');
+    console.log('is_president:', is_president, typeof is_president);
+    console.log('is_representant:', is_representant, typeof is_representant);
+    console.log('is_membre_adei:', is_membre_adei, typeof is_membre_adei);
+    console.log('is_bureau_adei:', is_bureau_adei, typeof is_bureau_adei);
+
+    if (typeof is_president === 'boolean') updateData.is_president = is_president;
+    if (typeof is_representant === 'boolean') updateData.is_representant = is_representant;
+    if (typeof is_membre_adei === 'boolean') updateData.is_membre_adei = is_membre_adei;
+    if (typeof is_bureau_adei === 'boolean') updateData.is_bureau_adei = is_bureau_adei;
+
+    console.log('Final update data:', updateData);
 
     if (password) {
       updateData.password = await bcrypt.hash(password, 10);
     }
 
     const [updated] = await User.update(updateData, { where: { id: req.params.id } });
+    console.log('Update result:', updated);
+    
     if (updated) {
       const user = await User.findByPk(req.params.id, { attributes: { exclude: ['password'] } });
+      console.log('Updated user:', user.toJSON());
       res.json(user);
     } else {
       res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
   } catch (error) {
+    console.error('Error updating user:', error);
     res.status(500).json({ message: 'Erreur lors de la mise à jour de l\'utilisateur' });
   }
 });

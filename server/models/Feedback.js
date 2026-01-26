@@ -26,6 +26,14 @@ const Feedback = sequelize.define('Feedback', {
   read: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: true, // Allow null for anonymous feedbacks
+    references: {
+      model: 'users',
+      key: 'id'
+    }
   }
 }, {
   tableName: 'feedbacks',

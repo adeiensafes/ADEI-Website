@@ -46,23 +46,67 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (token && !user) {
-      // Try to decode the token to get user info
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const userData = {
-          id: payload.id,
-          username: payload.username,
-          email: payload.email,
-          role: payload.role
-        };
-        console.log('Setting user from token:', userData);
-        setUser(userData);
-      } catch (error) {
-        console.error('Error decoding token:', error);
-        // If token is invalid, clear it
-        setToken(null);
-        localStorage.removeItem('token');
-      }
+      // Fetch full user profile from server (including badges)
+      const fetchUserProfile = async () => {
+        try {
+          const response = await fetch(API_ENDPOINTS.USER_PROFILE, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          if (response.ok) {
+            const userData = await response.json();
+            console.log('Setting user from server:', userData);
+            setUser(userData);
+          } else {
+            // If profile fetch fails, try to decode token as fallback
+            try {
+              const payload = JSON.parse(atob(token.split('.')[1]));
+              const userData = {
+                id: payload.id,
+                username: payload.username,
+                email: payload.email,
+                role: payload.role,
+                // Default badge values
+                is_president: false,
+                is_representant: false,
+                is_membre_adei: false,
+                is_bureau_adei: false
+              };
+              console.log('Setting user from token (fallback):', userData);
+              setUser(userData);
+            } catch (error) {
+              console.error('Error decoding token:', error);
+              setToken(null);
+              localStorage.removeItem('token');
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          // Fallback to token decoding
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const userData = {
+              id: payload.id,
+              username: payload.username,
+              email: payload.email,
+              role: payload.role,
+              // Default badge values
+              is_president: false,
+              is_representant: false,
+              is_membre_adei: false,
+              is_bureau_adei: false
+            };
+            console.log('Setting user from token (error fallback):', userData);
+            setUser(userData);
+          } catch (tokenError) {
+            console.error('Error decoding token:', tokenError);
+            setToken(null);
+            localStorage.removeItem('token');
+          }
+        }
+      };
+      
+      fetchUserProfile();
     } else if (!token) {
       setUser(null);
     }
@@ -128,13 +172,36 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
+  const refreshUserProfile = useCallback(async () => {
+    if (!token) return;
+    
+    try {
+      const response = await fetch(API_ENDPOINTS.USER_PROFILE, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        console.log('Refreshing user profile:', userData);
+        setUser(userData);
+        return { success: true, user: userData };
+      } else {
+        return { success: false, message: 'Erreur lors du rafraîchissement du profil' };
+      }
+    } catch (error) {
+      console.error('Error refreshing user profile:', error);
+      return { success: false, message: 'Erreur lors du rafraîchissement du profil' };
+    }
+  }, [token]);
+
   return (
     <AuthContext.Provider value={{
       token,
       user,
       login,
       logout,
-      fetchMessages
+      fetchMessages,
+      refreshUserProfile
     }}>
       {children}
     </AuthContext.Provider>

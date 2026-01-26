@@ -27,6 +27,23 @@ const User = sequelize.define('User', {
   role: {
     type: DataTypes.ENUM('user', 'admin'),
     defaultValue: 'user'
+  },
+  // Badge fields
+  is_president: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  is_representant: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  is_membre_adei: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  is_bureau_adei: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   }
 }, {
   tableName: 'users',
