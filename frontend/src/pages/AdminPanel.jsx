@@ -1746,6 +1746,70 @@ const AdminPanel = () => {
                   rows="4"
                 />
               </div>
+
+              {/* Social Media Section */}
+              <div className="form-group">
+                <label className="form-label">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px', verticalAlign: 'middle' }}>
+                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                  </svg>
+                  Réseaux sociaux
+                </label>
+                <div className="form-grid three-cols">
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px', color: '#1877F2' }}>
+                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                      </svg>
+                      Facebook
+                    </label>
+                    <input
+                      type="url"
+                      className="form-input"
+                      value={formData.facebook || ''}
+                      onChange={(e) => setFormData({ ...formData, facebook: e.target.value })}
+                      placeholder="https://facebook.com/page"
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px', color: '#E4405F' }}>
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                        <path d="m16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                      </svg>
+                      Instagram
+                    </label>
+                    <input
+                      type="url"
+                      className="form-input"
+                      value={formData.instagram || ''}
+                      onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                      placeholder="https://instagram.com/profile"
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px', color: '#25D366' }}>
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                      </svg>
+                      WhatsApp
+                    </label>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={formData.whatsapp || ''}
+                      onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                      placeholder="https://wa.me/212600000000 ou +212600000000"
+                    />
+                  </div>
+                </div>
+                <small style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '8px', display: 'block' }}>
+                  Pour WhatsApp, vous pouvez utiliser un lien wa.me ou un numéro de téléphone
+                </small>
+              </div>
               <div className="form-grid two-cols">
                 <div className="form-group">
                   <label className="form-label">Ordre d'affichage</label>
@@ -2261,6 +2325,23 @@ const AdminPanel = () => {
               <th>Nom</th>
               <th>Description</th>
               <th>Site web</th>
+              <th style={{ textAlign: 'center' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#1877F2' }}>
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                </svg>
+              </th>
+              <th style={{ textAlign: 'center' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#E4405F' }}>
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                  <path d="m16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                </svg>
+              </th>
+              <th style={{ textAlign: 'center' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#25D366' }}>
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                </svg>
+              </th>
               <th>Statut</th>
               <th>Actions</th>
             </>
@@ -2678,6 +2759,47 @@ const AdminPanel = () => {
                   </a>
                 ) : (
                   '-'
+                )}
+              </td>
+              {/* Social Media Columns */}
+              <td style={{ textAlign: 'center' }}>
+                {item.facebook ? (
+                  <a href={item.facebook} target="_blank" rel="noopener noreferrer" style={{ color: '#1877F2' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                    </svg>
+                  </a>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)', fontSize: '18px' }}>-</span>
+                )}
+              </td>
+              <td style={{ textAlign: 'center' }}>
+                {item.instagram ? (
+                  <a href={item.instagram} target="_blank" rel="noopener noreferrer" style={{ color: '#E4405F' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                      <path d="m16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                    </svg>
+                  </a>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)', fontSize: '18px' }}>-</span>
+                )}
+              </td>
+              <td style={{ textAlign: 'center' }}>
+                {item.whatsapp ? (
+                  <a 
+                    href={item.whatsapp.startsWith('http') ? item.whatsapp : `https://wa.me/${item.whatsapp.replace(/[^0-9]/g, '')}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ color: '#25D366' }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                    </svg>
+                  </a>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)', fontSize: '18px' }}>-</span>
                 )}
               </td>
               <td>
