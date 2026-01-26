@@ -27,6 +27,25 @@ const Partner = sequelize.define('Partner', {
     allowNull: true,
     defaultValue: '/images/default.jpg'
   },
+  // Social Media Fields
+  facebook: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    validate: {
+      isUrl: true
+    }
+  },
+  instagram: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    validate: {
+      isUrl: true
+    }
+  },
+  whatsapp: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
   isActive: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
