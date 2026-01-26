@@ -20,6 +20,7 @@ import Login from './pages/Login';
 import AdminPanel from './pages/AdminPanel';
 import Contact from './pages/Contact';
 import Messages from './pages/Messages';
+import Profile from './pages/Profile';
 import './styles/theme.css';
 import './styles/floating-theme-toggle.css';
 import './styles/modern-navbar.css';
@@ -77,6 +78,11 @@ function AppContent() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
             <Route path="/admin" element={
               <ProtectedRoute requireAdmin={true}>
                 <AdminPanel />

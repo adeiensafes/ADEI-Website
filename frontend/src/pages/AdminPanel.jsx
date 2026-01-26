@@ -235,7 +235,11 @@ const AdminPanel = () => {
         username: '',
         email: '',
         password: '',
-        role: 'user'
+        role: 'user',
+        is_president: false,
+        is_representant: false,
+        is_membre_adei: false,
+        is_bureau_adei: false
       };
     }
     
@@ -553,6 +557,21 @@ const AdminPanel = () => {
       const url = editingItem
         ? getApiUrl(`${activeTab}/${editingItem.id || editingItem._id}`)
         : getApiUrl(activeTab);
+
+      console.log('=== FORM SUBMISSION DEBUG ===');
+      console.log('Active tab:', activeTab);
+      console.log('Method:', method);
+      console.log('URL:', url);
+      console.log('Form data before submission:', formData);
+
+      // Special handling for users with badges
+      if (activeTab === 'users') {
+        console.log('User badge data:');
+        console.log('is_president:', formData.is_president, typeof formData.is_president);
+        console.log('is_representant:', formData.is_representant, typeof formData.is_representant);
+        console.log('is_membre_adei:', formData.is_membre_adei, typeof formData.is_membre_adei);
+        console.log('is_bureau_adei:', formData.is_bureau_adei, typeof formData.is_bureau_adei);
+      }
       if ((activeTab === 'clubs' || activeTab === 'partners' || activeTab === 'adei-members' || activeTab === 'news' || activeTab === 'events') && (imageFile || formData.documentFile)) {
         const formDataObj = new FormData();
         
@@ -1924,6 +1943,97 @@ const AdminPanel = () => {
                 </small>
               </div>
 
+              {/* Badge Management Section */}
+              <div className="form-group">
+                <label className="form-label">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px', verticalAlign: 'middle' }}>
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                  Badges utilisateur
+                </label>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: 'var(--spacing-md)',
+                  padding: 'var(--spacing-md)',
+                  backgroundColor: 'var(--bg-secondary)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-color)'
+                }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={formData.is_president || false}
+                      onChange={(e) => setFormData({ ...formData, is_president: e.target.checked })}
+                      style={{ margin: 0 }}
+                    />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#dc2626' }}>
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                      </svg>
+                      <span>Président de club</span>
+                    </span>
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={formData.is_representant || false}
+                      onChange={(e) => setFormData({ ...formData, is_representant: e.target.checked })}
+                      style={{ margin: 0 }}
+                    />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#2563eb' }}>
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                      </svg>
+                      <span>Représentant de classe</span>
+                    </span>
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={formData.is_membre_adei || false}
+                      onChange={(e) => setFormData({ ...formData, is_membre_adei: e.target.checked })}
+                      style={{ margin: 0 }}
+                    />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#059669' }}>
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                        <path d="M9 14l2 2 4-4"/>
+                      </svg>
+                      <span>Membre de l'ADEI</span>
+                    </span>
+                  </label>
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={formData.is_bureau_adei || false}
+                      onChange={(e) => setFormData({ ...formData, is_bureau_adei: e.target.checked })}
+                      style={{ margin: 0 }}
+                    />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#7c3aed' }}>
+                        <path d="M3 21h18"/>
+                        <path d="M5 21V7l8-4v18"/>
+                        <path d="M19 21V11l-6-4"/>
+                        <path d="M9 9v.01"/>
+                        <path d="M9 12v.01"/>
+                        <path d="M9 15v.01"/>
+                        <path d="M9 18v.01"/>
+                      </svg>
+                      <span>Bureau de l'ADEI</span>
+                    </span>
+                  </label>
+                </div>
+                <small style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '8px', display: 'block' }}>
+                  Ces badges seront affichés sur le profil de l'utilisateur et ses feedbacks
+                </small>
+              </div>
+
               {editingItem && (
                 <div className="form-group">
                   <div style={{
@@ -2181,6 +2291,35 @@ const AdminPanel = () => {
               <th>Utilisateur</th>
               <th>Email</th>
               <th>Rôle</th>
+              <th style={{ textAlign: 'center' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#dc2626' }}>
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              </th>
+              <th style={{ textAlign: 'center' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#2563eb' }}>
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                  <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                </svg>
+              </th>
+              <th style={{ textAlign: 'center' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#059669' }}>
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                  <path d="M9 14l2 2 4-4"/>
+                </svg>
+              </th>
+              <th style={{ textAlign: 'center' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#7c3aed' }}>
+                  <path d="M3 21h18"/>
+                  <path d="M5 21V7l8-4v18"/>
+                  <path d="M19 21V11l-6-4"/>
+                  <path d="M9 9v.01"/>
+                  <path d="M9 12v.01"/>
+                  <path d="M9 15v.01"/>
+                  <path d="M9 18v.01"/>
+                </svg>
+              </th>
               <th>Date de création</th>
               <th>Dernière modification</th>
               <th>Actions</th>
@@ -2656,6 +2795,52 @@ const AdminPanel = () => {
                   </svg>
                   {item.role === 'admin' ? 'Administrateur' : 'Utilisateur'}
                 </span>
+              </td>
+              {/* Badge Columns */}
+              <td style={{ textAlign: 'center' }}>
+                {item.is_president ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#dc2626' }}>
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)', fontSize: '18px' }}>-</span>
+                )}
+              </td>
+              <td style={{ textAlign: 'center' }}>
+                {item.is_representant ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#2563eb' }}>
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                  </svg>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)', fontSize: '18px' }}>-</span>
+                )}
+              </td>
+              <td style={{ textAlign: 'center' }}>
+                {item.is_membre_adei ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#059669' }}>
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                    <path d="M9 14l2 2 4-4"/>
+                  </svg>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)', fontSize: '18px' }}>-</span>
+                )}
+              </td>
+              <td style={{ textAlign: 'center' }}>
+                {item.is_bureau_adei ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#7c3aed' }}>
+                    <path d="M3 21h18"/>
+                    <path d="M5 21V7l8-4v18"/>
+                    <path d="M19 21V11l-6-4"/>
+                    <path d="M9 9v.01"/>
+                    <path d="M9 12v.01"/>
+                    <path d="M9 15v.01"/>
+                    <path d="M9 18v.01"/>
+                  </svg>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)', fontSize: '18px' }}>-</span>
+                )}
               </td>
               <td>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
