@@ -6,6 +6,14 @@ import Typewriter from '../components/ui/Typewriter';
 const Profile = () => {
   const { user, token, refreshUserProfile } = useContext(AuthContext);
   const [pageReady, setPageReady] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setPageReady(true), 200);
@@ -18,6 +26,61 @@ const Profile = () => {
       refreshUserProfile();
     }
   }, [token, refreshUserProfile]);
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 4000);
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      showNotification('Les nouveaux mots de passe ne correspondent pas', 'error');
+      return;
+    }
+    
+    if (passwordData.newPassword.length < 6) {
+      showNotification('Le nouveau mot de passe doit contenir au moins 6 caractères', 'error');
+      return;
+    }
+    
+    setPasswordLoading(true);
+    
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/users/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        showNotification('Mot de passe modifié avec succès', 'success');
+        setShowPasswordModal(false);
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        showNotification(result.message || 'Erreur lors de la modification du mot de passe', 'error');
+      }
+    } catch (error) {
+      showNotification('Erreur lors de la modification du mot de passe', 'error');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const closePasswordModal = () => {
+    setShowPasswordModal(false);
+    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    document.body.style.overflow = 'unset';
+  };
 
   if (!user) {
     return (
@@ -155,6 +218,43 @@ const Profile = () => {
                   </span>
                 </div>
               </div>
+
+              <div style={{
+                padding: 'var(--spacing-md)',
+                backgroundColor: 'var(--bg-secondary)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-color)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <h4 style={{ margin: '0 0 var(--spacing-xs) 0', color: 'var(--text-primary)' }}>
+                    Sécurité du compte
+                  </h4>
+                  <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    Modifiez votre mot de passe pour sécuriser votre compte
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowPasswordModal(true);
+                    document.body.style.overflow = 'hidden';
+                  }}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: 'var(--primary-color)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 'var(--radius-sm)',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  Changer le mot de passe
+                </button>
+              </div>
             </div>
           </div>
 
@@ -290,6 +390,163 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Notification */}
+      {notification && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          padding: '12px 20px',
+          borderRadius: 'var(--radius-md)',
+          color: 'white',
+          backgroundColor: notification.type === 'error' ? '#dc2626' : '#059669',
+          zIndex: 1000,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+        }}>
+          {notification.message}
+        </div>
+      )}
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'var(--bg-primary)',
+            borderRadius: 'var(--radius-lg)',
+            padding: 'var(--spacing-xl)',
+            width: '90%',
+            maxWidth: '500px',
+            maxHeight: '90vh',
+            overflow: 'auto'
+          }}>
+            <h3 style={{ margin: '0 0 var(--spacing-lg) 0', color: 'var(--text-primary)' }}>
+              Changer le mot de passe
+            </h3>
+            
+            <form onSubmit={handlePasswordChange}>
+              <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+                <label style={{ 
+                  display: 'block', 
+                  fontWeight: 'bold', 
+                  color: 'var(--text-primary)', 
+                  marginBottom: 'var(--spacing-xs)' 
+                }}>
+                  Mot de passe actuel
+                </label>
+                <input
+                  type="password"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: 'var(--spacing-md)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: 'var(--font-size-md)',
+                    backgroundColor: 'var(--bg-secondary)'
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+                <label style={{ 
+                  display: 'block', 
+                  fontWeight: 'bold', 
+                  color: 'var(--text-primary)', 
+                  marginBottom: 'var(--spacing-xs)' 
+                }}>
+                  Nouveau mot de passe
+                </label>
+                <input
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: 'var(--spacing-md)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: 'var(--font-size-md)',
+                    backgroundColor: 'var(--bg-secondary)'
+                  }}
+                  required
+                  minLength="6"
+                />
+              </div>
+
+              <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+                <label style={{ 
+                  display: 'block', 
+                  fontWeight: 'bold', 
+                  color: 'var(--text-primary)', 
+                  marginBottom: 'var(--spacing-xs)' 
+                }}>
+                  Confirmer le nouveau mot de passe
+                </label>
+                <input
+                  type="password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: 'var(--spacing-md)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: 'var(--font-size-md)',
+                    backgroundColor: 'var(--bg-secondary)'
+                  }}
+                  required
+                  minLength="6"
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 'var(--spacing-md)', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={closePasswordModal}
+                  style={{
+                    padding: '10px 20px',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={passwordLoading}
+                  style={{
+                    padding: '10px 20px',
+                    border: 'none',
+                    borderRadius: 'var(--radius-md)',
+                    backgroundColor: passwordLoading ? '#ccc' : 'var(--primary-color)',
+                    color: 'white',
+                    cursor: passwordLoading ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {passwordLoading ? 'Modification...' : 'Modifier'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

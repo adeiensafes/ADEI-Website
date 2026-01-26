@@ -1490,6 +1490,51 @@
   }
 }
 
+/* Modal Notification Animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Notification Styles */
+.modal-notification {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 20 !important;
+  backdrop-filter: blur(5px);
+}
+
+.modal-notification.success {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+  border-color: #c3e6cb !important;
+}
+
+.modal-notification.error {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+  border-color: #f5c6cb !important;
+}
+
+/* Light Theme Modal Notifications */
+[data-theme="light"] .modal-notification.success {
+  background-color: #d4edda;
+  color: #155724;
+  border-color: #c3e6cb;
+}
+
+[data-theme="light"] .modal-notification.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-color: #f5c6cb;
+}
+
 /* Focus Management */
 .modal-footer .btn-modal:focus {
   outline: 2px solid var(--primary);
@@ -1840,19 +1885,211 @@
   }
 }
 
-/* Styles pour les boutons de mode d'affichage */
-.section-header > div:last-child {
-  flex-wrap: wrap;
+/* ========================================
+   USERS TABLE IMPROVEMENTS
+   ======================================== */
+
+/* Compact Users Table */
+.admin-table.users-table {
+  font-size: var(--font-size-sm);
 }
 
-@media (max-width: 480px) {
-  .section-header > div:last-child {
-    width: 100%;
-    justify-content: center;
+.admin-table.users-table th,
+.admin-table.users-table td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+
+.admin-table.users-table th {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
+/* User ID Column - Smaller */
+.admin-table.users-table .user-id-col {
+  width: 60px;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+/* Username Column */
+.admin-table.users-table .username-col {
+  font-weight: 600;
+  color: var(--text-primary);
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Email Column */
+.admin-table.users-table .email-col {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+}
+
+/* Role Column */
+.admin-table.users-table .role-col {
+  width: 120px;
+  text-align: center;
+}
+
+/* Badge Columns - Compact */
+.admin-table.users-table .badge-col {
+  width: 40px;
+  text-align: center;
+  padding: var(--spacing-xs);
+}
+
+.admin-table.users-table .badge-icon {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+}
+
+.admin-table.users-table .badge-icon.active {
+  color: var(--success);
+}
+
+.admin-table.users-table .badge-icon.inactive {
+  color: var(--text-muted);
+  opacity: 0.3;
+}
+
+/* Date Columns */
+.admin-table.users-table .date-col {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  width: 100px;
+}
+
+/* Actions Column */
+.admin-table.users-table .actions-col {
+  width: 80px;
+}
+
+.admin-table.users-table .admin-actions {
+  gap: var(--spacing-xs);
+}
+
+.admin-table.users-table .admin-action-btn {
+  padding: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  min-width: 32px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+}
+
+.admin-table.users-table .admin-action-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Role Badge Styling */
+.role-badge {
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-badge.admin {
+  background: var(--error-light);
+  color: var(--error);
+  border: 1px solid var(--error);
+}
+
+.role-badge.user {
+  background: var(--success-light);
+  color: var(--success);
+  border: 1px solid var(--success);
+}
+
+/* Light Theme Users Table */
+[data-theme="light"] .admin-table.users-table .user-id-col {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .admin-table.users-table .username-col {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .admin-table.users-table .email-col {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .admin-table.users-table .date-col {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .role-badge.admin {
+  background: var(--error-light);
+  color: var(--error);
+}
+
+[data-theme="light"] .role-badge.user {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+/* Responsive Users Table */
+@media (max-width: 1200px) {
+  .admin-table.users-table .email-col {
+    max-width: 150px;
   }
   
-  .section-header > div:last-child button {
-    flex: 1;
-    min-width: 80px;
+  .admin-table.users-table .date-col {
+    display: none;
   }
 }
+
+@media (max-width: 768px) {
+  .admin-table.users-table {
+    font-size: var(--font-size-xs);
+  }
+  
+  .admin-table.users-table .user-id-col,
+  .admin-table.users-table .badge-col:not(:first-of-type) {
+    display: none;
+  }
+  
+  .admin-table.users-table .username-col {
+    max-width: 100px;
+  }
+  
+  .admin-table.users-table .email-col {
+    max-width: 120px;
+  }
+  
+  .admin-table.users-table .actions-col {
+    width: 70px;
+  }
+  
+  .admin-table.users-table .admin-action-btn {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+  }
+  
+  .admin-table.users-table .admin-action-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* ========================================
+   END USERS TABLE IMPROVEMENTS
+   ======================================== */

@@ -4,11 +4,16 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 
 const authMiddleware = (req, res, next) => {
   try {
-    const token = req.headers.authorization;
+    const authHeader = req.headers.authorization;
 
-    if (!token) {
+    if (!authHeader) {
       return res.status(401).json({ success: false, message: 'Accès non autorisé' });
     }
+
+    // Extract token from "Bearer <token>" or use directly if no Bearer prefix
+    const token = authHeader.startsWith('Bearer ') 
+      ? authHeader.substring(7) 
+      : authHeader;
 
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;

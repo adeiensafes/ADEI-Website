@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "homepage": "https://adei-ensaf.ma",
+  "deployTrigger": "force-deploy-2025",
   "dependencies": {
     "framer-motion": "^12.23.22",
     "react": "^19.0.0",

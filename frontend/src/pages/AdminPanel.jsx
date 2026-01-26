@@ -406,27 +406,10 @@ const AdminPanel = () => {
 
     // User validation
     if (activeTab === 'users') {
-      // Username format validation
-      const usernameRegex = /^[a-zA-Z0-9._]+$/;
+      // Username length validation
       if (!formData.username || formData.username.length < 3) {
         showModalNotification(
           'Le nom d\'utilisateur doit contenir au moins 3 caractères',
-          'error'
-        );
-        return;
-      }
-      
-      if (!usernameRegex.test(formData.username)) {
-        showModalNotification(
-          'Le nom d\'utilisateur ne peut contenir que des lettres, chiffres, points (.) et underscores (_)',
-          'error'
-        );
-        return;
-      }
-
-      if (formData.username.includes(' ')) {
-        showModalNotification(
-          'Le nom d\'utilisateur ne peut pas contenir d\'espaces',
           'error'
         );
         return;
@@ -480,27 +463,10 @@ const AdminPanel = () => {
 
     // User validation
     if (activeTab === 'users') {
-      // Username format validation
-      const usernameRegex = /^[a-zA-Z0-9._]+$/;
+      // Username length validation
       if (!formData.username || formData.username.length < 3) {
         showNotification(
           'Le nom d\'utilisateur doit contenir au moins 3 caractères',
-          'error'
-        );
-        return;
-      }
-      
-      if (!usernameRegex.test(formData.username)) {
-        showNotification(
-          'Le nom d\'utilisateur ne peut contenir que des lettres, chiffres, points (.) et underscores (_)',
-          'error'
-        );
-        return;
-      }
-
-      if (formData.username.includes(' ')) {
-        showNotification(
-          'Le nom d\'utilisateur ne peut pas contenir d\'espaces',
           'error'
         );
         return;
@@ -762,7 +728,7 @@ const AdminPanel = () => {
                   <input
                     type="date"
                     className="form-input"
-                    value={formData.date || new Date().toISOString().split('T')[0]}
+                    value={formData.date || ''}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     required
                   />
@@ -1920,9 +1886,7 @@ const AdminPanel = () => {
                     placeholder="ex: john_doe, marie.martin, user123"
                     required
                   />
-                  <small style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '4px', display: 'block' }}>
-                    Uniquement lettres, chiffres, points (.) et underscores (_). Pas d'espaces.
-                  </small>
+                  
                 </div>
                 <div className="form-group">
                   <label className="form-label">Email</label>
@@ -2098,6 +2062,118 @@ const AdminPanel = () => {
                 </small>
               </div>
 
+              {/* Badge Schema Section */}
+              <div className="form-group">
+                <div style={{
+                  padding: 'var(--spacing-lg)',
+                  backgroundColor: 'var(--bg-secondary)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-color)',
+                  marginTop: 'var(--spacing-md)'
+                }}>
+                  <h4 style={{ 
+                    margin: '0 0 var(--spacing-md) 0', 
+                    color: 'var(--text-primary)',
+                    fontSize: 'var(--font-size-md)',
+                    fontWeight: '600',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--primary)' }}>
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M9,12l2,2 4,-4"/>
+                    </svg>
+                    Guide des badges
+                  </h4>
+                  
+                  <div style={{
+                    display: 'grid',
+                    gap: 'var(--spacing-sm)',
+                    fontSize: 'var(--font-size-sm)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0' }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#dc2626', flexShrink: 0 }}>
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                      </svg>
+                      <div>
+                        <strong style={{ color: 'var(--text-primary)' }}>Président de club :</strong>
+                        <span style={{ color: 'var(--text-muted)', marginLeft: '8px' }}>
+                          Utilisateur qui dirige un club étudiant officiel
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0' }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#2563eb', flexShrink: 0 }}>
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                      </svg>
+                      <div>
+                        <strong style={{ color: 'var(--text-primary)' }}>Représentant de classe :</strong>
+                        <span style={{ color: 'var(--text-muted)', marginLeft: '8px' }}>
+                          Délégué élu pour représenter sa classe ou filière
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0' }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#059669', flexShrink: 0 }}>
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                        <path d="M9 14l2 2 4-4"/>
+                      </svg>
+                      <div>
+                        <strong style={{ color: 'var(--text-primary)' }}>Membre de l'ADEI :</strong>
+                        <span style={{ color: 'var(--text-muted)', marginLeft: '8px' }}>
+                          Membre actif de l'Association Des Élèves Ingénieurs
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0' }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#7c3aed', flexShrink: 0 }}>
+                        <path d="M3 21h18"/>
+                        <path d="M5 21V7l8-4v18"/>
+                        <path d="M19 21V11l-6-4"/>
+                        <path d="M9 9v.01"/>
+                        <path d="M9 12v.01"/>
+                        <path d="M9 15v.01"/>
+                        <path d="M9 18v.01"/>
+                      </svg>
+                      <div>
+                        <strong style={{ color: 'var(--text-primary)' }}>Bureau de l'ADEI :</strong>
+                        <span style={{ color: 'var(--text-muted)', marginLeft: '8px' }}>
+                          Membre du bureau exécutif de l'ADEI (Président, VP, Secrétaire, etc.)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    marginTop: 'var(--spacing-md)',
+                    padding: 'var(--spacing-sm)',
+                    backgroundColor: 'var(--primary-light)',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--primary)',
+                    fontSize: 'var(--font-size-xs)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--primary)' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4"/>
+                        <path d="M12 8h.01"/>
+                      </svg>
+                      <strong>Note importante :</strong>
+                    </div>
+                    <p style={{ margin: '4px 0 0 20px', color: 'var(--text-primary)' }}>
+                      Les badges sont visibles sur le profil utilisateur et dans les feedbacks. 
+                      Ils permettent d'identifier rapidement les rôles et responsabilités de chaque membre.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {editingItem && (
                 <div className="form-group">
                   <div style={{
@@ -2172,17 +2248,23 @@ const AdminPanel = () => {
                     className={`modal-notification ${modalNotification.type}`}
                     style={{
                       padding: 'var(--spacing-md)',
-                      margin: '0 var(--spacing-lg) var(--spacing-md) var(--spacing-lg)',
-                      borderRadius: 'var(--radius-md)',
+                      margin: '0',
+                      borderRadius: '0',
                       fontSize: '0.9rem',
                       fontWeight: '500',
                       backgroundColor: modalNotification.type === 'success' ? '#d4edda' : '#f8d7da',
                       color: modalNotification.type === 'success' ? '#155724' : '#721c24',
                       border: `1px solid ${modalNotification.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
+                      borderLeft: 'none',
+                      borderRight: 'none',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 'var(--spacing-sm)',
-                      animation: 'slideDown 0.3s ease-out'
+                      animation: 'slideDown 0.3s ease-out',
+                      position: 'sticky',
+                      top: '0',
+                      zIndex: '10',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                     }}
                   >
                     <svg 
@@ -2369,28 +2451,29 @@ const AdminPanel = () => {
         case 'users':
           return (
             <>
-              <th>Utilisateur</th>
-              <th>Email</th>
-              <th>Rôle</th>
-              <th style={{ textAlign: 'center' }}>
+              <th className="user-id-col">ID</th>
+              <th className="username-col">Utilisateur</th>
+              <th className="email-col">Email</th>
+              <th className="role-col">Rôle</th>
+              <th className="badge-col" title="Président de club">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#dc2626' }}>
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
               </th>
-              <th style={{ textAlign: 'center' }}>
+              <th className="badge-col" title="Représentant de classe">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#2563eb' }}>
                   <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
                   <path d="M6 12v5c3 3 9 3 12 0v-5"/>
                 </svg>
               </th>
-              <th style={{ textAlign: 'center' }}>
+              <th className="badge-col" title="Membre de l'ADEI">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#059669' }}>
                   <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
                   <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
                   <path d="M9 14l2 2 4-4"/>
                 </svg>
               </th>
-              <th style={{ textAlign: 'center' }}>
+              <th className="badge-col" title="Bureau de l'ADEI">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#7c3aed' }}>
                   <path d="M3 21h18"/>
                   <path d="M5 21V7l8-4v18"/>
@@ -2401,9 +2484,8 @@ const AdminPanel = () => {
                   <path d="M9 18v.01"/>
                 </svg>
               </th>
-              <th>Date de création</th>
-              <th>Dernière modification</th>
-              <th>Actions</th>
+              <th className="date-col">Créé le</th>
+              <th className="actions-col">Actions</th>
             </>
           );
         default:
@@ -2890,68 +2972,61 @@ const AdminPanel = () => {
         case 'users':
           return (
             <>
-              <td>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <strong style={{ color: 'var(--text-primary)' }}>{item.username}</strong>
-                  <small style={{ color: 'var(--text-muted)' }}>ID: {item.id}</small>
-                </div>
-              </td>
-              <td>
+              <td className="user-id-col">{item.id}</td>
+              <td className="username-col">{item.username}</td>
+              <td className="email-col">
                 <a href={`mailto:${item.email}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
                   {item.email}
                 </a>
               </td>
-              <td>
-                <span className={`badge ${item.role === 'admin' ? 'danger' : 'info'}`}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
-                    {item.role === 'admin' ? (
-                      // Crown icon for admin
-                      <path d="M2 20h20l-2-8H4l-2 8zM6 4l2 4h8l2-4M12 2v6"/>
-                    ) : (
-                      // User icon for regular user
-                      <>
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                      </>
-                    )}
-                  </svg>
-                  {item.role === 'admin' ? 'Administrateur' : 'Utilisateur'}
+              <td className="role-col">
+                <span className={`role-badge ${item.role}`}>
+                  {item.role === 'admin' ? 'Admin' : 'User'}
                 </span>
               </td>
               {/* Badge Columns */}
-              <td style={{ textAlign: 'center' }}>
+              <td className="badge-col">
                 {item.is_president ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#dc2626' }}>
+                  <svg className="badge-icon active" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" title="Président de club">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                   </svg>
                 ) : (
-                  <span style={{ color: 'var(--text-muted)', fontSize: '18px' }}>-</span>
+                  <svg className="badge-icon inactive" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                  </svg>
                 )}
               </td>
-              <td style={{ textAlign: 'center' }}>
+              <td className="badge-col">
                 {item.is_representant ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#2563eb' }}>
+                  <svg className="badge-icon active" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" title="Représentant de classe">
                     <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
                     <path d="M6 12v5c3 3 9 3 12 0v-5"/>
                   </svg>
                 ) : (
-                  <span style={{ color: 'var(--text-muted)', fontSize: '18px' }}>-</span>
+                  <svg className="badge-icon inactive" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                  </svg>
                 )}
               </td>
-              <td style={{ textAlign: 'center' }}>
+              <td className="badge-col">
                 {item.is_membre_adei ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#059669' }}>
+                  <svg className="badge-icon active" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" title="Membre de l'ADEI">
                     <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
                     <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
                     <path d="M9 14l2 2 4-4"/>
                   </svg>
                 ) : (
-                  <span style={{ color: 'var(--text-muted)', fontSize: '18px' }}>-</span>
+                  <svg className="badge-icon inactive" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                    <path d="M9 14l2 2 4-4"/>
+                  </svg>
                 )}
               </td>
-              <td style={{ textAlign: 'center' }}>
+              <td className="badge-col">
                 {item.is_bureau_adei ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#7c3aed' }}>
+                  <svg className="badge-icon active" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" title="Bureau de l'ADEI">
                     <path d="M3 21h18"/>
                     <path d="M5 21V7l8-4v18"/>
                     <path d="M19 21V11l-6-4"/>
@@ -2961,68 +3036,50 @@ const AdminPanel = () => {
                     <path d="M9 18v.01"/>
                   </svg>
                 ) : (
-                  <span style={{ color: 'var(--text-muted)', fontSize: '18px' }}>-</span>
+                  <svg className="badge-icon inactive" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 21h18"/>
+                    <path d="M5 21V7l8-4v18"/>
+                    <path d="M19 21V11l-6-4"/>
+                    <path d="M9 9v.01"/>
+                    <path d="M9 12v.01"/>
+                    <path d="M9 15v.01"/>
+                    <path d="M9 18v.01"/>
+                  </svg>
                 )}
               </td>
-              <td>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span>{new Date(item.createdAt).toLocaleDateString('fr-FR')}</span>
-                  <small style={{ color: 'var(--text-muted)' }}>
-                    {new Date(item.createdAt).toLocaleTimeString('fr-FR', { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
-                  </small>
-                </div>
+              <td className="date-col">
+                {new Date(item.createdAt).toLocaleDateString('fr-FR')}
               </td>
-              <td>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span>{new Date(item.updatedAt).toLocaleDateString('fr-FR')}</span>
-                  <small style={{ color: 'var(--text-muted)' }}>
-                    {new Date(item.updatedAt).toLocaleTimeString('fr-FR', { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
-                  </small>
-                </div>
-              </td>
-              <td>
+              <td className="actions-col">
                 <div className="admin-actions">
                   <button 
                     className="admin-action-btn edit" 
                     onClick={() => handleEdit(item)}
-                    title="Modifier cet utilisateur"
+                    title="Modifier"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
-                    Modifier
                   </button>
                   <button 
                     className="admin-action-btn delete" 
                     onClick={() => handleDelete(item.id, 'users')}
-                    title="Supprimer cet utilisateur"
+                    title="Supprimer"
                     disabled={item.role === 'admin' && usersData.filter(u => u.role === 'admin').length <= 1}
                     style={{
                       opacity: item.role === 'admin' && usersData.filter(u => u.role === 'admin').length <= 1 ? 0.5 : 1,
                       cursor: item.role === 'admin' && usersData.filter(u => u.role === 'admin').length <= 1 ? 'not-allowed' : 'pointer'
                     }}
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <polyline points="3,6 5,6 21,6"/>
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                       <line x1="10" y1="11" x2="10" y2="17"/>
                       <line x1="14" y1="11" x2="14" y2="17"/>
                     </svg>
-                    Supprimer
                   </button>
                 </div>
-                {item.role === 'admin' && usersData.filter(u => u.role === 'admin').length <= 1 && (
-                  <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem', display: 'block', marginTop: '4px' }}>
-                    Dernier admin
-                  </small>
-                )}
               </td>
             </>
           );
@@ -3032,7 +3089,7 @@ const AdminPanel = () => {
     };
 
     return (
-      <table className="admin-table">
+      <table className={`admin-table ${activeTab === 'users' ? 'users-table' : ''}`}>
         <thead>
           <tr>{renderTableHeaders()}</tr>
         </thead>
@@ -3179,6 +3236,96 @@ const AdminPanel = () => {
             </button>
           )}
         </div>
+
+        {/* Badge Guide Section - Only for Users Tab */}
+        {activeTab === 'users' && (
+          <div style={{
+            marginBottom: 'var(--spacing-xl)',
+            padding: 'var(--spacing-lg)',
+            backgroundColor: 'var(--bg-secondary)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-color)'
+          }}>
+            <h3 style={{
+              margin: '0 0 var(--spacing-md) 0',
+              color: 'var(--text-primary)',
+              fontSize: 'var(--font-size-lg)',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--primary)' }}>
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              À propos des badges
+            </h3>
+            
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: 'var(--spacing-md)',
+              fontSize: 'var(--font-size-sm)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#dc2626', flexShrink: 0 }}>
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                <div>
+                  <strong style={{ color: 'var(--text-primary)' }}>Président de club:</strong>
+                  <span style={{ color: 'var(--text-muted)', marginLeft: '6px' }}>
+                    Vous dirigez un club étudiant
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#2563eb', flexShrink: 0 }}>
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                  <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                </svg>
+                <div>
+                  <strong style={{ color: 'var(--text-primary)' }}>Représentant de classe:</strong>
+                  <span style={{ color: 'var(--text-muted)', marginLeft: '6px' }}>
+                    Vous représentez votre classe
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#059669', flexShrink: 0 }}>
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                  <path d="M9 14l2 2 4-4"/>
+                </svg>
+                <div>
+                  <strong style={{ color: 'var(--text-primary)' }}>Membre de l'ADEI:</strong>
+                  <span style={{ color: 'var(--text-muted)', marginLeft: '6px' }}>
+                    Vous faites partie de l'association
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: '#7c3aed', flexShrink: 0 }}>
+                  <path d="M3 21h18"/>
+                  <path d="M5 21V7l8-4v18"/>
+                  <path d="M19 21V11l-6-4"/>
+                  <path d="M9 9v.01"/>
+                  <path d="M9 12v.01"/>
+                  <path d="M9 15v.01"/>
+                  <path d="M9 18v.01"/>
+                </svg>
+                <div>
+                  <strong style={{ color: 'var(--text-primary)' }}>Bureau de l'ADEI:</strong>
+                  <span style={{ color: 'var(--text-muted)', marginLeft: '6px' }}>
+                    Vous êtes membre du bureau exécutif
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {renderTable()}
       </div>
