@@ -16,120 +16,71 @@ const Filiere = sequelize.define('Filiere', {
     type: DataTypes.STRING(20),
     allowNull: false,
     unique: true,
-    comment: 'Abréviation de la filière (ex: ISCSI, INFO, GM)'
+    comment: 'Abréviation de la filière (ex: GTR, GI, GC)'
   },
-  type: {
-    type: DataTypes.ENUM('filiere', 'prepa'),
-    allowNull: false,
-    defaultValue: 'filiere',
-    comment: 'Type: filiere pour les filières d\'ingénierie, prepa pour les classes préparatoires'
+  cycle_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'cycles',
+      key: 'id'
+    },
+    comment: 'ID du cycle parent (cycle d\'ingénieur)'
   },
-  years: {
-    type: DataTypes.JSON,
-    defaultValue: [],
-    comment: 'Liste des années d\'étude (ex: ["INFO1", "INFO2", "INFO3"])'
+  responsable_pedagogique: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Responsable pédagogique de la filière (commun pour toutes les années)'
+  },
+  responsable_contact: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Contact du responsable (email ou téléphone)'
+  },
+  // Délégués étudiants pour chaque année de la filière
+  delegue_annee1: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Nom du délégué étudiant pour la 1ère année (ex: GTR1)'
+  },
+  tel_delegue_annee1: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'Téléphone du délégué étudiant 1ère année'
+  },
+  delegue_annee2: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Nom du délégué étudiant pour la 2ème année (ex: GTR2)'
+  },
+  tel_delegue_annee2: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'Téléphone du délégué étudiant 2ème année'
+  },
+  delegue_annee3: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Nom du délégué étudiant pour la 3ème année (ex: GTR3)'
+  },
+  tel_delegue_annee3: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'Téléphone du délégué étudiant 3ème année'
   },
   documentation: {
     type: DataTypes.STRING(1000),
-    defaultValue: '',
+    allowNull: true,
     comment: 'Lien vers la documentation officielle'
   },
   drive: {
     type: DataTypes.STRING(1000),
-    defaultValue: '',
+    allowNull: true,
     comment: 'Lien vers le drive de la filière'
-  },
-  responsable: {
-    type: DataTypes.STRING(255),
-    defaultValue: 'À définir',
-    comment: 'Nom du responsable de la filière'
-  },
-  // Responsable pédagogique commun pour les classes préparatoires
-  responsablePedagogique: {
-    type: DataTypes.STRING(255),
-    defaultValue: '',
-    comment: 'Responsable pédagogique commun pour toutes les classes préparatoires'
-  },
-  // Délégués étudiants pour les sections CP
-  delegueA1: {
-    type: DataTypes.STRING(255),
-    defaultValue: '',
-    comment: 'Nom complet du délégué étudiant section A1'
-  },
-  telDelegueA1: {
-    type: DataTypes.STRING(20),
-    defaultValue: '',
-    comment: 'Numéro de téléphone du délégué A1'
-  },
-  delegueB1: {
-    type: DataTypes.STRING(255),
-    defaultValue: '',
-    comment: 'Nom complet du délégué étudiant section B1'
-  },
-  telDelegueB1: {
-    type: DataTypes.STRING(20),
-    defaultValue: '',
-    comment: 'Numéro de téléphone du délégué B1'
-  },
-  delegueC1: {
-    type: DataTypes.STRING(255),
-    defaultValue: '',
-    comment: 'Nom complet du délégué étudiant section C1'
-  },
-  telDelegueC1: {
-    type: DataTypes.STRING(20),
-    defaultValue: '',
-    comment: 'Numéro de téléphone du délégué C1'
-  },
-  delegueA2: {
-    type: DataTypes.STRING(255),
-    defaultValue: '',
-    comment: 'Nom complet du délégué étudiant section A2'
-  },
-  telDelegueA2: {
-    type: DataTypes.STRING(20),
-    defaultValue: '',
-    comment: 'Numéro de téléphone du délégué A2'
-  },
-  delegueB2: {
-    type: DataTypes.STRING(255),
-    defaultValue: '',
-    comment: 'Nom complet du délégué étudiant section B2'
-  },
-  telDelegueB2: {
-    type: DataTypes.STRING(20),
-    defaultValue: '',
-    comment: 'Numéro de téléphone du délégué B2'
-  },
-  delegueC2: {
-    type: DataTypes.STRING(255),
-    defaultValue: '',
-    comment: 'Nom complet du délégué étudiant section C2'
-  },
-  telDelegueC2: {
-    type: DataTypes.STRING(20),
-    defaultValue: '',
-    comment: 'Numéro de téléphone du délégué C2'
-  },
-  // Délégué étudiant pour les filières (représentant des 3 ans)
-  delegueFiliere: {
-    type: DataTypes.STRING(255),
-    defaultValue: '',
-    comment: 'Nom complet du délégué étudiant représentant de la filière'
-  },
-  telDelegueFiliere: {
-    type: DataTypes.STRING(20),
-    defaultValue: '',
-    comment: 'Numéro de téléphone du délégué de filière'
-  },
-  RespoContact: {
-    type: DataTypes.STRING(255),
-    defaultValue: '',
-    comment: 'Contact du responsable (email ou téléphone)'
   },
   description: {
     type: DataTypes.TEXT,
-    defaultValue: '',
+    allowNull: true,
     comment: 'Description détaillée de la filière'
   },
   isActive: {
@@ -150,7 +101,7 @@ const Filiere = sequelize.define('Filiere', {
       fields: ['abbreviation']
     },
     {
-      fields: ['type']
+      fields: ['cycle_id']
     },
     {
       fields: ['isActive']

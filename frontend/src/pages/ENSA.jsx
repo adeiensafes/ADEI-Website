@@ -9,7 +9,7 @@ const ENSA = () => {
   const [filieres, setFilieres] = useState([]);
   const [classesPrepa, setClassesPrepa] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedFiliere, setSelectedFiliere] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -61,14 +61,14 @@ const ENSA = () => {
     }
   };
 
-  const openModal = (filiere) => {
-    setSelectedFiliere(filiere);
+  const openModal = (item) => {
+    setSelectedItem(item);
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
-    setSelectedFiliere(null);
+    setSelectedItem(null);
   };
 
   // Handle section change with transition
@@ -99,7 +99,8 @@ const ENSA = () => {
             delegue: baseData.delegueA1 || 'Étudiant Délégué A1',
             telDelegue: baseData.telDelegueA1 || '',
             section: 'A1',
-            level: 'CP1'
+            level: 'CP1',
+            description: 'Formation préparatoire aux études d\'ingénieur - 1ère année, Section A. Cette section couvre les matières fondamentales : mathématiques, physique, chimie, informatique et langues.'
           },
           {
             ...baseData,
@@ -110,7 +111,8 @@ const ENSA = () => {
             delegue: baseData.delegueB1 || 'Étudiant Délégué B1',
             telDelegue: baseData.telDelegueB1 || '',
             section: 'B1',
-            level: 'CP1'
+            level: 'CP1',
+            description: 'Formation préparatoire aux études d\'ingénieur - 1ère année, Section B. Cette section couvre les matières fondamentales : mathématiques, physique, chimie, informatique et langues.'
           },
           {
             ...baseData,
@@ -121,7 +123,8 @@ const ENSA = () => {
             delegue: baseData.delegueC1 || 'Étudiant Délégué C1',
             telDelegue: baseData.telDelegueC1 || '',
             section: 'C1',
-            level: 'CP1'
+            level: 'CP1',
+            description: 'Formation préparatoire aux études d\'ingénieur - 1ère année, Section C. Cette section couvre les matières fondamentales : mathématiques, physique, chimie, informatique et langues.'
           }
         ];
       }
@@ -141,7 +144,8 @@ const ENSA = () => {
             delegue: baseData.delegueA2 || 'Étudiant Délégué A2',
             telDelegue: baseData.telDelegueA2 || '',
             section: 'A2',
-            level: 'CP2'
+            level: 'CP2',
+            description: 'Formation préparatoire aux études d\'ingénieur - 2ème année, Section A. Cette section approfondit les matières fondamentales et prépare à l\'accès au cycle ingénieur.'
           },
           {
             ...baseData,
@@ -152,7 +156,8 @@ const ENSA = () => {
             delegue: baseData.delegueB2 || 'Étudiant Délégué B2',
             telDelegue: baseData.telDelegueB2 || '',
             section: 'B2',
-            level: 'CP2'
+            level: 'CP2',
+            description: 'Formation préparatoire aux études d\'ingénieur - 2ème année, Section B. Cette section approfondit les matières fondamentales et prépare à l\'accès au cycle ingénieur.'
           },
           {
             ...baseData,
@@ -163,7 +168,8 @@ const ENSA = () => {
             delegue: baseData.delegueC2 || 'Étudiant Délégué C2',
             telDelegue: baseData.telDelegueC2 || '',
             section: 'C2',
-            level: 'CP2'
+            level: 'CP2',
+            description: 'Formation préparatoire aux études d\'ingénieur - 2ème année, Section C. Cette section approfondit les matières fondamentales et prépare à l\'accès au cycle ingénieur.'
           }
         ];
       }
@@ -175,6 +181,25 @@ const ENSA = () => {
       
       filieres.forEach(filiere => {
         if (filiere.type === 'filiere') {
+          // Get the appropriate delegate based on the year
+          let delegue = 'Étudiant Délégué';
+          let telDelegue = '';
+          let description = '';
+          
+          if (levelNumber === '1') {
+            delegue = filiere.delegue_annee1 || 'Étudiant Délégué';
+            telDelegue = filiere.tel_delegue_annee1 || '';
+            description = `Formation d'ingénieur en ${filiere.name} - 1ère année. Cette filière forme des ingénieurs spécialisés dans le domaine ${filiere.name.toLowerCase()}.`;
+          } else if (levelNumber === '2') {
+            delegue = filiere.delegue_annee2 || 'Étudiant Délégué';
+            telDelegue = filiere.tel_delegue_annee2 || '';
+            description = `Formation d'ingénieur en ${filiere.name} - 2ème année. Cette filière forme des ingénieurs spécialisés dans le domaine ${filiere.name.toLowerCase()}.`;
+          } else if (levelNumber === '3') {
+            delegue = filiere.delegue_annee3 || 'Délégué à définir';
+            telDelegue = filiere.tel_delegue_annee3 || '';
+            description = `Formation d'ingénieur en ${filiere.name} - 3ème année. Cette filière est en cours de restructuration dans le cadre de la réforme des filières de l'ENSA Fès. La nouvelle version sera disponible l'année prochaine.`;
+          }
+          
           filteredFilieres.push({
             ...filiere,
             id: `${filiere.id}-${activeSection.toUpperCase()}`,
@@ -182,8 +207,9 @@ const ENSA = () => {
             abbreviation: `${filiere.abbreviation}${levelNumber}`,
             displayName: `${filiere.abbreviation} ${levelNumber}`,
             level: activeSection.toUpperCase(),
-            delegue: filiere.delegueFiliere || 'Étudiant Délégué',
-            telDelegue: filiere.telDelegueFiliere || ''
+            delegue: delegue,
+            telDelegue: telDelegue,
+            description: description
           });
         }
       });
@@ -281,6 +307,32 @@ const ENSA = () => {
            filiere.type === 'prepa' ? 'Prépa' : 'Filière'}
         </div>
       </div>
+
+      {/* Avertissement pour CI3 */}
+      {filiere.level === 'CI3' && (
+        <div style={{
+          background: '#FEF3C7',
+          border: '2px solid #F59E0B',
+          borderRadius: 'var(--radius-md)',
+          padding: 'var(--spacing-sm)',
+          marginBottom: 'var(--spacing-lg)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--spacing-xs)',
+          boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)'
+        }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#D97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span style={{ 
+            fontSize: 'var(--font-size-sm)', 
+            color: '#B45309',
+            fontWeight: '700'
+          }}>
+            Filière en restructuration - Nouvelle version à venir
+          </span>
+        </div>
+      )}
 
       {/* Responsables et Délégués */}
       <div style={{ marginBottom: 'var(--spacing-lg)' }}>
@@ -685,6 +737,35 @@ const ENSA = () => {
                   en doctorat. Le diplôme d'ingénieur ENSA est reconnu par l'État marocain 
                   et bénéficie d'une excellente réputation auprès des employeurs.
                 </p>
+                
+                {/* Notice spéciale pour CI3 */}
+                {activeSection === 'ci3' && (
+                  <div style={{
+                    marginTop: 'var(--spacing-lg)',
+                    padding: 'var(--spacing-lg)',
+                    background: '#FEF3C7',
+                    border: '2px solid #F59E0B',
+                    borderRadius: 'var(--radius-lg)',
+                    color: '#B45309',
+                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12 3C7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#D97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <strong style={{ fontSize: 'var(--font-size-lg)', color: '#D97706' }}>Information importante - CI3</strong>
+                    </div>
+                    <p style={{ margin: 0, fontSize: 'var(--font-size-md)', lineHeight: '1.6', color: '#B45309', fontWeight: '600' }}>
+                      <strong style={{ color: '#D97706' }}>Restructuration en cours :</strong> Les filières de l'ENSA Fès ont subi une phase de changement et de restructuration. 
+                      La plupart des filières actuelles affichées pour CI3 n'existent plus sous leur ancienne forme et seront remplacées par de nouvelles filières 
+                      qui entreront en vigueur l'année prochaine.
+                    </p>
+                    <p style={{ margin: 'var(--spacing-sm) 0 0 0', fontSize: 'var(--font-size-sm)', fontStyle: 'italic', color: '#92400E', fontWeight: '500' }}>
+                      Les nouvelles filières CI3 seront mises à jour prochainement. Pour plus d'informations sur la restructuration, 
+                      veuillez contacter l'administration de l'ENSA Fès.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -874,7 +955,7 @@ const ENSA = () => {
       </div>
 
       {/* Modal des détails */}
-      {showModal && selectedFiliere && (
+      {showModal && selectedItem && (
         <div 
           style={{
             position: 'fixed',
@@ -919,7 +1000,7 @@ const ENSA = () => {
                   fontSize: 'var(--font-size-2xl)',
                   fontWeight: 'bold'
                 }}>
-                  {selectedFiliere.abbreviation}
+                  {selectedItem.abbreviation}
                 </h2>
                 <p style={{ 
                   margin: 0, 
@@ -927,7 +1008,7 @@ const ENSA = () => {
                   fontSize: 'var(--font-size-lg)',
                   marginTop: 'var(--spacing-xs)'
                 }}>
-                  {selectedFiliere.name}
+                  {selectedItem.name}
                 </p>
               </div>
               <button
@@ -956,27 +1037,67 @@ const ENSA = () => {
                 fontWeight: 'bold',
                 display: 'inline-block'
               }}>
-                {selectedFiliere.type === 'prepa' ? 'Classe Préparatoire' : 'Filière d\'Ingénierie'}
+                {selectedItem.type === 'prepa' ? 'Classe Préparatoire' : 'Filière d\'Ingénierie'}
               </div>
             </div>
 
             {/* Description */}
-            {selectedFiliere.description && (
+            {selectedItem.description && (
               <div style={{ marginBottom: 'var(--spacing-xl)' }}>
                 <h3 style={{ color: 'var(--text-color)', marginBottom: 'var(--spacing-sm)' }}>Description</h3>
                 <p style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>
-                  {selectedFiliere.description}
+                  {selectedItem.description}
                 </p>
+                
+                {/* Note spéciale pour CI3 */}
+                {selectedItem.level === 'CI3' && (
+                  <div style={{
+                    marginTop: 'var(--spacing-md)',
+                    padding: 'var(--spacing-lg)',
+                    background: '#FEF3C7',
+                    border: '2px solid #F59E0B',
+                    borderRadius: 'var(--radius-lg)',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 'var(--spacing-sm)',
+                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)'
+                  }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginTop: '2px', flexShrink: 0 }}>
+                      <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#D97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <div>
+                      <p style={{ 
+                        margin: 0, 
+                        fontSize: 'var(--font-size-md)', 
+                        color: '#D97706',
+                        fontWeight: '700',
+                        marginBottom: 'var(--spacing-sm)'
+                      }}>
+                        Filière en restructuration
+                      </p>
+                      <p style={{ 
+                        margin: 0, 
+                        fontSize: 'var(--font-size-sm)', 
+                        color: '#B45309',
+                        lineHeight: '1.5',
+                        fontWeight: '600'
+                      }}>
+                        Cette filière fait partie de la réforme des filières de l'ENSA Fès. 
+                        La version actuelle n'existe plus sous cette forme et sera remplacée par une nouvelle filière l'année prochaine.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Encadrement */}
             <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-              {selectedFiliere.section ? (
+              {selectedItem.section ? (
                 // Pour les sections CP1/CP2
                 <div>
                   <h3 style={{ color: 'var(--text-color)', marginBottom: 'var(--spacing-sm)' }}>
-                    Encadrement Section {selectedFiliere.section}
+                    Encadrement Section {selectedItem.section}
                   </h3>
                   
                   {/* Responsable pédagogique */}
@@ -1002,7 +1123,7 @@ const ENSA = () => {
                       </h4>
                     </div>
                     <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-md)' }}>
-                      {selectedFiliere.responsablePedagogique}
+                      {selectedItem.responsablePedagogique}
                     </p>
                     <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)', marginTop: 'var(--spacing-xs)' }}>
                       Commun à toutes les sections CP1 et CP2
@@ -1027,15 +1148,15 @@ const ENSA = () => {
                         margin: 0,
                         fontSize: 'var(--font-size-lg)'
                       }}>
-                        Délégué Section {selectedFiliere.section}
+                        Délégué Section {selectedItem.section}
                       </h4>
                     </div>
                     <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-md)', marginBottom: 'var(--spacing-md)' }}>
-                      {selectedFiliere.delegue}
+                      {selectedItem.delegue}
                     </p>
-                    {selectedFiliere.telDelegue && (
+                    {selectedItem.telDelegue && (
                       <a 
-                        href={`tel:${selectedFiliere.telDelegue}`}
+                        href={`tel:${selectedItem.telDelegue}`}
                         style={{
                           color: 'var(--color-primary)',
                           textDecoration: 'none',
@@ -1062,7 +1183,7 @@ const ENSA = () => {
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M22 16.92V19.92C22 20.52 21.52 21 20.92 21C9.4 21 0 11.6 0 0.08C0 -0.52 0.48 -1 1.08 -1H4.08C4.68 -1 5.16 -0.52 5.16 0.08C5.16 2.08 5.52 4.04 6.2 5.88C6.36 6.24 6.24 6.68 5.92 6.96L4.4 8.48C6.44 12.44 9.56 15.56 13.52 17.6L15.04 16.08C15.32 15.76 15.76 15.64 16.12 15.8C17.96 16.48 19.92 16.84 21.92 16.84C22.52 16.84 23 17.32 23 17.92V20.92Z" fill="currentColor"/>
                         </svg>
-                        Contacter: {selectedFiliere.telDelegue}
+                        Contacter: {selectedItem.telDelegue}
                       </a>
                     )}
                   </div>
@@ -1095,7 +1216,7 @@ const ENSA = () => {
                       </h4>
                     </div>
                     <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-md)' }}>
-                      {selectedFiliere.responsable || 'Prof. Responsable'}
+                      {selectedItem.responsable || 'Prof. Responsable'}
                     </p>
                     <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)', marginTop: 'var(--spacing-xs)' }}>
                       Responsable pour les 3 années du cycle ingénieur
@@ -1124,11 +1245,11 @@ const ENSA = () => {
                       </h4>
                     </div>
                     <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-md)', marginBottom: 'var(--spacing-md)' }}>
-                      {selectedFiliere.delegue}
+                      {selectedItem.delegue}
                     </p>
-                    {selectedFiliere.telDelegue && (
+                    {selectedItem.telDelegue && (
                       <a 
-                        href={`tel:${selectedFiliere.telDelegue}`}
+                        href={`tel:${selectedItem.telDelegue}`}
                         style={{
                           color: 'var(--color-primary)',
                           textDecoration: 'none',
@@ -1155,7 +1276,7 @@ const ENSA = () => {
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M22 16.92V19.92C22 20.52 21.52 21 20.92 21C9.4 21 0 11.6 0 0.08C0 -0.52 0.48 -1 1.08 -1H4.08C4.68 -1 5.16 -0.52 5.16 0.08C5.16 2.08 5.52 4.04 6.2 5.88C6.36 6.24 6.24 6.68 5.92 6.96L4.4 8.48C6.44 12.44 9.56 15.56 13.52 17.6L15.04 16.08C15.32 15.76 15.76 15.64 16.12 15.8C17.96 16.48 19.92 16.84 21.92 16.84C22.52 16.84 23 17.32 23 17.92V20.92Z" fill="currentColor"/>
                         </svg>
-                        Contacter: {selectedFiliere.telDelegue}
+                        Contacter: {selectedItem.telDelegue}
                       </a>
                     )}
                   </div>
@@ -1171,9 +1292,9 @@ const ENSA = () => {
               paddingTop: 'var(--spacing-xl)',
               borderTop: '1px solid var(--card-border)'
             }}>
-              {selectedFiliere.documentation && (
+              {selectedItem.documentation && (
                 <a
-                  href={selectedFiliere.documentation}
+                  href={selectedItem.documentation}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ 
@@ -1198,25 +1319,25 @@ const ENSA = () => {
                 </a>
               )}
               <a
-                href={selectedFiliere.drive || '#'}
-                target={selectedFiliere.drive ? "_blank" : "_self"}
+                href={selectedItem.drive || '#'}
+                target={selectedItem.drive ? "_blank" : "_self"}
                 rel="noopener noreferrer"
                 style={{ 
                   textDecoration: 'none',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 'var(--spacing-sm)',
-                  opacity: selectedFiliere.drive ? 1 : 0.5,
-                  cursor: selectedFiliere.drive ? 'pointer' : 'not-allowed',
+                  opacity: selectedItem.drive ? 1 : 0.5,
+                  cursor: selectedItem.drive ? 'pointer' : 'not-allowed',
                   color: '#16A34A',
                   transition: 'opacity 0.3s ease'
                 }}
-                onClick={!selectedFiliere.drive ? (e) => e.preventDefault() : undefined}
+                onClick={!selectedItem.drive ? (e) => e.preventDefault() : undefined}
                 onMouseEnter={(e) => {
-                  if (selectedFiliere.drive) e.target.style.opacity = '0.8';
+                  if (selectedItem.drive) e.target.style.opacity = '0.8';
                 }}
                 onMouseLeave={(e) => {
-                  if (selectedFiliere.drive) e.target.style.opacity = '1';
+                  if (selectedItem.drive) e.target.style.opacity = '1';
                 }}
               >
                 <img 
