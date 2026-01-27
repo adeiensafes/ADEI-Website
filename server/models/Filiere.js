@@ -18,6 +18,12 @@ const Filiere = sequelize.define('Filiere', {
     unique: true,
     comment: 'Abréviation de la filière (ex: GTR, GI, GC)'
   },
+  type: {
+    type: DataTypes.ENUM('filiere', 'prepa'),
+    allowNull: false,
+    defaultValue: 'filiere',
+    comment: 'Type: filiere pour cycle ingénieur, prepa pour cycle préparatoire'
+  },
   cycle_id: {
     type: DataTypes.INTEGER,
     allowNull: true,
@@ -25,48 +31,12 @@ const Filiere = sequelize.define('Filiere', {
       model: 'cycles',
       key: 'id'
     },
-    comment: 'ID du cycle parent (cycle d\'ingénieur)'
+    comment: 'ID du cycle parent'
   },
-  responsable_pedagogique: {
-    type: DataTypes.STRING(255),
+  years: {
+    type: DataTypes.TEXT('long'),
     allowNull: true,
-    comment: 'Responsable pédagogique de la filière (commun pour toutes les années)'
-  },
-  responsable_contact: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-    comment: 'Contact du responsable (email ou téléphone)'
-  },
-  // Délégués étudiants pour chaque année de la filière
-  delegue_annee1: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-    comment: 'Nom du délégué étudiant pour la 1ère année (ex: GTR1)'
-  },
-  tel_delegue_annee1: {
-    type: DataTypes.STRING(20),
-    allowNull: true,
-    comment: 'Téléphone du délégué étudiant 1ère année'
-  },
-  delegue_annee2: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-    comment: 'Nom du délégué étudiant pour la 2ème année (ex: GTR2)'
-  },
-  tel_delegue_annee2: {
-    type: DataTypes.STRING(20),
-    allowNull: true,
-    comment: 'Téléphone du délégué étudiant 2ème année'
-  },
-  delegue_annee3: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-    comment: 'Nom du délégué étudiant pour la 3ème année (ex: GTR3)'
-  },
-  tel_delegue_annee3: {
-    type: DataTypes.STRING(20),
-    allowNull: true,
-    comment: 'Téléphone du délégué étudiant 3ème année'
+    comment: 'Données JSON des années (legacy)'
   },
   documentation: {
     type: DataTypes.STRING(1000),
@@ -77,6 +47,17 @@ const Filiere = sequelize.define('Filiere', {
     type: DataTypes.STRING(1000),
     allowNull: true,
     comment: 'Lien vers le drive de la filière'
+  },
+  responsable: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    defaultValue: 'À définir',
+    comment: 'Responsable (legacy)'
+  },
+  RespoContact: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Contact du responsable'
   },
   description: {
     type: DataTypes.TEXT,
@@ -92,6 +73,84 @@ const Filiere = sequelize.define('Filiere', {
     type: DataTypes.INTEGER,
     defaultValue: 0,
     comment: 'Ordre d\'affichage'
+  },
+  responsablePedagogique: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Responsable pédagogique de la filière'
+  },
+  // Délégués sections A, B, C pour année 1
+  delegueA1: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Délégué section A année 1'
+  },
+  telDelegueA1: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'Téléphone délégué section A année 1'
+  },
+  delegueB1: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Délégué section B année 1'
+  },
+  telDelegueB1: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'Téléphone délégué section B année 1'
+  },
+  delegueC1: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Délégué section C année 1'
+  },
+  telDelegueC1: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'Téléphone délégué section C année 1'
+  },
+  // Délégués sections A, B, C pour année 2
+  delegueA2: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Délégué section A année 2'
+  },
+  telDelegueA2: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'Téléphone délégué section A année 2'
+  },
+  delegueB2: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Délégué section B année 2'
+  },
+  telDelegueB2: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'Téléphone délégué section B année 2'
+  },
+  delegueC2: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Délégué section C année 2'
+  },
+  telDelegueC2: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'Téléphone délégué section C année 2'
+  },
+  // Délégué général de filière
+  delegueFiliere: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Délégué général de la filière'
+  },
+  telDelegueFiliere: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'Téléphone délégué général de la filière'
   }
 }, {
   tableName: 'filieres',
@@ -99,6 +158,9 @@ const Filiere = sequelize.define('Filiere', {
   indexes: [
     {
       fields: ['abbreviation']
+    },
+    {
+      fields: ['type']
     },
     {
       fields: ['cycle_id']

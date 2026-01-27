@@ -8,6 +8,7 @@ const fs = require('fs');
 require('dotenv').config();
 
 const { authMiddleware, adminMiddleware, JWT_SECRET } = require('./middleware/auth');
+const ErrorHandler = require('./utils/errorHandler');
 
 // Import Sequelize models with associations
 const sequelize = require('./config/database');
@@ -150,10 +151,51 @@ app.get('/api/test', (req, res) => {
       'GET /api/clubs': 'Get clubs data',
       'GET /api/events': 'Get events data',
       'GET /api/news': 'Get news data',
-      'GET /api/filieres': 'Get filieres data'
+      'GET /api/filieres': 'Get filieres data',
+      'GET /api/feedbacks/public': 'Get public feedbacks',
+      'GET /api/feedbacks/test': 'Test feedbacks connection'
     },
     timestamp: new Date().toISOString()
   });
+});
+
+// Test endpoint spécifique pour les feedbacks
+app.get('/api/feedbacks/test', async (req, res) => {
+  try {
+    console.log('=== TESTING FEEDBACKS CONNECTION ===');
+    
+    // Test 1: Check if Feedback model is loaded
+    console.log('Feedback model:', typeof Feedback);
+    
+    // Test 2: Simple count
+    const count = await Feedback.count();
+    console.log('Feedback count:', count);
+    
+    // Test 3: Simple findAll without associations
+    const simpleFeedbacks = await Feedback.findAll({ limit: 1 });
+    console.log('Simple feedback query result:', simpleFeedbacks.length);
+    
+    // Test 4: Check User model
+    console.log('User model:', typeof User);
+    const userCount = await User.count();
+    console.log('User count:', userCount);
+    
+    res.json({
+      success: true,
+      feedbackModel: typeof Feedback,
+      userModel: typeof User,
+      feedbackCount: count,
+      userCount: userCount,
+      sampleFeedback: simpleFeedbacks[0] || null
+    });
+  } catch (error) {
+    console.error('Test error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      stack: error.stack
+    });
+  }
 });
 
 // Route pour la racine
@@ -240,31 +282,35 @@ const clearCache = (key) => {
 
 // Routes News
 // Public endpoint to get all news (for display on news page)
-app.get('/api/news', async (req, res) => {
-  try {
-    const cacheKey = 'news';
-    const cachedNews = getCachedData(cacheKey);
-    
-    if (cachedNews) {
-      return res.json(cachedNews);
-    }
-    
-    const news = await News.findAll({ 
-      order: [['createdAt', 'DESC']],
-      include: [{
-        model: Club,
-        as: 'club',
-        attributes: ['id', 'club', 'president'],
-        required: false
-      }]
+app.get('/api/news', ErrorHandler.asyncWrapper(async (req, res) => {
+  const cacheKey = 'news';
+  const cachedNews = getCachedData(cacheKey);
+  
+  if (cachedNews) {
+    return res.json({
+      success: true,
+      data: cachedNews,
+      cached: true
     });
-    setCachedData(cacheKey, news);
-    res.json(news);
-  } catch (error) {
-    console.error('Error fetching news:', error);
-    res.status(500).json({ message: 'Erreur lors de la récupération des actualités' });
   }
-});
+  
+  const news = await News.findAll({ 
+    order: [['createdAt', 'DESC']],
+    include: [{
+      model: Club,
+      as: 'club',
+      attributes: ['id', 'club', 'president'],
+      required: false
+    }]
+  });
+  
+  setCachedData(cacheKey, news);
+  res.json({
+    success: true,
+    data: news,
+    count: news.length
+  });
+}));
 
 app.post('/api/news', authMiddleware, adminMiddleware, upload.fields([
   { name: 'image', maxCount: 1 },
@@ -374,31 +420,35 @@ app.delete('/api/news/:id', authMiddleware, adminMiddleware, async (req, res) =>
 });
 
 // Routes Events
-app.get('/api/events', async (req, res) => {
-  try {
-    const cacheKey = 'events';
-    const cachedEvents = getCachedData(cacheKey);
-    
-    if (cachedEvents) {
-      return res.json(cachedEvents);
-    }
-    
-    const events = await Event.findAll({ 
-      order: [['createdAt', 'DESC']],
-      include: [{
-        model: Club,
-        as: 'club',
-        attributes: ['id', 'club', 'president'],
-        required: false
-      }]
+app.get('/api/events', ErrorHandler.asyncWrapper(async (req, res) => {
+  const cacheKey = 'events';
+  const cachedEvents = getCachedData(cacheKey);
+  
+  if (cachedEvents) {
+    return res.json({
+      success: true,
+      data: cachedEvents,
+      cached: true
     });
-    setCachedData(cacheKey, events);
-    res.json(events);
-  } catch (error) {
-    console.error('Error fetching events:', error);
-    res.status(500).json({ message: 'Erreur lors de la récupération des événements' });
   }
-});
+  
+  const events = await Event.findAll({ 
+    order: [['createdAt', 'DESC']],
+    include: [{
+      model: Club,
+      as: 'club',
+      attributes: ['id', 'club', 'president'],
+      required: false
+    }]
+  });
+  
+  setCachedData(cacheKey, events);
+  res.json({
+    success: true,
+    data: events,
+    count: events.length
+  });
+}));
 
 app.post('/api/events', authMiddleware, adminMiddleware, upload.fields([
   { name: 'image', maxCount: 1 },
@@ -508,14 +558,14 @@ app.delete('/api/events/:id', authMiddleware, adminMiddleware, async (req, res) 
 });
 
 // Routes Clubs
-app.get('/api/clubs', async (req, res) => {
-  try {
-    const clubs = await Club.findAll({ order: [['createdAt', 'DESC']] });
-    res.json(clubs);
-  } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la récupération des clubs' });
-  }
-});
+app.get('/api/clubs', ErrorHandler.asyncWrapper(async (req, res) => {
+  const clubs = await Club.findAll({ order: [['createdAt', 'DESC']] });
+  res.json({
+    success: true,
+    data: clubs,
+    count: clubs.length
+  });
+}));
 
 app.post('/api/clubs', authMiddleware, adminMiddleware, upload.single('image'), async (req, res) => {
   try {
@@ -677,8 +727,9 @@ app.delete('/api/clubs/:id', authMiddleware, adminMiddleware, async (req, res) =
 
 // Routes Feedbacks
 // Public endpoint to get all feedbacks (for display on feedbacks page)
-app.get('/api/feedbacks/public', async (req, res) => {
+app.get('/api/feedbacks/public', ErrorHandler.asyncWrapper(async (req, res) => {
   try {
+    // Essayer d'abord avec l'association User
     const feedbacks = await Feedback.findAll({ 
       order: [['createdAt', 'DESC']],
       attributes: ['id', 'name', 'type', 'message', 'createdAt', 'userId'],
@@ -686,15 +737,34 @@ app.get('/api/feedbacks/public', async (req, res) => {
         model: User,
         as: 'user',
         attributes: ['id', 'username', 'is_president', 'is_representant', 'is_membre_adei', 'is_bureau_adei'],
-        required: false // LEFT JOIN to include feedbacks without users
+        required: false
       }]
     });
-    res.json(feedbacks);
-  } catch (error) {
-    console.error('Error fetching public feedbacks:', error);
-    res.status(500).json({ message: 'Erreur lors de la récupération des feedbacks' });
+    
+    res.json({
+      success: true,
+      data: feedbacks,
+      count: feedbacks.length
+    });
+  } catch (associationError) {
+    // Fallback: récupérer sans association User si la colonne userId n'existe pas
+    try {
+      const simpleFeedbacks = await Feedback.findAll({ 
+        order: [['createdAt', 'DESC']],
+        attributes: ['id', 'name', 'type', 'message', 'createdAt']
+      });
+      
+      res.json({
+        success: true,
+        data: simpleFeedbacks,
+        count: simpleFeedbacks.length,
+        note: 'Données utilisateur non disponibles'
+      });
+    } catch (fallbackError) {
+      throw fallbackError; // Laisser ErrorHandler gérer l'erreur
+    }
   }
-});
+}));
 
 // Admin endpoint to get all feedbacks (with full details)
 app.get('/api/feedbacks', authMiddleware, adminMiddleware, async (req, res) => {
@@ -1009,18 +1079,17 @@ app.delete('/api/adei-members/:id', authMiddleware, adminMiddleware, async (req,
 });
 
 // Routes Filières
-app.get('/api/filieres', async (req, res) => {
-  try {
-    const filieres = await Filiere.findAll({ 
-      where: { isActive: true },
-      order: [['order_display', 'ASC'], ['abbreviation', 'ASC']] 
-    });
-    res.json(filieres);
-  } catch (error) {
-    console.error('Error fetching filières:', error);
-    res.status(500).json({ message: 'Erreur lors de la récupération des filières' });
-  }
-});
+app.get('/api/filieres', ErrorHandler.asyncWrapper(async (req, res) => {
+  const filieres = await Filiere.findAll({ 
+    where: { isActive: true },
+    order: [['order_display', 'ASC'], ['abbreviation', 'ASC']] 
+  });
+  res.json({
+    success: true,
+    data: filieres,
+    count: filieres.length
+  });
+}));
 
 app.post('/api/filieres', authMiddleware, adminMiddleware, async (req, res) => {
   try {
@@ -1247,6 +1316,18 @@ app.patch('/api/events/:id/reorder', authMiddleware, adminMiddleware, async (req
     console.error('Erreur reorder events:', error);
     res.status(500).json({ message: 'Erreur lors de la modification de l\'ordre' });
   }
+});
+
+// Middleware global de gestion d'erreurs (doit être à la fin)
+app.use(ErrorHandler.globalErrorHandler);
+
+// Gestion des routes non trouvées
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Endpoint non trouvé',
+    code: 'NOT_FOUND'
+  });
 });
 
 app.listen(PORT, () => {
