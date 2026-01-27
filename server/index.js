@@ -13,7 +13,10 @@ const { authMiddleware, adminMiddleware, JWT_SECRET } = require('./middleware/au
 const sequelize = require('./config/database');
 const { Op } = require('sequelize');
 const models = require('./models');
-const { User, News, Event, Club, Feedback, ADEIMember, Filiere, Partner } = models;
+const { User, News, Event, Club, Feedback, ADEIMember, Filiere, Partner, Cycle, AcademicYear, Section } = models;
+
+// Import academic routes
+const academicRoutes = require('./routes/academic');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -24,6 +27,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Use academic routes
+app.use('/api/academic', academicRoutes);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

@@ -208,6 +208,13 @@ const AdminPanel = () => {
         // Délégué filière
         delegueFiliere: '',
         telDelegueFiliere: '',
+        // Délégués par année pour les filières d'ingénierie
+        delegue_annee1: '',
+        tel_delegue_annee1: '',
+        delegue_annee2: '',
+        tel_delegue_annee2: '',
+        delegue_annee3: '',
+        tel_delegue_annee3: '',
         years: [],
         documentation: '',
         drive: '',
@@ -1306,6 +1313,7 @@ const AdminPanel = () => {
                     />
                   </div>
                   
+                  {/* Délégués étudiants pour les 3 années */}
                   <div style={{ 
                     border: '2px solid #16A34A', 
                     borderRadius: 'var(--radius-lg)', 
@@ -1319,29 +1327,84 @@ const AdminPanel = () => {
                         <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="#16A34A"/>
                         <path d="M15 2L17 4L21 0" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
-                      Délégué Étudiant Représentant
+                      Délégués Étudiants par Année (ex: {formData.abbreviation || 'FILIERE'}1, {formData.abbreviation || 'FILIERE'}2, {formData.abbreviation || 'FILIERE'}3)
                     </h3>
                     
-                    <div className="form-grid two-cols">
-                      <div className="form-group">
-                        <label className="form-label">Nom complet du délégué</label>
-                        <input
-                          type="text"
-                          className="form-input"
-                          value={formData.delegueFiliere || ''}
-                          onChange={(e) => setFormData({ ...formData, delegueFiliere: e.target.value })}
-                          placeholder="Nom complet de l'étudiant délégué"
-                        />
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(3, 1fr)', 
+                      gap: 'var(--spacing-lg)' 
+                    }}>
+                      <div>
+                        <h4 style={{ color: '#16A34A', marginBottom: 'var(--spacing-sm)' }}>1ère Année ({formData.abbreviation || 'FILIERE'}1)</h4>
+                        <div className="form-group">
+                          <label className="form-label">Nom complet</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={formData.delegue_annee1 || ''}
+                            onChange={(e) => setFormData({ ...formData, delegue_annee1: e.target.value })}
+                            placeholder="Nom complet délégué 1ère année"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Téléphone</label>
+                          <input
+                            type="tel"
+                            className="form-input"
+                            value={formData.tel_delegue_annee1 || ''}
+                            onChange={(e) => setFormData({ ...formData, tel_delegue_annee1: e.target.value })}
+                            placeholder="+212 6 12 34 56 78"
+                          />
+                        </div>
                       </div>
-                      <div className="form-group">
-                        <label className="form-label">Numéro de téléphone</label>
-                        <input
-                          type="tel"
-                          className="form-input"
-                          value={formData.telDelegueFiliere || ''}
-                          onChange={(e) => setFormData({ ...formData, telDelegueFiliere: e.target.value })}
-                          placeholder="+212 6 12 34 56 78"
-                        />
+                      
+                      <div>
+                        <h4 style={{ color: '#16A34A', marginBottom: 'var(--spacing-sm)' }}>2ème Année ({formData.abbreviation || 'FILIERE'}2)</h4>
+                        <div className="form-group">
+                          <label className="form-label">Nom complet</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={formData.delegue_annee2 || ''}
+                            onChange={(e) => setFormData({ ...formData, delegue_annee2: e.target.value })}
+                            placeholder="Nom complet délégué 2ème année"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Téléphone</label>
+                          <input
+                            type="tel"
+                            className="form-input"
+                            value={formData.tel_delegue_annee2 || ''}
+                            onChange={(e) => setFormData({ ...formData, tel_delegue_annee2: e.target.value })}
+                            placeholder="+212 6 12 34 56 78"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 style={{ color: '#16A34A', marginBottom: 'var(--spacing-sm)' }}>3ème Année ({formData.abbreviation || 'FILIERE'}3)</h4>
+                        <div className="form-group">
+                          <label className="form-label">Nom complet</label>
+                          <input
+                            type="text"
+                            className="form-input"
+                            value={formData.delegue_annee3 || ''}
+                            onChange={(e) => setFormData({ ...formData, delegue_annee3: e.target.value })}
+                            placeholder="Nom complet délégué 3ème année"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Téléphone</label>
+                          <input
+                            type="tel"
+                            className="form-input"
+                            value={formData.tel_delegue_annee3 || ''}
+                            onChange={(e) => setFormData({ ...formData, tel_delegue_annee3: e.target.value })}
+                            placeholder="+212 6 12 34 56 78"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
