@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useContext } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../AuthContext';
 import Typewriter from '../components/ui/Typewriter';
-import { API_ENDPOINTS } from '../config/api';
+import { API_ENDPOINTS, getImageUrl } from '../config/api';
 import { getOrganizerName } from '../utils/helpers';
+import '../styles/home.css';
 
 const Home = () => {
   const { token } = useContext(AuthContext);
@@ -10,6 +13,8 @@ const Home = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pageReady, setPageReady] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,6 +54,43 @@ const Home = () => {
     .filter(event => new Date(event.date) >= new Date())
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .slice(0, 3) : [];
+
+  const handleShowDetails = (item, type) => {
+    setSelectedItem({ ...item, type });
+    setShowModal(true);
+    // Prevent body scroll when modal is open
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedItem(null);
+    // Restore body scroll
+    document.body.style.overflow = 'unset';
+  };
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape' && showModal) {
+        closeModal();
+      }
+    };
+
+    if (showModal) {
+      document.addEventListener('keydown', handleEscKey);
+      return () => document.removeEventListener('keydown', handleEscKey);
+    }
+  }, [showModal]);
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   if (loading) {
     return (
@@ -101,28 +143,56 @@ const Home = () => {
             
             {latestNews && latestNews.length > 0 ? (
               <>
-                <div className="card-grid">
+                <div className="news-events-grid">
                   {latestNews.map((article, index) => (
                     <article
                       key={article.id}
-                      className={`card ${pageReady ? 'zoom-in' : ''}`}
+                      className={`news-event-card ${pageReady ? 'zoom-in' : ''}`}
                       style={{ animationDelay: pageReady ? `${0.3 + index * 0.1}s` : '0s' }}
                     >
-                      <h3>{article.title}</h3>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
-                        <small className="text-muted">{article.date}</small>
-                        <small style={{ 
-                          color: 'var(--primary)', 
-                          fontWeight: '500',
-                          padding: '2px 8px',
-                          backgroundColor: 'var(--primary-light)',
-                          borderRadius: 'var(--radius-sm)',
-                          fontSize: '0.75rem'
-                        }}>
-                          {getOrganizerName(article)}
-                        </small>
+                      <div className="news-event-content">
+                        <div className="news-event-info">
+                          <div className="news-event-header">
+                            <h3 className="news-event-title">{article.title}</h3>
+                            <div className="news-event-meta">
+                              <small className="text-muted">{article.date}</small>
+                              <small className="organizer-badge">
+                                {getOrganizerName(article)}
+                              </small>
+                            </div>
+                          </div>
+                          
+                          <div className="news-event-description">
+                            <p>{article.content?.length > 150 ? `${article.content.substring(0, 150)}...` : article.content}</p>
+                          </div>
+                          
+                          <div className="news-event-actions">
+                            <button
+                              onClick={() => handleShowDetails(article, 'news')}
+                              className="voir-plus-btn"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                              </svg>
+                              Voir plus
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {article.image && (
+                          <div className="news-event-image">
+                            <img
+                              src={getImageUrl(article.image)}
+                              alt={article.title}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.parentElement.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
-                      <p>{article.content}</p>
                     </article>
                   ))}
                 </div>
@@ -130,39 +200,14 @@ const Home = () => {
                 {/* Voir plus button for news */}
                 <div style={{ textAlign: 'center', marginTop: 'var(--spacing-xl)' }}>
                   <a
-                    href="/news"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '12px 24px',
-                      backgroundColor: 'var(--primary)',
-                      color: 'white',
-                      textDecoration: 'none',
-                      borderRadius: 'var(--radius-lg)',
-                      fontSize: '1rem',
-                      fontWeight: '600',
-                      transition: 'all 0.3s ease',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      boxShadow: '0 4px 15px rgba(255, 59, 48, 0.3)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = 'var(--primary-dark)';
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 8px 25px rgba(255, 59, 48, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = 'var(--primary)';
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 4px 15px rgba(255, 59, 48, 0.3)';
-                    }}
+                    href="/#/news"
+                    className="section-voir-plus-btn"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 5v14"/>
                       <path d="M19 12l-7 7-7-7"/>
                     </svg>
-                    Voir plus d'actualités
+                    Voir toutes les actualités
                   </a>
                 </div>
               </>
@@ -181,63 +226,56 @@ const Home = () => {
             
             {upcomingEvents && upcomingEvents.length > 0 ? (
               <>
-                <div className="card-grid">
+                <div className="news-events-grid">
                   {upcomingEvents.map((event, index) => (
                     <div
                       key={event.id}
-                      className={`card ${pageReady ? 'zoom-in' : ''}`}
+                      className={`news-event-card ${pageReady ? 'zoom-in' : ''}`}
                       style={{ animationDelay: pageReady ? `${0.5 + index * 0.1}s` : '0s' }}
                     >
-                      <h3>{event.title}</h3>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
-                        <small className="text-muted">{event.date} • {event.time}</small>
-                        <small style={{ 
-                          color: 'var(--primary)', 
-                          fontWeight: '500',
-                          padding: '2px 8px',
-                          backgroundColor: 'var(--primary-light)',
-                          borderRadius: 'var(--radius-sm)',
-                          fontSize: '0.75rem'
-                        }}>
-                          {getOrganizerName(event)}
-                        </small>
-                      </div>
-                      <p><strong>Lieu :</strong> {event.location}</p>
-                      <p>{event.description}</p>
-                      {/* Prominent Organizer Display */}
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginTop: 'var(--spacing-md)',
-                        padding: '10px 16px',
-                        background: 'linear-gradient(135deg, var(--primary), var(--primary-hover))',
-                        color: 'white',
-                        borderRadius: 'var(--radius-lg)',
-                        fontWeight: '700',
-                        fontSize: '0.95rem',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                        boxShadow: '0 4px 15px rgba(255, 59, 48, 0.3)',
-                        transition: 'all 0.3s ease',
-                        cursor: 'pointer'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.transform = 'translateY(-2px)';
-                        e.target.style.boxShadow = '0 8px 25px rgba(255, 59, 48, 0.4)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.transform = 'translateY(0)';
-                        e.target.style.boxShadow = '0 4px 15px rgba(255, 59, 48, 0.3)';
-                      }}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: '8px' }}>
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                          <circle cx="9" cy="7" r="4"/>
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
-                        Organisé par {getOrganizerName(event)}
+                      <div className="news-event-content">
+                        <div className="news-event-info">
+                          <div className="news-event-header">
+                            <h3 className="news-event-title">{event.title}</h3>
+                            <div className="news-event-meta">
+                              <small className="text-muted">{event.date} • {event.time}</small>
+                              <small className="organizer-badge">
+                                {getOrganizerName(event)}
+                              </small>
+                            </div>
+                          </div>
+                          
+                          <div className="news-event-description">
+                            <p><strong>Lieu :</strong> {event.location}</p>
+                            <p>{event.description?.length > 120 ? `${event.description.substring(0, 120)}...` : event.description}</p>
+                          </div>
+                          
+                          <div className="news-event-actions">
+                            <button
+                              onClick={() => handleShowDetails(event, 'event')}
+                              className="voir-plus-btn"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                              </svg>
+                              Voir plus
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {event.image && (
+                          <div className="news-event-image">
+                            <img
+                              src={getImageUrl(event.image)}
+                              alt={event.title}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.parentElement.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -246,39 +284,14 @@ const Home = () => {
                 {/* Voir plus button for events */}
                 <div style={{ textAlign: 'center', marginTop: 'var(--spacing-xl)' }}>
                   <a
-                    href="/events"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '12px 24px',
-                      backgroundColor: 'var(--primary)',
-                      color: 'white',
-                      textDecoration: 'none',
-                      borderRadius: 'var(--radius-lg)',
-                      fontSize: '1rem',
-                      fontWeight: '600',
-                      transition: 'all 0.3s ease',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      boxShadow: '0 4px 15px rgba(255, 59, 48, 0.3)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = 'var(--primary-dark)';
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 8px 25px rgba(255, 59, 48, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = 'var(--primary)';
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 4px 15px rgba(255, 59, 48, 0.3)';
-                    }}
+                    href="/#/events"
+                    className="section-voir-plus-btn"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M12 5v14"/>
                       <path d="M19 12l-7 7-7-7"/>
                     </svg>
-                    Voir plus d'événements
+                    Voir tous les événements
                   </a>
                 </div>
               </>
@@ -316,6 +329,85 @@ et contribuez activement à l'évolution de votre école et de votre communauté
           )}
         </div>
       </>
+
+      {/* Modal */}
+      {showModal && selectedItem && createPortal(
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{selectedItem.title}</h2>
+              <button className="modal-close" onClick={closeModal}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              {selectedItem.image && (
+                <div className="modal-image">
+                  <img
+                    src={getImageUrl(selectedItem.image)}
+                    alt={selectedItem.title}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.parentElement.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+              
+              <div className="modal-info">
+                <div className="modal-meta">
+                  {selectedItem.type === 'event' ? (
+                    <>
+                      <div className="modal-meta-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                          <line x1="16" y1="2" x2="16" y2="6"></line>
+                          <line x1="8" y1="2" x2="8" y2="6"></line>
+                          <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <span>{formatDate(selectedItem.date)} à {selectedItem.time}</span>
+                      </div>
+                      <div className="modal-meta-item">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                          <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        <span>{selectedItem.location}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="modal-meta-item">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                      </svg>
+                      <span>{formatDate(selectedItem.date || selectedItem.createdAt)}</span>
+                    </div>
+                  )}
+                  <div className="modal-meta-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span className="organizer-badge">{getOrganizerName(selectedItem)}</span>
+                  </div>
+                </div>
+                
+                <div className="modal-description">
+                  <p>{selectedItem.content || selectedItem.description}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
