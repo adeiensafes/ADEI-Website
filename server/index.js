@@ -15,8 +15,19 @@ const { Op } = require('sequelize');
 const models = require('./models');
 const { User, News, Event, Club, Feedback, ADEIMember, Filiere, Partner, Cycle, AcademicYear, Section } = models;
 
-// Import academic routes
-const academicRoutes = require('./routes/academic');
+// Import academic routes with error handling
+let academicRoutes;
+try {
+  academicRoutes = require('./routes/academic');
+} catch (error) {
+  console.error('Warning: Could not load academic routes:', error.message);
+  // Create a dummy router as fallback
+  const express = require('express');
+  academicRoutes = express.Router();
+  academicRoutes.get('*', (req, res) => {
+    res.status(503).json({ error: 'Academic routes temporarily unavailable' });
+  });
+}
 
 const app = express();
 const PORT = process.env.PORT || 5001;

@@ -1,6 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const { Cycle, AcademicYear, Section, Filiere } = require('../models');
+const path = require('path');
+
+// Try to require models with error handling
+let models;
+try {
+  models = require('../models');
+} catch (error) {
+  console.error('Error loading models in academic routes:', error.message);
+  // Try alternative path
+  try {
+    models = require(path.join(__dirname, '../models'));
+  } catch (error2) {
+    console.error('Error loading models with alternative path:', error2.message);
+    throw error2;
+  }
+}
+
+const { Cycle, AcademicYear, Section, Filiere } = models;
 
 // Get all cycles with their structure
 router.get('/cycles', async (req, res) => {
