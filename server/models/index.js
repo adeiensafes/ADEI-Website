@@ -8,8 +8,15 @@ const ADEIMember = require('./ADEIMember');
 const Filiere = require('./Filiere');
 const Partner = require('./Partner');
 
-// Définir les associations si nécessaire
-// Exemple : User.hasMany(News);
+// Define model associations
+News.belongsTo(Club, { foreignKey: 'clubId', as: 'club' });
+Event.belongsTo(Club, { foreignKey: 'clubId', as: 'club' });
+Club.hasMany(News, { foreignKey: 'clubId', as: 'news' });
+Club.hasMany(Event, { foreignKey: 'clubId', as: 'events' });
+
+// User and Feedback associations
+User.hasMany(Feedback, { foreignKey: 'userId', as: 'feedbacks' });
+Feedback.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
 const models = {
   User,

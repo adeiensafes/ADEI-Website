@@ -9,27 +9,11 @@ require('dotenv').config();
 
 const { authMiddleware, adminMiddleware, JWT_SECRET } = require('./middleware/auth');
 
-// Import Sequelize models
+// Import Sequelize models with associations
 const sequelize = require('./config/database');
 const { Op } = require('sequelize');
-const User = require('./models/User');
-const News = require('./models/News');
-const Event = require('./models/Event');
-const Club = require('./models/Club');
-const Feedback = require('./models/Feedback');
-const ADEIMember = require('./models/ADEIMember');
-const Filiere = require('./models/Filiere');
-const Partner = require('./models/Partner');
-
-// Define model associations
-News.belongsTo(Club, { foreignKey: 'clubId', as: 'club' });
-Event.belongsTo(Club, { foreignKey: 'clubId', as: 'club' });
-Club.hasMany(News, { foreignKey: 'clubId', as: 'news' });
-Club.hasMany(Event, { foreignKey: 'clubId', as: 'events' });
-
-// User and Feedback associations
-User.hasMany(Feedback, { foreignKey: 'userId', as: 'feedbacks' });
-Feedback.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+const models = require('./models');
+const { User, News, Event, Club, Feedback, ADEIMember, Filiere, Partner } = models;
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -724,7 +708,9 @@ app.post('/api/feedbacks', async (req, res) => {
       try {
         const token = authHeader.substring(7);
         const decoded = jwt.verify(token, JWT_SECRET);
-        feedbackData.userId = decoded.userId;
+        // Use decoded.id instead of decoded.userId
+        feedbackData.userId = decoded.id || decoded.userId;
+        console.log('Feedback submitted by user ID:', feedbackData.userId);
       } catch (tokenError) {
         // Token is invalid, but we still allow anonymous feedback
         console.log('Invalid token for feedback, proceeding as anonymous');
@@ -732,6 +718,7 @@ app.post('/api/feedbacks', async (req, res) => {
     }
     
     const feedback = await Feedback.create(feedbackData);
+    console.log('Feedback created:', feedback.toJSON());
     res.status(201).json({ success: true, message: 'Votre feedback a été envoyé avec succès!' });
   } catch (error) {
     console.error('Error creating feedback:', error);
@@ -771,9 +758,13 @@ app.delete('/api/feedbacks/:id', authMiddleware, adminMiddleware, async (req, re
 app.get('/api/users/me', authMiddleware, async (req, res) => {
   try {
     console.log('=== FETCHING USER PROFILE ===');
-    console.log('User ID from token:', req.user.userId);
+    console.log('User from token:', req.user);
     
-    const user = await User.findByPk(req.user.userId, { 
+    // Use req.user.id instead of req.user.userId
+    const userId = req.user.id || req.user.userId;
+    console.log('User ID:', userId);
+    
+    const user = await User.findByPk(userId, { 
       attributes: { exclude: ['password'] }
     });
     
@@ -803,7 +794,9 @@ app.post('/api/users/change-password', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Le nouveau mot de passe doit contenir au moins 6 caractères' });
     }
     
-    const user = await User.findByPk(req.user.userId);
+    // Use req.user.id instead of req.user.userId
+    const userId = req.user.id || req.user.userId;
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }

@@ -1,7 +1,9 @@
 import React from 'react';
 
 const UserBadges = ({ user, size = 'small', className = '' }) => {
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
 
   const badges = [];
   
@@ -70,42 +72,61 @@ const UserBadges = ({ user, size = 'small', className = '' }) => {
     });
   }
 
-  if (badges.length === 0) return null;
+  if (badges.length === 0) {
+    return null;
+  }
 
-  const sizeClasses = {
+  const sizeStyles = {
     small: {
-      container: 'gap-1',
-      badge: 'px-2 py-1 text-xs',
-      icon: 'w-3 h-3'
+      container: { display: 'flex', flexWrap: 'wrap', gap: '4px' },
+      badge: { 
+        padding: '4px 8px', 
+        fontSize: '0.75rem',
+        borderRadius: '12px'
+      },
+      icon: { width: '12px', height: '12px', marginRight: '4px' }
     },
     medium: {
-      container: 'gap-2',
-      badge: 'px-3 py-1.5 text-sm',
-      icon: 'w-4 h-4'
+      container: { display: 'flex', flexWrap: 'wrap', gap: '6px' },
+      badge: { 
+        padding: '6px 12px', 
+        fontSize: '0.875rem',
+        borderRadius: '14px'
+      },
+      icon: { width: '14px', height: '14px', marginRight: '6px' }
     },
     large: {
-      container: 'gap-2',
-      badge: 'px-4 py-2 text-base',
-      icon: 'w-5 h-5'
+      container: { display: 'flex', flexWrap: 'wrap', gap: '8px' },
+      badge: { 
+        padding: '8px 16px', 
+        fontSize: '1rem',
+        borderRadius: '16px'
+      },
+      icon: { width: '16px', height: '16px', marginRight: '8px' }
     }
   };
 
-  const currentSize = sizeClasses[size] || sizeClasses.small;
+  const currentSize = sizeStyles[size] || sizeStyles.small;
 
   return (
-    <div className={`flex flex-wrap ${currentSize.container} ${className}`}>
+    <div style={{ ...currentSize.container }} className={className}>
       {badges.map((badge) => (
         <span
           key={badge.key}
-          className={`inline-flex items-center ${currentSize.badge} font-medium rounded-full border`}
           style={{
+            ...currentSize.badge,
+            display: 'inline-flex',
+            alignItems: 'center',
+            fontWeight: '600',
             color: badge.color,
             backgroundColor: badge.bgColor,
-            borderColor: badge.color + '40' // Add transparency to border
+            border: `1px solid ${badge.color}40`,
+            whiteSpace: 'nowrap',
+            transition: 'all 0.2s ease'
           }}
           title={badge.label}
         >
-          <span className={`mr-1 ${currentSize.icon}`} style={{ color: badge.color }}>
+          <span style={{ ...currentSize.icon, color: badge.color, display: 'inline-flex', alignItems: 'center' }}>
             {badge.icon}
           </span>
           {badge.label}

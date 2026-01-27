@@ -30,9 +30,12 @@ const Feedbacks = () => {
     const fetchFeedbacks = async () => {
       try {
         const response = await fetch(API_ENDPOINTS.FEEDBACKS_PUBLIC);
+        
         if (response.ok) {
           const data = await response.json();
           setExistingFeedbacks(data);
+        } else {
+          console.error('Failed to fetch feedbacks:', response.status, response.statusText);
         }
       } catch (error) {
         console.error('Erreur lors du chargement des feedbacks:', error);
@@ -68,18 +71,25 @@ const Feedbacks = () => {
         },
         body: JSON.stringify(submitData),
       });
-      const data = await res.json();
-      setSuccess(data.message);
-      setFormData({ name: user.username, type: 'avis', message: '' }); // Reset but keep username
-      setTimeout(() => setSuccess(''), 5001);
       
-      // Refresh feedbacks after successful submission
-      const refreshResponse = await fetch(API_ENDPOINTS.FEEDBACKS_PUBLIC);
-      if (refreshResponse.ok) {
-        const refreshData = await refreshResponse.json();
-        setExistingFeedbacks(refreshData);
+      const data = await res.json();
+      
+      if (res.ok) {
+        setSuccess(data.message);
+        setFormData({ name: user.username, type: 'avis', message: '' }); // Reset but keep username
+        setTimeout(() => setSuccess(''), 5001);
+        
+        // Refresh feedbacks after successful submission
+        const refreshResponse = await fetch(API_ENDPOINTS.FEEDBACKS_PUBLIC);
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+          setExistingFeedbacks(refreshData);
+        }
+      } else {
+        setSuccess(data.message || "Une erreur s'est produite. Veuillez réessayer.");
       }
     } catch (error) {
+      console.error('Error submitting feedback:', error);
       setSuccess("Une erreur s'est produite. Veuillez réessayer.");
     } finally {
       setLoading(false);
@@ -154,7 +164,11 @@ const Feedbacks = () => {
             </div>
           ) : existingFeedbacks.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)', color: 'var(--text-muted)' }}>
-              <p>Aucun feedback pour le moment. Soyez le premier à partager votre avis !</p>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ margin: '0 auto var(--spacing-md) auto', display: 'block' }}>
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <h3 style={{ margin: '0 0 var(--spacing-sm) 0' }}>Aucun feedback pour le moment</h3>
+              <p>Soyez le premier à partager votre avis !</p>
             </div>
           ) : (
             <div style={{ 

@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../AuthContext';
 import UserBadges from '../components/ui/UserBadges';
 import Typewriter from '../components/ui/Typewriter';
