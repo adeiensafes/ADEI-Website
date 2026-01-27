@@ -8,7 +8,32 @@ const fs = require('fs');
 require('dotenv').config();
 
 const { authMiddleware, adminMiddleware, JWT_SECRET } = require('./middleware/auth');
-const ErrorHandler = require('./utils/errorHandler');
+
+// Fonctions de gestion d'erreurs intégrées
+const handleApiError = (error, context = '') => {
+  console.error(`API Error in ${context}:`, {
+    message: error.message,
+    stack: error.stack,
+    name: error.name
+  });
+
+  // Message générique pour les utilisateurs
+  return {
+    success: false,
+    message: 'Service temporairement indisponible. Veuillez réessayer plus tard.',
+    code: 'SERVICE_ERROR'
+  };
+};
+
+const asyncWrapper = (fn) => {
+  return (req, res, next) => {
+    Promise.resolve(fn(req, res, next)).catch((error) => {
+      const context = `${req.method} ${req.path}`;
+      const errorResponse = handleApiError(error, context);
+      res.status(500).json(errorResponse);
+    });
+  };
+};
 
 // Import Sequelize models with associations
 const sequelize = require('./config/database');
@@ -282,7 +307,7 @@ const clearCache = (key) => {
 
 // Routes News
 // Public endpoint to get all news (for display on news page)
-app.get('/api/news', ErrorHandler.asyncWrapper(async (req, res) => {
+app.get('/api/news', asyncWrapper(async (req, res) => {
   const cacheKey = 'news';
   const cachedNews = getCachedData(cacheKey);
   
@@ -420,7 +445,7 @@ app.delete('/api/news/:id', authMiddleware, adminMiddleware, async (req, res) =>
 });
 
 // Routes Events
-app.get('/api/events', ErrorHandler.asyncWrapper(async (req, res) => {
+app.get('/api/events', asyncWrapper(async (req, res) => {
   const cacheKey = 'events';
   const cachedEvents = getCachedData(cacheKey);
   
@@ -558,7 +583,7 @@ app.delete('/api/events/:id', authMiddleware, adminMiddleware, async (req, res) 
 });
 
 // Routes Clubs
-app.get('/api/clubs', ErrorHandler.asyncWrapper(async (req, res) => {
+app.get('/api/clubs', asyncWrapper(async (req, res) => {
   const clubs = await Club.findAll({ order: [['createdAt', 'DESC']] });
   res.json({
     success: true,
@@ -727,7 +752,7 @@ app.delete('/api/clubs/:id', authMiddleware, adminMiddleware, async (req, res) =
 
 // Routes Feedbacks
 // Public endpoint to get all feedbacks (for display on feedbacks page)
-app.get('/api/feedbacks/public', ErrorHandler.asyncWrapper(async (req, res) => {
+app.get('/api/feedbacks/public', asyncWrapper(async (req, res) => {
   try {
     // Essayer d'abord avec l'association User
     const feedbacks = await Feedback.findAll({ 
@@ -761,7 +786,7 @@ app.get('/api/feedbacks/public', ErrorHandler.asyncWrapper(async (req, res) => {
         note: 'Données utilisateur non disponibles'
       });
     } catch (fallbackError) {
-      throw fallbackError; // Laisser ErrorHandler gérer l'erreur
+      throw fallbackError; // Laisser asyncWrapper gérer l'erreur
     }
   }
 }));
@@ -1079,7 +1104,7 @@ app.delete('/api/adei-members/:id', authMiddleware, adminMiddleware, async (req,
 });
 
 // Routes Filières
-app.get('/api/filieres', ErrorHandler.asyncWrapper(async (req, res) => {
+app.get('/api/filieres', asyncWrapper(async (req, res) => {
   const filieres = await Filiere.findAll({ 
     where: { isActive: true },
     order: [['order_display', 'ASC'], ['abbreviation', 'ASC']] 
@@ -1319,7 +1344,11 @@ app.patch('/api/events/:id/reorder', authMiddleware, adminMiddleware, async (req
 });
 
 // Middleware global de gestion d'erreurs (doit être à la fin)
-app.use(ErrorHandler.globalErrorHandler);
+app.use((err, req, res, next) => {
+  const context = `${req.method} ${req.path}`;
+  const errorResponse = handleApiError(err, context);
+  res.status(500).json(errorResponse);
+});
 
 // Gestion des routes non trouvées
 app.use('*', (req, res) => {
