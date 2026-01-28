@@ -10,7 +10,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Home from './pages/Home';
 import News from './pages/News';
 import Events from './pages/Events';
-import NewsAndEvents from './pages/NewsAndEvents';
 import Clubs from './pages/Clubs';
 import ENSA from './pages/ENSA';
 import ADEI from './pages/ADEI';
@@ -21,6 +20,7 @@ import AdminPanel from './pages/AdminPanel';
 import Contact from './pages/Contact';
 import Messages from './pages/Messages';
 import Profile from './pages/Profile';
+import ImageUploadTest from './components/ui/ImageUploadTest';
 import './styles/theme.css';
 import './styles/floating-theme-toggle.css';
 import './styles/modern-navbar.css';
@@ -88,6 +88,7 @@ function AppContent() {
                 <AdminPanel />
               </ProtectedRoute>
             } />
+            <Route path="/test-image-upload" element={<ImageUploadTest />} />
             {/* Catch-all route for 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>

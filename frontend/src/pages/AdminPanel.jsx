@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_ENDPOINTS, getApiUrl, getImageUrl } from '../config/api';
+import ImageUpload from '../components/ui/ImageUpload';
 import { getCategoryLabel, getOrganizerName, CATEGORY_OPTIONS } from '../utils/helpers';
 import logger from '../utils/logger';
 import '../styles/admin-panel.css';
@@ -27,6 +28,8 @@ const AdminPanel = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [formData, setFormData] = useState({});
   const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [showImageEditor, setShowImageEditor] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewingFeedback, setViewingFeedback] = useState(null);
   const [viewingDetails, setViewingDetails] = useState(null);
@@ -270,12 +273,16 @@ const AdminPanel = () => {
     
     setFormData(initialData);
     setImageFile(null);
+    setImagePreview(null);
+    setShowImageEditor(false);
     setShowModal(true);
     // Empêcher le scroll de la page en arrière-plan
     document.body.style.overflow = 'hidden';
   };
 
   const handleEdit = (item) => {
+    console.log('✏️ Editing item:', item);
+    
     setEditingItem(item);
     
     // Préparer les données pour l'édition en s'assurant que les champs JSON sont des tableaux/objets
@@ -325,8 +332,12 @@ const AdminPanel = () => {
       preparedData.socialMedia = { facebook: '', instagram: '', linkedin: '' };
     }
     
+    console.log('📝 Prepared form data:', preparedData);
+    
     setFormData(preparedData);
-    setImageFile(null);
+    setImageFile(null); // Reset image file - existing image will be shown via getCurrentImage()
+    setImagePreview(null);
+    setShowImageEditor(false);
     setShowModal(true);
     // Empêcher le scroll de la page en arrière-plan
     document.body.style.overflow = 'hidden';
@@ -554,6 +565,12 @@ const AdminPanel = () => {
       console.log('Method:', method);
       console.log('URL:', url);
       console.log('Form data before submission:', formData);
+      console.log('Image file info:', imageFile ? {
+        name: imageFile.name,
+        size: imageFile.size,
+        type: imageFile.type,
+        lastModified: new Date(imageFile.lastModified).toISOString()
+      } : 'No image file');
 
       // Special handling for users with badges
       if (activeTab === 'users') {
@@ -594,6 +611,14 @@ const AdminPanel = () => {
 
         // Add image file
         if (imageFile) {
+          console.log('📤 Adding image file to form data:', {
+            name: imageFile.name,
+            size: imageFile.size,
+            type: imageFile.type,
+            activeTab: activeTab,
+            isEditedImage: imageFile.lastModified > Date.now() - 60000
+          });
+          
           if (activeTab === 'clubs') {
             formDataObj.append('image', imageFile);
           } else if (activeTab === 'partners') {
@@ -603,6 +628,11 @@ const AdminPanel = () => {
           } else {
             formDataObj.append('photo', imageFile);
           }
+          
+          // Mark that we're updating the image
+          formDataObj.append('updateImage', 'true');
+        } else {
+          console.log('⚠️ No image file to upload');
         }
 
         // Add document file for news and events
@@ -621,10 +651,14 @@ const AdminPanel = () => {
         if (response.ok) {
           await fetchData();
           closeModal();
-          showNotification(
-            result.message || `${editingItem ? 'Modification' : 'Création'} réussie!`,
-            'success'
-          );
+          
+          // Enhanced success message for image uploads
+          let successMessage = result.message || `${editingItem ? 'Modification' : 'Création'} réussie!`;
+          if (imageFile && imageFile.lastModified > Date.now() - 60000) { // Image was recently processed
+            successMessage += ' 🎨 Image éditée sauvegardée avec succès.';
+          }
+          
+          showNotification(successMessage, 'success');
         } else {
           showNotification(
             result.message || `Erreur lors de la ${editingItem ? 'modification' : 'création'}`,
@@ -688,10 +722,73 @@ const AdminPanel = () => {
     setEditingItem(null);
     setFormData({});
     setImageFile(null);
+    setImagePreview(null);
+    setShowImageEditor(false);
     setShowPassword(false);
     setModalNotification(null); // Clear modal notifications
     // Restaurer le scroll de la page
     document.body.style.overflow = 'unset';
+  };
+
+  // Enhanced image handling functions
+  const handleImageSelect = (file, preview) => {
+    console.log('📸 Image selected in AdminPanel:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      hasPreview: !!preview
+    });
+    
+    setImageFile(file);
+    setImagePreview(preview);
+  };
+
+  const handleImageRemove = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    // Also remove from formData if editing
+    if (editingItem) {
+      const fieldName = getImageFieldName();
+      setFormData(prev => ({ ...prev, [fieldName]: null }));
+    }
+  };
+
+  const getImageFieldName = () => {
+    switch (activeTab) {
+      case 'clubs':
+      case 'news':
+      case 'events':
+        return 'image';
+      case 'partners':
+        return 'logo';
+      case 'adei-members':
+        return 'photo';
+      default:
+        return 'image';
+    }
+  };
+
+  const getCurrentImage = () => {
+    const fieldName = getImageFieldName();
+    return formData[fieldName] || null;
+  };
+
+  // Function to show image in modal
+  const showImageModal = (imageUrl, altText) => {
+    const modal = document.createElement('div');
+    modal.className = 'image-modal-overlay';
+    modal.innerHTML = `
+      <div class="image-modal-content">
+        <img src="${imageUrl}" alt="${altText}" />
+        <button class="image-modal-close">&times;</button>
+      </div>
+    `;
+    modal.onclick = (e) => {
+      if (e.target === modal || e.target.className === 'image-modal-close') {
+        document.body.removeChild(modal);
+      }
+    };
+    document.body.appendChild(modal);
   };
 
   const openFeedbackModal = (feedback) => {
@@ -803,24 +900,12 @@ const AdminPanel = () => {
               </div>
 
               <div className="form-grid two-cols">
-                <div className="form-group">
-                  <label className="form-label">Image (optionnelle)</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setImageFile(e.target.files[0])}
-                    className="form-input"
-                  />
-                  {(imageFile || formData.image) && (
-                    <div className="image-preview">
-                      <img
-                        src={imageFile ? URL.createObjectURL(imageFile) : getImageUrl(formData.image)}
-                        alt="Preview"
-                        style={{ maxWidth: '200px', maxHeight: '150px', objectFit: 'cover' }}
-                      />
-                    </div>
-                  )}
-                </div>
+                <ImageUpload
+                  currentImage={getCurrentImage()}
+                  onImageSelect={handleImageSelect}
+                  onImageRemove={handleImageRemove}
+                  label="Image (optionnelle)"
+                />
                 <div className="form-group">
                   <label className="form-label">Document (optionnel)</label>
                   <input
@@ -964,24 +1049,12 @@ const AdminPanel = () => {
               </div>
 
               <div className="form-grid two-cols">
-                <div className="form-group">
-                  <label className="form-label">Image (optionnelle)</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setImageFile(e.target.files[0])}
-                    className="form-input"
-                  />
-                  {(imageFile || formData.image) && (
-                    <div className="image-preview">
-                      <img
-                        src={imageFile ? URL.createObjectURL(imageFile) : getImageUrl(formData.image)}
-                        alt="Preview"
-                        style={{ maxWidth: '200px', maxHeight: '150px', objectFit: 'cover' }}
-                      />
-                    </div>
-                  )}
-                </div>
+                <ImageUpload
+                  currentImage={getCurrentImage()}
+                  onImageSelect={handleImageSelect}
+                  onImageRemove={handleImageRemove}
+                  label="Image (optionnelle)"
+                />
                 <div className="form-group">
                   <label className="form-label">Document (optionnel)</label>
                   <input
@@ -1088,23 +1161,12 @@ const AdminPanel = () => {
                   />
                 </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Image</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setImageFile(e.target.files[0])}
-                  className="form-input"
-                />
-                {(imageFile || formData.image) && (
-                  <div className="image-preview">
-                    <img
-                      src={imageFile ? URL.createObjectURL(imageFile) : getImageUrl(formData.image)}
-                      alt="Preview"
-                    />
-                  </div>
-                )}
-              </div>
+              <ImageUpload
+                currentImage={getCurrentImage()}
+                onImageSelect={handleImageSelect}
+                onImageRemove={handleImageRemove}
+                label="Image"
+              />
               <div className="form-group">
                 <label className="form-label">Description</label>
                 <textarea
@@ -1761,23 +1823,12 @@ const AdminPanel = () => {
         case 'partners':
           return (
             <>
-              <div className="form-group">
-                <label className="form-label">Logo</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setImageFile(e.target.files[0])}
-                  className="form-input"
-                />
-                {(imageFile || formData.logo) && (
-                  <div className="image-preview">
-                    <img
-                      src={imageFile ? URL.createObjectURL(imageFile) : getImageUrl(formData.logo)}
-                      alt="Preview"
-                    />
-                  </div>
-                )}
-              </div>
+              <ImageUpload
+                currentImage={getCurrentImage()}
+                onImageSelect={handleImageSelect}
+                onImageRemove={handleImageRemove}
+                label="Logo"
+              />
               <div className="form-grid two-cols">
                 <div className="form-group">
                   <label className="form-label">Nom du partenaire</label>
@@ -1904,22 +1955,56 @@ const AdminPanel = () => {
         case 'adei-members':
           return (
             <>
-              <div className="form-group">
-                <label className="form-label">Photo</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setImageFile(e.target.files[0])}
-                  className="form-input"
-                />
-                {(imageFile || formData.photo) && (
-                  <div className="image-preview">
-                    <img
-                      src={imageFile ? URL.createObjectURL(imageFile) : getImageUrl(formData.photo)}
-                      alt="Preview"
-                    />
+              <ImageUpload
+                currentImage={getCurrentImage()}
+                onImageSelect={handleImageSelect}
+                onImageRemove={handleImageRemove}
+                label="Photo"
+                defaultAspectRatio={1} // Force 1:1 aspect ratio for ADEI member photos
+              />
+              {/* Show edited image indicator */}
+              {imageFile && imagePreview && (
+                <div style={{
+                  marginTop: 'var(--spacing-sm)',
+                  padding: 'var(--spacing-sm)',
+                  backgroundColor: 'var(--success-light)',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--success)',
+                  fontSize: 'var(--font-size-xs)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--success)' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 12l2 2 4-4"/>
+                      <circle cx="12" cy="12" r="10"/>
+                    </svg>
+                    <strong>Image éditée et prête à sauvegarder</strong>
                   </div>
-                )}
+                  <p style={{ margin: '4px 0 0 20px', color: 'var(--text-primary)' }}>
+                    Votre image a été modifiée avec succès. Cliquez sur "Sauvegarder" pour appliquer les changements définitivement.
+                  </p>
+                </div>
+              )}
+              
+              <div style={{
+                marginTop: 'var(--spacing-sm)',
+                padding: 'var(--spacing-sm)',
+                backgroundColor: 'var(--primary-light)',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--primary)',
+                fontSize: 'var(--font-size-xs)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--primary)' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21,15 16,10 5,21"/>
+                  </svg>
+                  <strong>Format automatique :</strong>
+                </div>
+                <p style={{ margin: '4px 0 0 20px', color: 'var(--text-primary)' }}>
+                  Les photos des membres ADEI seront automatiquement recadrées au format carré (1:1) 
+                  pour un affichage uniforme dans l'organigramme. Cliquez sur "Modifier" pour éditer une photo existante.
+                </p>
               </div>
               <div className="form-group">
                 <label className="form-label">Nom complet</label>
@@ -2603,7 +2688,8 @@ const AdminPanel = () => {
                     <img 
                       src={getImageUrl(item.image)} 
                       alt={item.title}
-                      style={{ width: '40px', height: '30px', borderRadius: '4px', objectFit: 'cover' }}
+                      className="table-image"
+                      onClick={() => showImageModal(getImageUrl(item.image), item.title)}
                     />
                   )}
                   <strong>{item.title}</strong>
@@ -2727,7 +2813,8 @@ const AdminPanel = () => {
                     <img 
                       src={getImageUrl(item.image)} 
                       alt={item.title}
-                      style={{ width: '40px', height: '30px', borderRadius: '4px', objectFit: 'cover' }}
+                      className="table-image"
+                      onClick={() => showImageModal(getImageUrl(item.image), item.title)}
                     />
                   )}
                   <div>
@@ -2926,7 +3013,8 @@ const AdminPanel = () => {
                   <img 
                     src={getImageUrl(item.logo)} 
                     alt={item.name}
-                    style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'contain' }}
+                    className="table-logo"
+                    onClick={() => showImageModal(getImageUrl(item.logo), item.name)}
                     onError={(e) => { e.target.src = '/images/ADEI.png'; }}
                   />
                   {item.name}
