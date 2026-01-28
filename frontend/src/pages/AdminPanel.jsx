@@ -87,25 +87,41 @@ const AdminPanel = () => {
       let users = [];
 
       try {
-        news = await fetch(API_ENDPOINTS.NEWS).then(r => r.json());
+        const newsResult = await fetch(API_ENDPOINTS.NEWS).then(r => r.json());
+        // Gérer la nouvelle structure de réponse de l'API
+        news = newsResult.success && Array.isArray(newsResult.data) 
+          ? newsResult.data 
+          : (Array.isArray(newsResult) ? newsResult : []);
       } catch (e) {
         logger.error('Erreur lors du chargement des actualités');
       }
 
       try {
-        events = await fetch(API_ENDPOINTS.EVENTS).then(r => r.json());
+        const eventsResult = await fetch(API_ENDPOINTS.EVENTS).then(r => r.json());
+        // Gérer la nouvelle structure de réponse de l'API
+        events = eventsResult.success && Array.isArray(eventsResult.data) 
+          ? eventsResult.data 
+          : (Array.isArray(eventsResult) ? eventsResult : []);
       } catch (e) {
         logger.error('Erreur lors du chargement des événements');
       }
 
       try {
-        clubs = await fetch(API_ENDPOINTS.CLUBS).then(r => r.json());
+        const clubsResult = await fetch(API_ENDPOINTS.CLUBS).then(r => r.json());
+        // Gérer la nouvelle structure de réponse de l'API
+        clubs = clubsResult.success && Array.isArray(clubsResult.data) 
+          ? clubsResult.data 
+          : (Array.isArray(clubsResult) ? clubsResult : []);
       } catch (e) {
         logger.error('Erreur lors du chargement des clubs');
       }
 
       try {
-        filieres = await fetch(API_ENDPOINTS.FILIERES).then(r => r.json());
+        const filieresResult = await fetch(API_ENDPOINTS.FILIERES).then(r => r.json());
+        // Gérer la nouvelle structure de réponse de l'API
+        filieres = filieresResult.success && Array.isArray(filieresResult.data) 
+          ? filieresResult.data 
+          : (Array.isArray(filieresResult) ? filieresResult : []);
       } catch (e) {
         logger.error('Erreur lors du chargement des filières');
       }
@@ -123,7 +139,11 @@ const AdminPanel = () => {
       }
 
       try {
-        feedbacks = await fetch(API_ENDPOINTS.FEEDBACKS, { headers }).then(r => r.json());
+        const feedbacksResult = await fetch(API_ENDPOINTS.FEEDBACKS, { headers }).then(r => r.json());
+        // Gérer la nouvelle structure de réponse de l'API
+        feedbacks = feedbacksResult.success && Array.isArray(feedbacksResult.data) 
+          ? feedbacksResult.data 
+          : (Array.isArray(feedbacksResult) ? feedbacksResult : []);
       } catch (e) {
         logger.error('Erreur lors du chargement des feedbacks');
       }
@@ -188,7 +208,6 @@ const AdminPanel = () => {
         name: '',
         abbreviation: '',
         type: 'filiere',
-        responsable: '',
         // Responsable pédagogique commun pour classes préparatoires
         responsablePedagogique: '',
         // Délégués étudiants CP1
@@ -215,7 +234,6 @@ const AdminPanel = () => {
         tel_delegue_annee2: '',
         delegue_annee3: '',
         tel_delegue_annee3: '',
-        years: [],
         documentation: '',
         drive: '',
         RespoContact: '',
@@ -1276,42 +1294,46 @@ const AdminPanel = () => {
                 </div>
                 {formData.type === 'prepa' ? (
                   <div className="form-group">
-                    <label className="form-label">Responsable Section A</label>
+                    <label className="form-label">Responsable Pédagogique</label>
                     <input
                       type="text"
                       className="form-input"
-                      value={formData.responsableA || ''}
-                      onChange={(e) => setFormData({ ...formData, responsableA: e.target.value })}
-                      placeholder="Responsable section A"
+                      value={formData.responsablePedagogique || ''}
+                      onChange={(e) => setFormData({ ...formData, responsablePedagogique: e.target.value })}
+                      placeholder="Prof. Nom du responsable pédagogique"
                     />
                   </div>
                 ) : (
                   <div className="form-group">
-                    <label className="form-label">Responsable</label>
+                    <label className="form-label">Délégué Filière</label>
                     <input
                       type="text"
                       className="form-input"
-                      value={formData.responsable || ''}
-                      onChange={(e) => setFormData({ ...formData, responsable: e.target.value })}
-                      placeholder="Nom du responsable"
+                      value={formData.delegueFiliere || ''}
+                      onChange={(e) => setFormData({ ...formData, delegueFiliere: e.target.value })}
+                      placeholder="Nom du délégué filière"
                     />
                   </div>
                 )}
               </div>
 
-              {/* Responsable simple pour les filières */}
+              {/* Téléphone du délégué filière pour les filières d'ingénierie */}
+              {formData.type === 'filiere' && (
+                <div className="form-group">
+                  <label className="form-label">Téléphone du délégué filière</label>
+                  <input
+                    type="tel"
+                    className="form-input"
+                    value={formData.telDelegueFiliere || ''}
+                    onChange={(e) => setFormData({ ...formData, telDelegueFiliere: e.target.value })}
+                    placeholder="+212 6 12 34 56 78"
+                  />
+                </div>
+              )}
+
+              {/* Section pour les filières d'ingénierie */}
               {formData.type === 'filiere' && (
                 <>
-                  <div className="form-group">
-                    <label className="form-label">Responsable de filière (3 ans)</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      value={formData.responsable || ''}
-                      onChange={(e) => setFormData({ ...formData, responsable: e.target.value })}
-                      placeholder="Prof. Nom du responsable"
-                    />
-                  </div>
                   
                   {/* Délégués étudiants pour les 3 années */}
                   <div style={{ 
@@ -1636,20 +1658,6 @@ const AdminPanel = () => {
                   </div>
                 </>
               )}
-
-              <div className="form-group">
-                <label className="form-label">Années d'étude (une par ligne)</label>
-                <textarea
-                  className="form-textarea"
-                  value={Array.isArray(formData.years) ? formData.years.join('\n') : formData.years || ''}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
-                    years: e.target.value.split('\n').filter(year => year.trim() !== '') 
-                  })}
-                  placeholder="INFO1&#10;INFO2&#10;INFO3"
-                  rows="3"
-                />
-              </div>
 
               <div className="form-grid two-cols">
                 <div className="form-group">
@@ -2460,7 +2468,7 @@ const AdminPanel = () => {
               <th>Filière</th>
               <th>Abréviation</th>
               <th>Type</th>
-              <th>Responsable</th>
+              <th>Délégué Filière</th>
               <th>Actions</th>
             </>
           );
@@ -2859,7 +2867,7 @@ const AdminPanel = () => {
                   {item.type === 'prepa' ? 'Classe Prépa' : 'Filière'}
                 </span>
               </td>
-              <td>{item.responsable}</td>
+              <td>{item.delegueFiliere || '-'}</td>
               <td>
                 <div className="admin-actions">
                   <button className="admin-action-btn edit" onClick={() => handleEdit(item)}>
