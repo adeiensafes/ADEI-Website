@@ -56,7 +56,55 @@ const ADEI = () => {
     const timer = setTimeout(() => setPageReady(true), 200);
     fetchMembers();
     fetchPartners();
-    return () => clearTimeout(timer);
+    
+    // Remove any green dots that might be added dynamically
+    const removeGreenDots = () => {
+      // Remove any elements that might be green dots
+      const potentialDots = document.querySelectorAll('*[style*="green"], *[style*="#00ff00"], *[style*="#008000"], *[style*="rgb(0, 255, 0)"]');
+      potentialDots.forEach(dot => {
+        if (dot.closest('.member-card') || dot.closest('.adei-member-card')) {
+          dot.style.display = 'none';
+          dot.remove();
+        }
+      });
+      
+      // Remove any small circular elements near member photos
+      const memberCards = document.querySelectorAll('.member-card, .adei-member-card');
+      memberCards.forEach(card => {
+        const smallElements = card.querySelectorAll('*');
+        smallElements.forEach(el => {
+          const style = window.getComputedStyle(el);
+          const width = parseInt(style.width);
+          const height = parseInt(style.height);
+          const borderRadius = style.borderRadius;
+          
+          // Remove small circular elements that might be status dots
+          if (width <= 16 && height <= 16 && borderRadius.includes('50%')) {
+            el.style.display = 'none';
+            el.remove();
+          }
+          
+          // Remove any green colored elements
+          if (style.backgroundColor.includes('green') || 
+              style.backgroundColor.includes('rgb(0, 255, 0)') ||
+              style.backgroundColor.includes('rgb(0, 128, 0)') ||
+              style.backgroundColor.includes('#00ff00') ||
+              style.backgroundColor.includes('#008000')) {
+            el.style.display = 'none';
+            el.remove();
+          }
+        });
+      });
+    };
+    
+    // Run immediately and then periodically
+    removeGreenDots();
+    const interval = setInterval(removeGreenDots, 1000);
+    
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, []);
 
   const fetchMembers = async () => {
@@ -127,7 +175,7 @@ const ADEI = () => {
           y: -8,
           transition: { duration: 0.3 }
         }}
-        className="member-card card"
+        className="member-card adei-member-card card"
         style={{
           background: 'var(--card-bg)',
           borderRadius: 'var(--radius-xl)',
@@ -163,16 +211,19 @@ const ADEI = () => {
             overflow: 'hidden',
             margin: '0 auto',
             border: '4px solid var(--primary)',
-            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)'
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+            position: 'relative'
           }}>
             <img
               src={photoUrl}
               alt={member.name}
+              className="member-photo adei-member-photo"
               style={{
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                transition: 'transform 0.3s ease'
+                transition: 'transform 0.3s ease',
+                position: 'relative'
               }}
               onError={(e) => {
                 e.target.src = '/images/default.jpg';

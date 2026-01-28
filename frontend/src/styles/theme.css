@@ -3043,3 +3043,904 @@ body,
 .footer {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+/* Enhanced Image Upload Component Styles */
+.image-upload-container {
+  width: 100%;
+}
+
+.image-upload-placeholder {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-xl);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: var(--bg-secondary);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.image-upload-placeholder:hover,
+.image-upload-placeholder.drag-over {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  transform: translateY(-2px);
+}
+
+.image-upload-placeholder .upload-icon {
+  color: var(--text-muted);
+  transition: color 0.3s ease;
+}
+
+.image-upload-placeholder:hover .upload-icon,
+.image-upload-placeholder.drag-over .upload-icon {
+  color: var(--primary);
+}
+
+.image-upload-placeholder p {
+  margin: 0;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.image-upload-placeholder small {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.image-preview-container {
+  width: 100%;
+}
+
+.image-preview-wrapper {
+  position: relative;
+  display: inline-block;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.image-preview-wrapper:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.image-preview-img {
+  max-width: 100%;
+  max-height: 200px;
+  width: auto;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.image-preview-wrapper:hover .image-overlay {
+  opacity: 1;
+}
+
+.image-action-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
+}
+
+.image-action-btn:hover {
+  background: white;
+  transform: scale(1.1);
+}
+
+.image-action-btn.replace {
+  color: var(--primary);
+}
+
+.image-action-btn.remove {
+  color: #dc2626;
+}
+
+.image-action-btn.replace:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.image-action-btn.remove:hover {
+  background: #dc2626;
+  color: white;
+}
+
+.image-info {
+  margin-top: var(--spacing-sm);
+  text-align: center;
+}
+
+.image-info small {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .image-preview-img {
+    max-height: 150px;
+  }
+  
+  .image-upload-placeholder {
+    min-height: 100px;
+    padding: var(--spacing-lg);
+  }
+  
+  .upload-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+}
+/* Enhanced Table Image Styles */
+.table-image-container {
+  position: relative;
+  display: inline-block;
+}
+
+.table-image {
+  width: 50px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid var(--border-color);
+}
+
+.table-image:hover {
+  transform: scale(1.1);
+  border-color: var(--primary);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.table-logo {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: contain;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid var(--border-color);
+  background: white;
+  padding: 2px;
+}
+
+.table-logo:hover {
+  transform: scale(1.2);
+  border-color: var(--primary);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Image Modal Styles */
+.image-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  cursor: pointer;
+}
+
+.image-modal-content {
+  position: relative;
+  max-width: 95vw;
+  max-height: 95vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-modal-content img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.image-modal-close {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
+}
+
+.image-modal-close:hover {
+  background: white;
+  transform: scale(1.1);
+}
+
+/* Admin Table Enhancements */
+.admin-table img {
+  transition: all 0.2s ease;
+}
+
+.admin-table img:hover {
+  transform: scale(1.05);
+}
+
+/* Responsive adjustments for image modal */
+@media (max-width: 768px) {
+  .image-modal-close {
+    top: 10px;
+    right: 10px;
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+  }
+  
+  .table-image {
+    width: 40px;
+    height: 32px;
+  }
+  
+  .table-logo {
+    width: 30px;
+    height: 30px;
+  }
+}
+/* Image Editor Styles */
+.image-editor {
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--card-bg);
+  overflow: hidden;
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.editor-header h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.editor-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.editor-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+}
+
+.editor-preview {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.editor-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+  user-select: none;
+  pointer-events: none;
+}
+
+.crop-overlay {
+  position: absolute;
+  border: 3px solid var(--primary);
+  background: rgba(255, 59, 48, 0.15);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  transition: all 0.1s ease;
+  cursor: move;
+  min-width: 20px;
+  min-height: 20px;
+}
+
+.crop-overlay:hover {
+  border-color: var(--primary-hover);
+  background: rgba(255, 59, 48, 0.25);
+}
+
+.crop-handles {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.crop-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--primary);
+  border: 2px solid white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.crop-handle.top-left {
+  top: 0;
+  left: 0;
+  cursor: nw-resize;
+}
+
+.crop-handle.top-right {
+  top: 0;
+  right: 0;
+  cursor: ne-resize;
+}
+
+.crop-handle.bottom-left {
+  bottom: 0;
+  left: 0;
+  cursor: sw-resize;
+}
+
+.crop-handle.bottom-right {
+  bottom: 0;
+  right: 0;
+  cursor: se-resize;
+}
+
+.editor-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.control-group > label {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.zoom-controls button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: bold;
+}
+
+.zoom-controls button:hover:not(:disabled) {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.zoom-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.zoom-slider {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.zoom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--primary);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.zoom-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--primary);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.zoom-value {
+  min-width: 50px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.rotation-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.rotation-controls button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rotation-controls button:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: scale(1.05);
+}
+
+.rotation-value {
+  min-width: 40px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.crop-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.crop-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.crop-inputs > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.crop-inputs label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.crop-inputs input {
+  padding: 6px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.crop-inputs input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(255, 59, 48, 0.2);
+}
+
+/* Enhanced action buttons */
+.image-action-btn.edit {
+  color: var(--primary);
+}
+
+.image-action-btn.edit:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .editor-content {
+    padding: var(--spacing-md);
+  }
+  
+  .editor-preview {
+    height: 250px;
+  }
+  
+  .editor-actions {
+    flex-direction: column;
+  }
+  
+  .zoom-controls {
+    flex-wrap: wrap;
+  }
+  
+  .crop-inputs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .control-group {
+    gap: var(--spacing-xs);
+  }
+}
+
+@media (max-width: 480px) {
+  .editor-preview {
+    height: 200px;
+  }
+  
+  .crop-inputs {
+    grid-template-columns: 1fr;
+  }
+}
+/* Aspect Ratio Controls */
+.aspect-ratio-controls {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+}
+
+.aspect-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  font-weight: 500;
+  min-width: 60px;
+  position: relative;
+}
+
+.aspect-btn:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.aspect-btn:active {
+  transform: translateY(0);
+}
+
+.aspect-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: var(--primary);
+  transition: width 0.2s ease;
+}
+
+.aspect-btn:hover::after {
+  width: 80%;
+}
+
+/* Enhanced crop overlay */
+.crop-overlay:hover {
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+}
+
+/* Better visual feedback */
+.editor-preview:hover .crop-overlay {
+  border-color: var(--primary-hover);
+}
+
+/* Loading state for image processing */
+.image-processing {
+  position: relative;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.image-processing::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border: 2px solid var(--primary);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Editor title and help */
+.editor-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.editor-help {
+  color: var(--text-muted);
+  cursor: help;
+  transition: color 0.2s ease;
+}
+
+.editor-help:hover {
+  color: var(--primary);
+}
+
+/* Better button styling */
+.btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.btn.primary {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.btn.primary:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.btn.secondary {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.btn.secondary:hover {
+  background: var(--bg-secondary);
+  border-color: var(--text-muted);
+  transform: translateY(-1px);
+}
+
+/* Enhanced tooltips */
+[title] {
+  position: relative;
+}
+
+/* Smooth transitions for all interactive elements */
+.image-editor * {
+  transition: all 0.2s ease;
+}
+
+/* COMPREHENSIVE GREEN DOT REMOVAL - MAXIMUM PROTECTION */
+
+/* Block ALL pseudo-elements on member images */
+.member-photo,
+.adei-member-photo,
+.member-card img,
+.adei-member-card img,
+*[class*="member"] img,
+*[class*="adei"] img {
+  position: relative !important;
+  isolation: isolate !important;
+  z-index: 10 !important;
+}
+
+/* Remove ALL pseudo-elements */
+.member-photo::after,
+.member-photo::before,
+.adei-member-photo::after,
+.adei-member-photo::before,
+.member-card img::after,
+.member-card img::before,
+.adei-member-card img::after,
+.adei-member-card img::before,
+*[class*="member"] img::after,
+*[class*="member"] img::before,
+*[class*="adei"] img::after,
+*[class*="adei"] img::before {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+}
+
+/* Block any green colored elements */
+*[style*="green"],
+*[style*="#00ff00"],
+*[style*="#008000"],
+*[style*="#10b981"],
+*[style*="#059669"],
+*[style*="rgb(0, 255, 0)"],
+*[style*="rgb(0, 128, 0)"] {
+  display: none !important;
+}
+
+/* Prevent any circular elements near member photos */
+.member-card *[style*="border-radius: 50%"],
+.adei-member-card *[style*="border-radius: 50%"],
+.member-card *[style*="border-radius:50%"],
+.adei-member-card *[style*="border-radius:50%"] {
+  display: none !important;
+}
+
+/* Block any small circular elements that might be status dots */
+*[style*="width: 8px"],
+*[style*="width: 10px"],
+*[style*="width: 12px"],
+*[style*="width: 14px"],
+*[style*="width: 16px"] {
+  display: none !important;
+}
+
+/* Additional protection for container elements */
+.member-card,
+.adei-member-card {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.member-card::after,
+.member-card::before,
+.adei-member-card::after,
+.adei-member-card::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* Prevent any external libraries from adding status indicators */
+.member-card > *:not(img):not(.member-photo):not(.adei-member-photo),
+.adei-member-card > *:not(img):not(.member-photo):not(.adei-member-photo) {
+  position: relative !important;
+}
+
+/* Block any dynamically added elements */
+.member-card [class*="status"],
+.member-card [class*="online"],
+.member-card [class*="active"],
+.member-card [class*="dot"],
+.member-card [class*="indicator"],
+.adei-member-card [class*="status"],
+.adei-member-card [class*="online"],
+.adei-member-card [class*="active"],
+.adei-member-card [class*="dot"],
+.adei-member-card [class*="indicator"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Override any external CSS with maximum specificity */
+html body .member-card img::after,
+html body .member-card img::before,
+html body .adei-member-card img::after,
+html body .adei-member-card img::before,
+html body .member-photo::after,
+html body .member-photo::before,
+html body .adei-member-photo::after,
+html body .adei-member-photo::before {
+  display: none !important;
+  content: none !important;
+  background: transparent !important;
+  border: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Prevent any green elements from appearing */
+.member-card *[style*="background-color: green"],
+.member-card *[style*="background: green"],
+.member-card *[style*="color: green"],
+.adei-member-card *[style*="background-color: green"],
+.adei-member-card *[style*="background: green"],
+.adei-member-card *[style*="color: green"] {
+  display: none !important;
+}
+
+/* Block browser extension indicators */
+.member-card [data-extension],
+.member-card [data-status],
+.adei-member-card [data-extension],
+.adei-member-card [data-status] {
+  display: none !important;
+}
