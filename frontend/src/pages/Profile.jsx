@@ -339,55 +339,7 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Account Details Card */}
-          <div className={`card ${pageReady ? 'slide-up' : ''}`} style={{ animationDelay: '0.8s' }}>
-            <h2 className="text-primary mt-0">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px', verticalAlign: 'middle' }}>
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              Détails du compte
-            </h2>
             
-            <div style={{ display: 'grid', gap: 'var(--spacing-md)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                  Compte créé le:
-                </span>
-                <span style={{ color: 'var(--text-muted)' }}>
-                  {formatDate(user.createdAt)}
-                </span>
-              </div>
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                  Dernière modification:
-                </span>
-                <span style={{ color: 'var(--text-muted)' }}>
-                  {formatDate(user.updatedAt)}
-                </span>
-              </div>
-            </div>
-
-            <div style={{
-              marginTop: 'var(--spacing-lg)',
-              padding: 'var(--spacing-md)',
-              backgroundColor: 'var(--bg-secondary)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-color)'
-            }}>
-              <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px', verticalAlign: 'middle' }}>
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="l9 12 2 2 4-4"/>
-                </svg>
-                Vos badges sont visibles sur votre profil et vos feedbacks. 
-                Pour toute modification, contactez un administrateur.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 
