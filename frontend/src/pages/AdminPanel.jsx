@@ -836,6 +836,20 @@ const AdminPanel = () => {
                   )}
                 </div>
               </div>
+
+              <div className="form-group">
+                <label className="form-label">Lien externe (optionnel)</label>
+                <input
+                  type="url"
+                  className="form-input"
+                  value={formData.link || ''}
+                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                  placeholder="https://exemple.com/plus-d-infos"
+                />
+                <small style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                  Lien vers plus d'informations ou inscription
+                </small>
+              </div>
             </>
           );
 
@@ -982,6 +996,20 @@ const AdminPanel = () => {
                     </div>
                   )}
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Lien externe (optionnel)</label>
+                <input
+                  type="url"
+                  className="form-input"
+                  value={formData.link || ''}
+                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                  placeholder="https://exemple.com/inscription"
+                />
+                <small style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                  Lien vers inscription ou plus d'informations
+                </small>
               </div>
             </>
           );
