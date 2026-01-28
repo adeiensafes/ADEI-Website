@@ -24,10 +24,22 @@ const Clubs = () => {
   const fetchClubs = useCallback(async () => {
     try {
       const response = await fetch(API_ENDPOINTS.CLUBS);
-      const data = await response.json();
+      const result = await response.json();
+      
+      // Gérer la nouvelle structure de réponse de l'API
+      let clubsData = [];
+      if (result.success && Array.isArray(result.data)) {
+        clubsData = result.data;
+      } else if (Array.isArray(result)) {
+        // Fallback pour l'ancien format
+        clubsData = result;
+      } else {
+        console.error('Format de réponse inattendu:', result);
+        clubsData = [];
+      }
       
       // Parser les données pour s'assurer que activities, achievements, members sont des tableaux
-      const parsedClubs = data.map(club => ({
+      const parsedClubs = clubsData.map(club => ({
         ...club,
         activities: Array.isArray(club.activities) 
           ? club.activities 

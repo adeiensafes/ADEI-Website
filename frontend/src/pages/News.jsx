@@ -21,10 +21,21 @@ const News = () => {
   const fetchArticles = async () => {
     try {
       const response = await fetch(API_ENDPOINTS.NEWS);
-      const data = await response.json();
-      setArticles(data);
+      const result = await response.json();
+      
+      // Gérer la nouvelle structure de réponse de l'API
+      if (result.success && Array.isArray(result.data)) {
+        setArticles(result.data);
+      } else if (Array.isArray(result)) {
+        // Fallback pour l'ancien format
+        setArticles(result);
+      } else {
+        console.error('Format de réponse inattendu:', result);
+        setArticles([]);
+      }
     } catch (error) {
       console.error('Error fetching articles:', error);
+      setArticles([]);
     } finally {
       setLoading(false);
       setTimeout(() => setPageReady(true), 100);

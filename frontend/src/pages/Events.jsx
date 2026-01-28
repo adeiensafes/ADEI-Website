@@ -22,10 +22,21 @@ const Events = () => {
   const fetchEvents = async () => {
     try {
       const response = await fetch(API_ENDPOINTS.EVENTS);
-      const data = await response.json();
-      setEvents(data);
+      const result = await response.json();
+      
+      // Gérer la nouvelle structure de réponse de l'API
+      if (result.success && Array.isArray(result.data)) {
+        setEvents(result.data);
+      } else if (Array.isArray(result)) {
+        // Fallback pour l'ancien format
+        setEvents(result);
+      } else {
+        console.error('Format de réponse inattendu:', result);
+        setEvents([]);
+      }
     } catch (error) {
       console.error('Error fetching events:', error);
+      setEvents([]);
     } finally {
       setLoading(false);
       setTimeout(() => setPageReady(true), 100);

@@ -32,13 +32,25 @@ const Feedbacks = () => {
         const response = await fetch(API_ENDPOINTS.FEEDBACKS_PUBLIC);
         
         if (response.ok) {
-          const data = await response.json();
-          setExistingFeedbacks(data);
+          const result = await response.json();
+          
+          // Gérer la nouvelle structure de réponse de l'API
+          if (result.success && Array.isArray(result.data)) {
+            setExistingFeedbacks(result.data);
+          } else if (Array.isArray(result)) {
+            // Fallback pour l'ancien format (si l'API renvoie directement un tableau)
+            setExistingFeedbacks(result);
+          } else {
+            console.error('Format de réponse inattendu:', result);
+            setExistingFeedbacks([]);
+          }
         } else {
           console.error('Failed to fetch feedbacks:', response.status, response.statusText);
+          setExistingFeedbacks([]);
         }
       } catch (error) {
         console.error('Erreur lors du chargement des feedbacks:', error);
+        setExistingFeedbacks([]);
       } finally {
         setFeedbacksLoading(false);
       }
@@ -82,8 +94,15 @@ const Feedbacks = () => {
         // Refresh feedbacks after successful submission
         const refreshResponse = await fetch(API_ENDPOINTS.FEEDBACKS_PUBLIC);
         if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          setExistingFeedbacks(refreshData);
+          const refreshResult = await refreshResponse.json();
+          
+          // Gérer la nouvelle structure de réponse de l'API
+          if (refreshResult.success && Array.isArray(refreshResult.data)) {
+            setExistingFeedbacks(refreshResult.data);
+          } else if (Array.isArray(refreshResult)) {
+            // Fallback pour l'ancien format
+            setExistingFeedbacks(refreshResult);
+          }
         }
       } else {
         setSuccess(data.message || "Une erreur s'est produite. Veuillez réessayer.");

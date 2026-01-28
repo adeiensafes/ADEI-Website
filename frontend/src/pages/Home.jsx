@@ -24,12 +24,20 @@ const Home = () => {
           fetch(API_ENDPOINTS.EVENTS)
         ]);
 
-        const newsData = await newsRes.json();
-        const eventsData = await eventsRes.json();
+        const newsResult = await newsRes.json();
+        const eventsResult = await eventsRes.json();
 
-        // S'assurer que les données sont des tableaux
-        setNews(Array.isArray(newsData) ? newsData : []);
-        setEvents(Array.isArray(eventsData) ? eventsData : []);
+        // Gérer la nouvelle structure de réponse de l'API
+        const newsData = newsResult.success && Array.isArray(newsResult.data) 
+          ? newsResult.data 
+          : (Array.isArray(newsResult) ? newsResult : []);
+          
+        const eventsData = eventsResult.success && Array.isArray(eventsResult.data) 
+          ? eventsResult.data 
+          : (Array.isArray(eventsResult) ? eventsResult : []);
+
+        setNews(newsData);
+        setEvents(eventsData);
       } catch (error) {
         console.error('Error fetching data:', error);
         // En cas d'erreur, initialiser avec des tableaux vides
