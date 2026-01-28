@@ -8,7 +8,47 @@ const fs = require('fs');
 require('dotenv').config();
 
 const { authMiddleware, adminMiddleware, JWT_SECRET } = require('./middleware/auth');
-const { getApiInterface } = require('./api-interface');
+
+// Import API interface with error handling
+let getApiInterface;
+try {
+  const apiInterface = require('./api-interface');
+  getApiInterface = apiInterface.getApiInterface;
+} catch (error) {
+  console.error('Warning: Could not load api-interface module:', error.message);
+  // Create a fallback function
+  getApiInterface = (PORT) => {
+    return `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API ADEI ENSA Fès</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #000; color: #fff; }
+        h1 { color: #dc2626; }
+        .status { background: #dc2626; color: white; padding: 15px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>API ADEI ENSA Fès</h1>
+    <div class="status">API Opérationnelle - Port ${PORT}</div>
+    <p>Interface de programmation pour l'Association des Étudiants Ingénieurs</p>
+    <p>Endpoints disponibles:</p>
+    <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+        <li>GET /api/news - Actualités</li>
+        <li>GET /api/events - Événements</li>
+        <li>GET /api/clubs - Clubs</li>
+        <li>GET /api/filieres - Filières</li>
+        <li>GET /api/feedbacks/public - Feedbacks</li>
+        <li>GET /health - Status</li>
+    </ul>
+</body>
+</html>
+    `;
+  };
+}
 
 // Fonctions de gestion d'erreurs intégrées
 const handleApiError = (error, context = '') => {
@@ -226,8 +266,77 @@ app.get('/api/feedbacks/test', async (req, res) => {
 
 // Route pour la racine - Interface web de l'API
 app.get('/', (req, res) => {
-  const html = getApiInterface(PORT);
-  res.send(html);
+  try {
+    const html = getApiInterface(PORT);
+    res.send(html);
+  } catch (error) {
+    console.error('Error serving API interface:', error);
+    // Fallback simple HTML
+    res.send(`
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API ADEI ENSA Fès</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #000; color: #fff; }
+        h1 { color: #dc2626; margin-bottom: 20px; }
+        .status { background: #dc2626; color: white; padding: 15px; margin: 20px 0; border-radius: 5px; }
+        .endpoints { text-align: left; max-width: 600px; margin: 20px auto; }
+        .endpoint { background: #1a1a1a; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #333; }
+        a { color: #dc2626; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>API ADEI ENSA Fès</h1>
+    <div class="status">API Opérationnelle - Port ${PORT} - ${new Date().toLocaleString('fr-FR')}</div>
+    <p>Interface de programmation pour l'Association des Étudiants Ingénieurs</p>
+    
+    <div class="endpoints">
+        <h3>Endpoints Publics:</h3>
+        <div class="endpoint">
+            <strong>GET /api/news</strong> - Récupère toutes les actualités
+            <br><a href="/api/news" target="_blank">Tester</a>
+        </div>
+        <div class="endpoint">
+            <strong>GET /api/events</strong> - Récupère tous les événements
+            <br><a href="/api/events" target="_blank">Tester</a>
+        </div>
+        <div class="endpoint">
+            <strong>GET /api/clubs</strong> - Liste des clubs étudiants
+            <br><a href="/api/clubs" target="_blank">Tester</a>
+        </div>
+        <div class="endpoint">
+            <strong>GET /api/filieres</strong> - Informations sur les filières
+            <br><a href="/api/filieres" target="_blank">Tester</a>
+        </div>
+        <div class="endpoint">
+            <strong>GET /api/feedbacks/public</strong> - Feedbacks publics
+            <br><a href="/api/feedbacks/public" target="_blank">Tester</a>
+        </div>
+        <div class="endpoint">
+            <strong>GET /api/adei-members</strong> - Membres du bureau ADEI
+            <br><a href="/api/adei-members" target="_blank">Tester</a>
+        </div>
+        <div class="endpoint">
+            <strong>GET /health</strong> - Vérification de l'état de l'API
+            <br><a href="/health" target="_blank">Tester</a>
+        </div>
+        <div class="endpoint">
+            <strong>GET /api/test</strong> - Test général des routes
+            <br><a href="/api/test" target="_blank">Tester</a>
+        </div>
+    </div>
+    
+    <p style="margin-top: 40px; color: #666;">
+        © 2026 ADEI ENSA Fès - API développée pour la communauté étudiante
+    </p>
+</body>
+</html>
+    `);
+  }
 });
 
 // Routes d'authentification
