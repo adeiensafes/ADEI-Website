@@ -51,6 +51,11 @@ const Event = sequelize.define('Event', {
   document: {
     type: DataTypes.STRING(500),
     allowNull: true
+  },
+  link: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    comment: 'Lien externe vers plus d\'informations'
   }
 }, {
   tableName: 'events',

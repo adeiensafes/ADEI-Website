@@ -208,7 +208,7 @@ const Home = () => {
                 {/* Voir plus button for news */}
                 <div style={{ textAlign: 'center', marginTop: 'var(--spacing-xl)' }}>
                   <a
-                    href="/#/news"
+                    href="/#/events?filter=news"
                     className="section-voir-plus-btn"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -292,7 +292,7 @@ const Home = () => {
                 {/* Voir plus button for events */}
                 <div style={{ textAlign: 'center', marginTop: 'var(--spacing-xl)' }}>
                   <a
-                    href="/#/events"
+                    href="/#/events?filter=events"
                     className="section-voir-plus-btn"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

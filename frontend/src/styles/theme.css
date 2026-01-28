@@ -100,6 +100,7 @@
   /* Status Colors */
   --success: #10b981;
   --success-light: rgba(16, 185, 129, 0.15);
+  --success-dark: #059669;
   --warning: #f59e0b;
   --warning-light: rgba(245, 158, 11, 0.15);
   --error: #ef4444;

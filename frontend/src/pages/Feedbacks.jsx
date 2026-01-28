@@ -217,12 +217,32 @@ const Feedbacks = () => {
                     gap: 'var(--spacing-sm)'
                   }}>
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-xs)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-xs)', flexWrap: 'wrap' }}>
                         <h4 style={{ margin: 0, color: 'var(--text-primary)' }}>
                           {feedback.name}
                         </h4>
-                        {feedback.user && (
-                          <UserBadges user={feedback.user} size="small" />
+                        {feedback.user ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                            <UserBadges user={feedback.user} size="medium" />
+                            {/* Debug info - remove this later */}
+                            {(feedback.user.is_president || feedback.user.is_representant || feedback.user.is_membre_adei || feedback.user.is_bureau_adei) ? null : (
+                              <span style={{ 
+                                fontSize: '0.7rem', 
+                                color: '#888',
+                                marginLeft: '8px'
+                              }}>
+                                (utilisateur sans badges spéciaux)
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span style={{ 
+                            fontSize: '0.8rem', 
+                            color: 'var(--text-muted)',
+                            fontStyle: 'italic'
+                          }}>
+                            (feedback anonyme)
+                          </span>
                         )}
                       </div>
                       <span 

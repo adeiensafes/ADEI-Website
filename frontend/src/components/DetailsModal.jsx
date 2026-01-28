@@ -346,6 +346,57 @@ const DetailsModal = ({ item, type, isOpen, onClose }) => {
                 </div>
               )}
 
+              {/* External Link */}
+              {item.link && (
+                <div style={{
+                  padding: 'var(--spacing-md)',
+                  backgroundColor: 'var(--primary-light)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '2px solid var(--primary)',
+                  textAlign: 'center'
+                }}>
+                  <h4 style={{ margin: '0 0 var(--spacing-sm) 0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                    </svg>
+                    Plus d'informations
+                  </h4>
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '12px 24px',
+                      backgroundColor: 'var(--primary)',
+                      color: 'white',
+                      textDecoration: 'none',
+                      borderRadius: 'var(--radius-md)',
+                      fontWeight: '600',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = 'var(--primary-dark)';
+                      e.target.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'var(--primary)';
+                      e.target.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                      <polyline points="15,3 21,3 21,9"/>
+                      <line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                    {type === 'events' ? 'S\'inscrire ou en savoir plus' : 'Lire la suite'}
+                  </a>
+                </div>
+              )}
+
               {/* Metadata */}
               {(item.createdAt || item.updatedAt) && (
                 <div style={{
