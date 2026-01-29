@@ -1028,11 +1028,11 @@ app.post('/api/users/change-password', authMiddleware, async (req, res) => {
     });
     
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: 'Mot de passe actuel et nouveau mot de passe requis' });
+      return res.status(400).json({ success: false, message: 'Mot de passe actuel et nouveau mot de passe requis' });
     }
     
     if (newPassword.length < 6) {
-      return res.status(400).json({ message: 'Le nouveau mot de passe doit contenir au moins 6 caractères' });
+      return res.status(400).json({ success: false, message: 'Le nouveau mot de passe doit contenir au moins 6 caractères' });
     }
     
     // Use req.user.id from JWT token
@@ -1042,17 +1042,16 @@ app.post('/api/users/change-password', authMiddleware, async (req, res) => {
     const user = await User.findByPk(userId);
     if (!user) {
       console.log('User not found with ID:', userId);
-      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+      return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
     }
     
     console.log('User found:', { id: user.id, username: user.username });
     
     // Verify current password
-    const bcrypt = require('bcryptjs');
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
     if (!isCurrentPasswordValid) {
       console.log('Current password is invalid for user:', user.username);
-      return res.status(400).json({ message: 'Mot de passe actuel incorrect' });
+      return res.status(400).json({ success: false, message: 'Mot de passe actuel incorrect' });
     }
     
     console.log('Current password is valid, updating password...');
@@ -1065,10 +1064,10 @@ app.post('/api/users/change-password', authMiddleware, async (req, res) => {
     
     console.log('Password updated successfully for user:', user.username);
     
-    res.json({ message: 'Mot de passe modifié avec succès' });
+    res.json({ success: true, message: 'Mot de passe modifié avec succès' });
   } catch (error) {
     console.error('Error changing password:', error);
-    res.status(500).json({ message: 'Erreur lors de la modification du mot de passe' });
+    res.status(500).json({ success: false, message: 'Erreur lors de la modification du mot de passe' });
   }
 });
 
