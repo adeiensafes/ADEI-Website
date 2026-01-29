@@ -14,6 +14,31 @@ const Profile = () => {
   });
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [notification, setNotification] = useState(null);
+  
+  // États pour la visibilité des mots de passe
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // États pour la validation en temps réel
+  const [passwordValidation, setPasswordValidation] = useState({
+    length: false,
+    match: false,
+    different: false
+  });
+
+  // Validation en temps réel des mots de passe
+  useEffect(() => {
+    const newPassword = passwordData.newPassword;
+    const confirmPassword = passwordData.confirmPassword;
+    const currentPassword = passwordData.currentPassword;
+    
+    setPasswordValidation({
+      length: newPassword.length >= 6,
+      match: newPassword === confirmPassword && newPassword.length > 0,
+      different: newPassword !== currentPassword && newPassword.length > 0
+    });
+  }, [passwordData]);
 
   useEffect(() => {
     const timer = setTimeout(() => setPageReady(true), 200);
@@ -35,6 +60,17 @@ const Profile = () => {
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     
+    // Validation côté client
+    if (!passwordData.currentPassword.trim()) {
+      showNotification('Veuillez entrer votre mot de passe actuel', 'error');
+      return;
+    }
+    
+    if (!passwordData.newPassword.trim()) {
+      showNotification('Veuillez entrer un nouveau mot de passe', 'error');
+      return;
+    }
+    
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       showNotification('Les nouveaux mots de passe ne correspondent pas', 'error');
       return;
@@ -45,9 +81,16 @@ const Profile = () => {
       return;
     }
     
+    if (passwordData.currentPassword === passwordData.newPassword) {
+      showNotification('Le nouveau mot de passe doit être différent de l\'ancien', 'error');
+      return;
+    }
+    
     setPasswordLoading(true);
     
     try {
+      console.log('Sending password change request...');
+      
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/users/change-password`, {
         method: 'POST',
         headers: {
@@ -61,6 +104,7 @@ const Profile = () => {
       });
       
       const result = await response.json();
+      console.log('Password change response:', { status: response.status, result });
       
       if (response.ok) {
         showNotification('Mot de passe modifié avec succès', 'success');
@@ -70,7 +114,8 @@ const Profile = () => {
         showNotification(result.message || 'Erreur lors de la modification du mot de passe', 'error');
       }
     } catch (error) {
-      showNotification('Erreur lors de la modification du mot de passe', 'error');
+      console.error('Password change error:', error);
+      showNotification('Erreur de connexion. Veuillez réessayer.', 'error');
     } finally {
       setPasswordLoading(false);
     }
@@ -79,6 +124,10 @@ const Profile = () => {
   const closePasswordModal = () => {
     setShowPasswordModal(false);
     setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+    setPasswordValidation({ length: false, match: false, different: false });
     document.body.style.overflow = 'unset';
   };
 
@@ -362,134 +411,338 @@ const Profile = () => {
 
       {/* Password Change Modal */}
       {showPasswordModal && (
-        <div style={{
+        <div className="modal" style={{
           position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1000
+          zIndex: 1000,
+          backdropFilter: 'blur(5px)'
         }}>
-          <div style={{
-            backgroundColor: 'var(--bg-primary)',
-            borderRadius: 'var(--radius-lg)',
-            padding: 'var(--spacing-xl)',
+          <div className="modal" style={{
+            backgroundColor: 'var(--card-bg)',
+            border: '1px solid var(--card-border)',
+            borderRadius: 'var(--radius-2xl)',
+            padding: 'var(--spacing-2xl)',
             width: '90%',
             maxWidth: '500px',
             maxHeight: '90vh',
-            overflow: 'auto'
+            overflow: 'auto',
+            boxShadow: 'var(--shadow-xl)'
           }}>
-            <h3 style={{ margin: '0 0 var(--spacing-lg) 0', color: 'var(--text-primary)' }}>
+            <h3 style={{ 
+              margin: '0 0 var(--spacing-xl) 0', 
+              color: 'var(--text-primary)',
+              textAlign: 'center',
+              fontSize: 'var(--font-size-2xl)',
+              fontWeight: '700'
+            }}>
               Changer le mot de passe
             </h3>
             
             <form onSubmit={handlePasswordChange}>
-              <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-                <label style={{ 
-                  display: 'block', 
-                  fontWeight: 'bold', 
-                  color: 'var(--text-primary)', 
-                  marginBottom: 'var(--spacing-xs)' 
-                }}>
+              {/* Mot de passe actuel */}
+              <div className="form-group">
+                <label className="form-label">
                   Mot de passe actuel
                 </label>
-                <input
-                  type="password"
-                  value={passwordData.currentPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: 'var(--spacing-md)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: 'var(--font-size-md)',
-                    backgroundColor: 'var(--bg-secondary)'
-                  }}
-                  required
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={passwordData.currentPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                    className="form-input"
+                    placeholder="Entrez votre mot de passe actuel"
+                    required
+                    style={{
+                      color: 'var(--text-primary)',
+                      backgroundColor: 'var(--bg-secondary)',
+                      WebkitTextFillColor: 'var(--text-primary)',
+                      paddingRight: '50px'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '15px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      padding: '5px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    {showCurrentPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
-              <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-                <label style={{ 
-                  display: 'block', 
-                  fontWeight: 'bold', 
-                  color: 'var(--text-primary)', 
-                  marginBottom: 'var(--spacing-xs)' 
-                }}>
+              {/* Nouveau mot de passe */}
+              <div className="form-group">
+                <label className="form-label">
                   Nouveau mot de passe
                 </label>
-                <input
-                  type="password"
-                  value={passwordData.newPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: 'var(--spacing-md)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: 'var(--font-size-md)',
-                    backgroundColor: 'var(--bg-secondary)'
-                  }}
-                  required
-                  minLength="6"
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                    className="form-input"
+                    placeholder="Entrez le nouveau mot de passe"
+                    required
+                    minLength="6"
+                    style={{
+                      color: 'var(--text-primary)',
+                      backgroundColor: 'var(--bg-secondary)',
+                      WebkitTextFillColor: 'var(--text-primary)',
+                      paddingRight: '50px',
+                      borderColor: passwordData.newPassword.length > 0 ? 
+                        (passwordValidation.length ? 'var(--success)' : 'var(--error)') : 
+                        'var(--border-color)'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '15px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      padding: '5px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    {showNewPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                
+                {/* Indicateurs de validation pour le nouveau mot de passe */}
+                {passwordData.newPassword.length > 0 && (
+                  <div style={{ marginTop: 'var(--spacing-sm)' }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 'var(--spacing-xs)',
+                      fontSize: '0.85rem',
+                      color: passwordValidation.length ? 'var(--success)' : 'var(--error)'
+                    }}>
+                      {passwordValidation.length ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="20,6 9,17 4,12"/>
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <line x1="15" y1="9" x2="9" y2="15"/>
+                          <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                      )}
+                      Au moins 6 caractères
+                    </div>
+                    
+                    {passwordData.currentPassword.length > 0 && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 'var(--spacing-xs)',
+                        fontSize: '0.85rem',
+                        color: passwordValidation.different ? 'var(--success)' : 'var(--error)',
+                        marginTop: '4px'
+                      }}>
+                        {passwordValidation.different ? (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="20,6 9,17 4,12"/>
+                          </svg>
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                          </svg>
+                        )}
+                        Différent du mot de passe actuel
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-                <label style={{ 
-                  display: 'block', 
-                  fontWeight: 'bold', 
-                  color: 'var(--text-primary)', 
-                  marginBottom: 'var(--spacing-xs)' 
-                }}>
+              {/* Confirmer le nouveau mot de passe */}
+              <div className="form-group">
+                <label className="form-label">
                   Confirmer le nouveau mot de passe
                 </label>
-                <input
-                  type="password"
-                  value={passwordData.confirmPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: 'var(--spacing-md)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: 'var(--font-size-md)',
-                    backgroundColor: 'var(--bg-secondary)'
-                  }}
-                  required
-                  minLength="6"
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                    className="form-input"
+                    placeholder="Confirmez le nouveau mot de passe"
+                    required
+                    minLength="6"
+                    style={{
+                      color: 'var(--text-primary)',
+                      backgroundColor: 'var(--bg-secondary)',
+                      WebkitTextFillColor: 'var(--text-primary)',
+                      paddingRight: '50px',
+                      borderColor: passwordData.confirmPassword.length > 0 ? 
+                        (passwordValidation.match ? 'var(--success)' : 'var(--error)') : 
+                        'var(--border-color)'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{
+                      position: 'absolute',
+                      right: '15px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      padding: '5px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    {showConfirmPassword ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                
+                {/* Indicateur de correspondance */}
+                {passwordData.confirmPassword.length > 0 && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--spacing-xs)',
+                    fontSize: '0.85rem',
+                    color: passwordValidation.match ? 'var(--success)' : 'var(--error)',
+                    marginTop: 'var(--spacing-sm)'
+                  }}>
+                    {passwordValidation.match ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="20,6 9,17 4,12"/>
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="15" y1="9" x2="9" y2="15"/>
+                        <line x1="9" y1="9" x2="15" y2="15"/>
+                      </svg>
+                    )}
+                    {passwordValidation.match ? 'Les mots de passe correspondent' : 'Les mots de passe ne correspondent pas'}
+                  </div>
+                )}
               </div>
 
-              <div style={{ display: 'flex', gap: 'var(--spacing-md)', justifyContent: 'flex-end' }}>
+              {/* Résumé de validation */}
+              {(passwordData.newPassword.length > 0 || passwordData.confirmPassword.length > 0) && (
+                <div style={{
+                  padding: 'var(--spacing-md)',
+                  backgroundColor: 'var(--bg-tertiary)',
+                  borderRadius: 'var(--radius-md)',
+                  border: `1px solid ${
+                    passwordValidation.length && passwordValidation.match && passwordValidation.different 
+                      ? 'var(--success)' 
+                      : 'var(--border-color)'
+                  }`,
+                  marginBottom: 'var(--spacing-lg)'
+                }}>
+                  <h4 style={{ 
+                    margin: '0 0 var(--spacing-sm) 0', 
+                    fontSize: '0.9rem',
+                    color: 'var(--text-primary)'
+                  }}>
+                    Validation du mot de passe
+                  </h4>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    {passwordValidation.length && passwordValidation.match && passwordValidation.different ? (
+                      <span style={{ color: 'var(--success)' }}>✓ Tous les critères sont respectés</span>
+                    ) : (
+                      <span style={{ color: 'var(--text-muted)' }}>
+                        Veuillez respecter tous les critères ci-dessus
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ 
+                display: 'flex', 
+                gap: 'var(--spacing-md)', 
+                justifyContent: 'flex-end',
+                marginTop: 'var(--spacing-xl)'
+              }}>
                 <button
                   type="button"
                   onClick={closePasswordModal}
-                  style={{
-                    padding: '10px 20px',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: 'var(--radius-md)',
-                    backgroundColor: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    cursor: 'pointer'
-                  }}
+                  className="btn secondary"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  disabled={passwordLoading}
+                  disabled={passwordLoading || !passwordValidation.length || !passwordValidation.match || !passwordValidation.different}
+                  className="btn"
                   style={{
-                    padding: '10px 20px',
-                    border: 'none',
-                    borderRadius: 'var(--radius-md)',
-                    backgroundColor: passwordLoading ? '#ccc' : 'var(--primary-color)',
-                    color: 'white',
-                    cursor: passwordLoading ? 'not-allowed' : 'pointer'
+                    opacity: (passwordLoading || !passwordValidation.length || !passwordValidation.match || !passwordValidation.different) ? 0.6 : 1,
+                    cursor: (passwordLoading || !passwordValidation.length || !passwordValidation.match || !passwordValidation.different) ? 'not-allowed' : 'pointer'
                   }}
                 >
                   {passwordLoading ? 'Modification...' : 'Modifier'}

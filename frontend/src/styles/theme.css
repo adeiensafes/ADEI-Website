@@ -51,6 +51,12 @@
   --navbar-bg: rgba(10, 10, 10, 0.95);
   --footer-bg: var(--black-light);
   
+  /* Additional Variables for Forms and Modals */
+  --border-color: var(--gray-800);
+  --border-radius: var(--radius-md);
+  --primary-color: var(--primary);
+  --font-size-md: var(--font-size-base);
+  
   /* Shadows & Glows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
@@ -1106,12 +1112,13 @@ a:hover {
   background: var(--black-card);
   border: 2px solid var(--card-border);
   border-radius: var(--radius-xl);
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
   font-size: var(--font-size-lg);
   transition: all var(--transition-smooth);
   min-height: 60px;
   backdrop-filter: blur(10px);
   font-weight: 500;
+  box-sizing: border-box;
 }
 
 .form-input:focus {
@@ -1120,11 +1127,44 @@ a:hover {
   box-shadow: 0 0 0 4px var(--primary-light), var(--shadow-red);
   transform: translateY(-2px);
   background: var(--black-hover);
+  color: var(--text-primary) !important;
 }
 
 .form-input::placeholder {
   color: var(--text-muted);
   font-weight: 400;
+}
+
+/* Ensure password inputs are always visible */
+input[type="password"] {
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+input[type="password"]:focus {
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+input[type="password"]::-webkit-input-placeholder {
+  color: var(--text-muted) !important;
+  -webkit-text-fill-color: var(--text-muted) !important;
+}
+
+/* Light theme password inputs */
+[data-theme="light"] input[type="password"] {
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+[data-theme="light"] input[type="password"]:focus {
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+[data-theme="light"] input[type="password"]::-webkit-input-placeholder {
+  color: var(--text-muted) !important;
+  -webkit-text-fill-color: var(--text-muted) !important;
 }
 
 .form-row {
@@ -2753,6 +2793,12 @@ a:hover {
   --navbar-bg: rgba(255, 255, 255, 0.95);
   --footer-bg: var(--white-soft);
   
+  /* Additional Variables for Forms and Modals */
+  --border-color: var(--gray-200);
+  --border-radius: var(--radius-md);
+  --primary-color: var(--primary);
+  --font-size-md: var(--font-size-base);
+  
   /* Shadows & Glows - Adjusted for light theme */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -2853,13 +2899,34 @@ a:hover {
 [data-theme="light"] .form-input {
   background: var(--white);
   border: 2px solid var(--card-border);
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 
 [data-theme="light"] .form-input:focus {
   border-color: var(--primary);
   background: var(--white);
   box-shadow: 0 0 0 4px var(--primary-light), var(--shadow-red);
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .form-input::placeholder {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .form-input::-webkit-input-placeholder {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .form-input::-moz-placeholder {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .form-input:-ms-input-placeholder {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .form-input:-moz-placeholder {
+  color: var(--text-muted);
 }
 
 [data-theme="light"] .form-textarea {
@@ -3943,4 +4010,237 @@ html body .adei-member-photo::before {
 .adei-member-card [data-extension],
 .adei-member-card [data-status] {
   display: none !important;
+}
+
+/* Modal Input Fixes - Force text visibility */
+.modal input,
+.modal input[type="text"],
+.modal input[type="email"],
+.modal input[type="password"],
+.modal textarea,
+.modal select {
+  color: var(--text-primary) !important;
+  background: var(--bg-secondary) !important;
+  border: 2px solid var(--border-color) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  -webkit-appearance: none;
+}
+
+.modal input:focus,
+.modal input[type="text"]:focus,
+.modal input[type="email"]:focus,
+.modal input[type="password"]:focus,
+.modal textarea:focus,
+.modal select:focus {
+  color: var(--text-primary) !important;
+  background: var(--bg-secondary) !important;
+  border-color: var(--primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+.modal input::placeholder,
+.modal textarea::placeholder {
+  color: var(--text-muted) !important;
+  -webkit-text-fill-color: var(--text-muted) !important;
+  opacity: 0.7;
+}
+
+/* Light theme modal inputs */
+[data-theme="light"] .modal input,
+[data-theme="light"] .modal input[type="text"],
+[data-theme="light"] .modal input[type="email"],
+[data-theme="light"] .modal input[type="password"],
+[data-theme="light"] .modal textarea,
+[data-theme="light"] .modal select {
+  color: var(--text-primary) !important;
+  background: var(--white) !important;
+  border: 2px solid var(--border-color) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .modal input:focus,
+[data-theme="light"] .modal input[type="text"]:focus,
+[data-theme="light"] .modal input[type="email"]:focus,
+[data-theme="light"] .modal input[type="password"]:focus,
+[data-theme="light"] .modal textarea:focus,
+[data-theme="light"] .modal select:focus {
+  color: var(--text-primary) !important;
+  background: var(--white) !important;
+  border-color: var(--primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .modal input::placeholder,
+[data-theme="light"] .modal textarea::placeholder {
+  color: var(--text-muted) !important;
+  -webkit-text-fill-color: var(--text-muted) !important;
+  opacity: 0.7;
+}
+
+/* Additional fix for autofill */
+.modal input:-webkit-autofill,
+.modal input:-webkit-autofill:hover,
+.modal input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-primary) !important;
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg-secondary) inset !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+[data-theme="light"] .modal input:-webkit-autofill,
+[data-theme="light"] .modal input:-webkit-autofill:hover,
+[data-theme="light"] .modal input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-primary) !important;
+  -webkit-box-shadow: 0 0 0px 1000px var(--white) inset !important;
+}
+/* Password Toggle Button Styles */
+.password-toggle-btn {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  z-index: 10;
+}
+
+.password-toggle-btn:hover {
+  color: var(--primary);
+}
+
+.password-toggle-btn:focus {
+  outline: none;
+  color: var(--primary);
+}
+
+/* Password Validation Styles */
+.password-validation {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.85rem;
+  margin-top: var(--spacing-sm);
+  transition: all 0.3s ease;
+}
+
+.password-validation.valid {
+  color: var(--success);
+}
+
+.password-validation.invalid {
+  color: var(--error);
+}
+
+.password-validation svg {
+  flex-shrink: 0;
+}
+
+/* Password Summary Box */
+.password-summary {
+  padding: var(--spacing-md);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  margin-bottom: var(--spacing-lg);
+  transition: all 0.3s ease;
+}
+
+.password-summary.valid {
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.password-summary h4 {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.password-summary .summary-text {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.password-summary .summary-text.valid {
+  color: var(--success);
+  font-weight: 500;
+}
+
+.password-summary .summary-text.invalid {
+  color: var(--text-muted);
+}
+
+/* Input with validation border */
+.form-input.valid {
+  border-color: var(--success) !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+}
+
+.form-input.invalid {
+  border-color: var(--error) !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Light theme adjustments for password features */
+[data-theme="light"] .password-toggle-btn {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .password-toggle-btn:hover,
+[data-theme="light"] .password-toggle-btn:focus {
+  color: var(--primary);
+}
+
+[data-theme="light"] .password-summary {
+  background: var(--gray-50);
+  border-color: var(--border-color);
+}
+
+[data-theme="light"] .password-summary.valid {
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+/* Animation for validation changes */
+@keyframes validationPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.password-validation svg {
+  animation: validationPulse 0.3s ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .password-toggle-btn {
+    right: 12px;
+    font-size: 16px;
+    padding: 4px;
+  }
+  
+  .password-validation {
+    font-size: 0.8rem;
+  }
+  
+  .password-summary {
+    padding: var(--spacing-sm);
+  }
+  
+  .password-summary h4 {
+    font-size: 0.85rem;
+  }
+  
+  .password-summary .summary-text {
+    font-size: 0.8rem;
+  }
 }

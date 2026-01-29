@@ -60,6 +60,8 @@ function NotFound() {
 function AppContent() {
   const location = useLocation();
   const isAdminPage = location.pathname === '/admin';
+  const isProfilePage = location.pathname === '/profile';
+  const shouldHideFooter = isAdminPage || isProfilePage;
 
   return (
     <ErrorBoundary>
@@ -93,7 +95,7 @@ function AppContent() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
-        {!isAdminPage && <Footer />}
+        {!shouldHideFooter && <Footer />}
         <FloatingThemeToggle />
       </div>
     </ErrorBoundary>

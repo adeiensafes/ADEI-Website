@@ -1020,6 +1020,13 @@ app.post('/api/users/change-password', authMiddleware, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     
+    console.log('Change password request:', {
+      userId: req.user.id,
+      userObject: req.user,
+      hasCurrentPassword: !!currentPassword,
+      hasNewPassword: !!newPassword
+    });
+    
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ message: 'Mot de passe actuel et nouveau mot de passe requis' });
     }
@@ -1028,25 +1035,35 @@ app.post('/api/users/change-password', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Le nouveau mot de passe doit contenir au moins 6 caractères' });
     }
     
-    // Use req.user.id instead of req.user.userId
-    const userId = req.user.id || req.user.userId;
+    // Use req.user.id from JWT token
+    const userId = req.user.id;
+    console.log('Looking for user with ID:', userId);
+    
     const user = await User.findByPk(userId);
     if (!user) {
+      console.log('User not found with ID:', userId);
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
+    
+    console.log('User found:', { id: user.id, username: user.username });
     
     // Verify current password
     const bcrypt = require('bcryptjs');
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
     if (!isCurrentPasswordValid) {
+      console.log('Current password is invalid for user:', user.username);
       return res.status(400).json({ message: 'Mot de passe actuel incorrect' });
     }
+    
+    console.log('Current password is valid, updating password...');
     
     // Hash new password
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     
     // Update password
     await user.update({ password: hashedNewPassword });
+    
+    console.log('Password updated successfully for user:', user.username);
     
     res.json({ message: 'Mot de passe modifié avec succès' });
   } catch (error) {
