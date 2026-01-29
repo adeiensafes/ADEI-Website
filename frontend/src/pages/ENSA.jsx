@@ -33,7 +33,14 @@ const ENSA = () => {
   const fetchFilieres = async () => {
     try {
       const response = await fetch(API_ENDPOINTS.FILIERES);
-      const data = await response.json();
+      const result = await response.json();
+      
+      // Gérer la nouvelle structure de réponse de l'API
+      const data = result.success && Array.isArray(result.data) 
+        ? result.data 
+        : (Array.isArray(result) ? result : []);
+      
+      console.log('📚 Filières récupérées:', data.length);
       
       // Parser les données et s'assurer que years est un tableau
       const parsedData = data.map(item => ({
@@ -49,10 +56,13 @@ const ENSA = () => {
       const filieresData = parsedData.filter(item => item.type === 'filiere');
       const prepaData = parsedData.filter(item => item.type === 'prepa');
       
+      console.log('🎓 Filières d\'ingénierie:', filieresData.length);
+      console.log('📖 Classes préparatoires:', prepaData.length);
+      
       setFilieres(filieresData);
       setClassesPrepa(prepaData);
     } catch (error) {
-      console.error('Error fetching filières:', error);
+      console.error('❌ Error fetching filières:', error);
       // En cas d'erreur, utiliser des données par défaut
       setFilieres([]);
       setClassesPrepa([]);

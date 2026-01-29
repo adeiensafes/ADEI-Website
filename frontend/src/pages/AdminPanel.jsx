@@ -227,7 +227,7 @@ const AdminPanel = () => {
         telDelegueB2: '',
         delegueC2: '',
         telDelegueC2: '',
-        // Délégué filière
+        // Responsable filière
         delegueFiliere: '',
         telDelegueFiliere: '',
         // Délégués par année pour les filières d'ingénierie
@@ -1395,22 +1395,22 @@ const AdminPanel = () => {
                   </div>
                 ) : (
                   <div className="form-group">
-                    <label className="form-label">Délégué Filière</label>
+                    <label className="form-label">Responsable Filière</label>
                     <input
                       type="text"
                       className="form-input"
                       value={formData.delegueFiliere || ''}
                       onChange={(e) => setFormData({ ...formData, delegueFiliere: e.target.value })}
-                      placeholder="Nom du délégué filière"
+                      placeholder="Nom du responsable filière"
                     />
                   </div>
                 )}
               </div>
 
-              {/* Téléphone du délégué filière pour les filières d'ingénierie */}
+              {/* Téléphone du responsable filière pour les filières d'ingénierie */}
               {formData.type === 'filiere' && (
                 <div className="form-group">
-                  <label className="form-label">Téléphone du délégué filière</label>
+                  <label className="form-label">Téléphone du responsable filière</label>
                   <input
                     type="tel"
                     className="form-input"
@@ -2581,7 +2581,6 @@ const AdminPanel = () => {
               <th>Filière</th>
               <th>Abréviation</th>
               <th>Type</th>
-              <th>Délégué Filière</th>
               <th>Actions</th>
             </>
           );
@@ -2982,7 +2981,6 @@ const AdminPanel = () => {
                   {item.type === 'prepa' ? 'Classe Prépa' : 'Filière'}
                 </span>
               </td>
-              <td>{item.delegueFiliere || '-'}</td>
               <td>
                 <div className="admin-actions">
                   <button className="admin-action-btn edit" onClick={() => handleEdit(item)}>
