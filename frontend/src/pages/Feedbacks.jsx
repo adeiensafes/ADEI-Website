@@ -377,7 +377,7 @@ const Feedbacks = () => {
             <p style={{ fontSize: 'var(--font-size-lg)', marginBottom: 'var(--spacing-xl)', color: 'var(--text-muted)' }}>
               Vous devez être connecté pour pouvoir soumettre un feedback.
             </p>
-            <a href="/login" className="btn">
+            <a href="#/login" className="btn">
               Se connecter
             </a>
           </div>
@@ -400,7 +400,7 @@ et contribuez activement à l’évolution de votre école et de votre communaut
                 <a href="https://forms.gle/UFx4SFxH9uxJAosN9" className="btn">
                   Devenir membre
                 </a>
-                <a href="/adei" className="btn secondary">
+                <a href="#/adei" className="btn secondary">
                   Découvrir l’ADEI
                 </a>
               </div>

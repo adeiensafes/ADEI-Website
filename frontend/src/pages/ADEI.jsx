@@ -707,7 +707,8 @@ const ADEI = () => {
           {/* Partners Section */}
           <div className={`partners-section ${pageReady ? 'fade-in' : ''}`} style={{ 
             marginTop: 'var(--spacing-3xl)',
-            animationDelay: '0.8s'
+            animationDelay: '0.8s',
+            overflow: 'hidden'
           }}>
             <div className="section-header" style={{
               textAlign: 'center',

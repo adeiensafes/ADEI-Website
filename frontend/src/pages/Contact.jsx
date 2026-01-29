@@ -218,10 +218,10 @@ const Contact = () => {
               justifyContent: 'center', 
               flexWrap: 'wrap' 
             }}>
-              <a href="/clubs" className="btn">
+              <a href="#/clubs" className="btn">
                 Rejoindre un club
               </a>
-              <a href="/events" className="btn secondary">
+              <a href="#/events" className="btn secondary">
                 Voir les événements
               </a>
             </div>

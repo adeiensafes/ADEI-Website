@@ -21,7 +21,7 @@ const MembersOrgChart = ({ members, className = "" }) => {
       level: 1
     },
     techniqueMembers: {
-      title: 'Technique Members',
+      title: 'Équipe Technique',
       roles: ['IT Manager', 'IT Team'],
       color: '#5856D6',
       level: 2
@@ -594,11 +594,13 @@ const MembersOrgChart = ({ members, className = "" }) => {
           members={getHierarchyMembers(hierarchy.representantEtudiants.roles)}
         />
 
-        {/* Technique Members */}
-        <HierarchyLevel 
-          department={hierarchy.techniqueMembers}
-          members={getHierarchyMembers(hierarchy.techniqueMembers.roles)}
-        />
+        {/* Équipe Technique - seulement si il y a des membres */}
+        {getHierarchyMembers(hierarchy.techniqueMembers.roles).length > 0 && (
+          <HierarchyLevel 
+            department={hierarchy.techniqueMembers}
+            members={getHierarchyMembers(hierarchy.techniqueMembers.roles)}
+          />
+        )}
 
         {/* Communication & Design */}
         <HierarchyLevel 

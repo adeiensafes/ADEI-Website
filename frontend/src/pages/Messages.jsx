@@ -180,7 +180,7 @@ const Messages = () => {
                 Les messages envoyés via le formulaire de contact apparaîtront ici. 
                 Encouragez les visiteurs à vous contacter !
               </p>
-              <a href="/contact" className="btn" style={{ marginTop: 'var(--spacing-md)' }}>
+              <a href="#/contact" className="btn" style={{ marginTop: 'var(--spacing-md)' }}>
                 Voir le formulaire de contact
               </a>
             </div>

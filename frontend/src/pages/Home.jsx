@@ -328,7 +328,7 @@ et contribuez activement à l'évolution de votre école et de votre communauté
                   <a href="https://forms.gle/UFx4SFxH9uxJAosN9" className="btn">
                     Devenir membre
                   </a>
-                  <a href="/adei" className="btn secondary">
+                  <a href="#/adei" className="btn secondary">
                     Découvrir l'ADEI
                   </a>
                 </div>
