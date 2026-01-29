@@ -151,6 +151,37 @@ const Filiere = sequelize.define('Filiere', {
     type: DataTypes.STRING(20),
     allowNull: true,
     comment: 'Téléphone délégué général de la filière'
+  },
+  // Délégués par année pour les filières d'ingénierie
+  delegue_annee1: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Délégué 1ère année filière ingénierie'
+  },
+  tel_delegue_annee1: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'Téléphone délégué 1ère année filière ingénierie'
+  },
+  delegue_annee2: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Délégué 2ème année filière ingénierie'
+  },
+  tel_delegue_annee2: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'Téléphone délégué 2ème année filière ingénierie'
+  },
+  delegue_annee3: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    comment: 'Délégué 3ème année filière ingénierie'
+  },
+  tel_delegue_annee3: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    comment: 'Téléphone délégué 3ème année filière ingénierie'
   }
 }, {
   tableName: 'filieres',

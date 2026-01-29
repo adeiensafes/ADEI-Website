@@ -100,9 +100,33 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 app.use(cors({
-  origin: ["https://adei-ensaf.ma", "https://www.adei-ensaf.ma", "http://localhost:3000"],
-  credentials: true
+  origin: function (origin, callback) {
+    // Permettre les requêtes sans origin (mobile apps, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Utiliser les origins depuis les variables d'environnement ou valeurs par défaut
+    const corsOrigins = process.env.CORS_ORIGINS 
+      ? process.env.CORS_ORIGINS.split(',')
+      : ["https://adei-ensaf.ma", "https://www.adei-ensaf.ma", "http://localhost:3000", "http://localhost:3001"];
+    
+    if (corsOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200 // Pour supporter les anciens navigateurs
 }));
+
+// Middleware de debug CORS
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - Origin: ${req.get('Origin') || 'none'}`);
+  next();
+});
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
