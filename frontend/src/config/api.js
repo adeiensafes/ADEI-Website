@@ -1,5 +1,5 @@
 // Configuration de l'API
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+const API_BASE_URL = 'https://api.adei-ensaf.ma';
 
 export const API_ENDPOINTS = {
   // Auth
