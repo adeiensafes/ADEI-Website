@@ -10,41 +10,143 @@ import logger from '../../utils/logger';
 import '../../styles/admin-panel.css';
 
 const NewsAdmin = () => {
-  const { token, user } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
-  const [newsData, setNewsData] = useState([]);
-  const [clubsData, setClubsData] = useState([]);
-  const [showModal, setShowModal] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [formData, setFormData] = useState({});
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [notification, setNotification] = useState(null);
-  const [modalNotification, setModalNotification] = useState(null);
+  try {
+    const { token, user } = useContext(AuthContext);
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [authLoading, setAuthLoading] = useState(true);
+    const [newsData, setNewsData] = useState([]);
+    const [clubsData, setClubsData] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
+    const [formData, setFormData] = useState({});
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [notification, setNotification] = useState(null);
+    const [modalNotification, setModalNotification] = useState(null);
 
-  useEffect(() => {
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-    
-    if (user === null) {
-      setAuthLoading(true);
-      return;
-    }
-    
-    if (user.role !== 'admin') {
-      navigate('/');
-      return;
-    }
-    
-    setAuthLoading(false);
-    fetchNews();
-    fetchClubs();
-  }, [token, user, navigate]);
+    // Déclarer fetchNews et fetchClubs AVANT le useEffect
+    const fetchClubs = async () => {
+      try {
+        console.log('Chargement des clubs...');
+        const response = await fetch(API_ENDPOINTS.CLUBS);
+        
+        if (!response.ok) {
+          console.error('Erreur HTTP clubs:', response.status);
+          setClubsData([]);
+          return;
+        }
+        
+        const clubsResult = await response.json();
+        console.log('Données des clubs reçues:', clubsResult);
+        
+        let clubs = [];
+        if (clubsResult.success && Array.isArray(clubsResult.data)) {
+          clubs = clubsResult.data;
+        } else if (Array.isArray(clubsResult)) {
+          clubs = clubsResult;
+        }
+        
+        // Validation: s'assurer que chaque club a au moins id et club
+        const validatedClubs = Array.isArray(clubs) 
+          ? clubs.filter(club => club && club.id && club.club)
+          : [];
+        
+        console.log('Clubs validés:', validatedClubs.length);
+        setClubsData(validatedClubs);
+      } catch (error) {
+        console.error('Erreur lors du chargement des clubs:', error);
+        logger.error('Erreur lors du chargement des clubs');
+        setClubsData([]);
+      }
+    };
+
+    const fetchNews = async () => {
+      setLoading(true);
+      try {
+        console.log('Chargement des actualités...');
+        console.log('URL:', API_ENDPOINTS.NEWS);
+        const response = await fetch(API_ENDPOINTS.NEWS);
+        
+        console.log('Réponse HTTP:', response.status, response.statusText);
+        if (!response.ok) {
+          console.error('Erreur HTTP news:', response.status);
+          setNewsData([]);
+          return;
+        }
+        
+        const newsResult = await response.json();
+        console.log('Données des actualités reçues:', newsResult);
+        console.log('Type de newsResult:', typeof newsResult);
+        console.log('newsResult.success:', newsResult.success);
+        console.log('newsResult.data:', newsResult.data);
+        
+        let news = [];
+        if (newsResult.success && Array.isArray(newsResult.data)) {
+          news = newsResult.data;
+        } else if (Array.isArray(newsResult)) {
+          news = newsResult;
+        } else if (Array.isArray(newsResult.data)) {
+          news = newsResult.data;
+        }
+        
+        console.log('News avant validation:', news);
+        // Validation: s'assurer que chaque actualité a au moins les champs essentiels
+        const validatedNews = Array.isArray(news) 
+          ? news.filter(item => {
+              const isValid = item && item.id && item.title;
+              console.log('Validation item:', item?.id, item?.title, '=', isValid);
+              return isValid;
+            })
+          : [];
+        
+        console.log('Actualités validées:', validatedNews.length);
+        console.log('NewsData va être mis à jour avec:', validatedNews);
+        setNewsData(validatedNews);
+      } catch (error) {
+        console.error('Erreur lors du chargement des actualités:', error);
+        logger.error('Erreur lors du chargement des actualités');
+        setNewsData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    useEffect(() => {
+      try {
+        console.log('=== USEEFFECT NEWS ADMIN ===');
+        console.log('token:', token ? 'présent' : 'absent');
+        console.log('user:', user);
+        console.log('user?.role:', user?.role);
+        
+        if (!token) {
+          console.log('❌ Pas de token, redirection vers login');
+          navigate('/login');
+          return;
+        }
+        
+        if (user === null) {
+          console.log('⏳ User est null, affichage du loader');
+          setAuthLoading(true);
+          return;
+        }
+        
+        if (user.role !== 'admin') {
+          console.log('❌ User n\'est pas admin, redirection vers accueil');
+          navigate('/');
+          return;
+        }
+        
+        console.log('✅ Authentification OK, appel de fetchNews et fetchClubs');
+        setAuthLoading(false);
+        fetchNews();
+        fetchClubs();
+      } catch (error) {
+        console.error('Erreur dans useEffect de NewsAdmin:', error);
+        setAuthLoading(false);
+      }
+    }, [token, user, navigate]);
 
   // Afficher un loader pendant la vérification d'authentification
   if (authLoading) {
@@ -65,20 +167,6 @@ const NewsAdmin = () => {
     );
   }
 
-  const fetchClubs = async () => {
-    try {
-      const clubsResult = await fetch(API_ENDPOINTS.CLUBS).then(r => r.json());
-      const clubs = clubsResult.success && Array.isArray(clubsResult.data) 
-        ? clubsResult.data 
-        : (Array.isArray(clubsResult) ? clubsResult : []);
-      
-      setClubsData(Array.isArray(clubs) ? clubs : []);
-    } catch (error) {
-      logger.error('Erreur lors du chargement des clubs');
-      setClubsData([]);
-    }
-  };
-
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 4000);
@@ -89,40 +177,29 @@ const NewsAdmin = () => {
     setTimeout(() => setModalNotification(null), 5000);
   };
 
-  const fetchNews = async () => {
-    setLoading(true);
-    try {
-      const newsResult = await fetch(API_ENDPOINTS.NEWS).then(r => r.json());
-      const news = newsResult.success && Array.isArray(newsResult.data) 
-        ? newsResult.data 
-        : (Array.isArray(newsResult) ? newsResult : []);
-      
-      setNewsData(Array.isArray(news) ? news : []);
-    } catch (error) {
-      logger.error('Erreur lors du chargement des actualités');
-      setNewsData([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAdd = () => {
-    setEditingItem(null);
-    setFormData({
-      title: '',
-      content: '',
-      category: '',
-      date: new Date().toISOString().split('T')[0],
-      clubId: '',
-      organizer: '',
-      link: '',
-      isActive: true,
-      order_display: 0
-    });
-    setImageFile(null);
-    setImagePreview(null);
-    setShowModal(true);
-    document.body.style.overflow = 'hidden';
+    try {
+      setEditingItem(null);
+      setFormData({
+        title: '',
+        content: '',
+        category: '',
+        date: new Date().toISOString().split('T')[0],
+        clubId: '',
+        organizer: '',
+        link: '',
+        isActive: true,
+        order_display: 0
+      });
+      setImageFile(null);
+      setImagePreview(null);
+      setShowModal(true);
+      document.body.style.overflow = 'hidden';
+      console.log('Modal ajout ouvert');
+    } catch (error) {
+      console.error('Erreur lors de l\'ouverture du modal:', error);
+      showNotification('Erreur lors de l\'ouverture du formulaire', 'error');
+    }
   };
 
   const handleEdit = (item) => {
@@ -313,6 +390,13 @@ const NewsAdmin = () => {
     news.content?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  console.log('=== RENDU DU TABLEAU ===');
+  console.log('newsData.length:', newsData.length);
+  console.log('searchTerm:', searchTerm);
+  console.log('filteredNews.length:', filteredNews.length);
+  console.log('loading:', loading);
+  console.log('authLoading:', authLoading);
+
   const renderModal = () => {
     return (
       <AnimatePresence>
@@ -387,9 +471,9 @@ const NewsAdmin = () => {
                           <option value="">Sélectionner un organisateur</option>
                           <option value="adei">ADEI</option>
                           <option value="ensa">Administration ENSA Fès</option>
-                          {clubsData.map(club => (
+                          {Array.isArray(clubsData) && clubsData.map(club => (
                             <option key={club.id} value={club.id}>
-                              {club.club}
+                              {club.club || 'Club sans nom'}
                             </option>
                           ))}
                         </select>
@@ -415,7 +499,7 @@ const NewsAdmin = () => {
                         required
                       >
                         <option value="">Sélectionner une catégorie</option>
-                        {CATEGORY_OPTIONS.map(option => (
+                        {CATEGORY_OPTIONS && CATEGORY_OPTIONS.filter(option => option.value !== '').map(option => (
                           <option key={option.value} value={option.value}>
                             {option.label}
                           </option>
@@ -564,134 +648,142 @@ const NewsAdmin = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredNews.map((news) => (
-                    <tr key={news.id || news._id}>
-                      <td>
-                        <div className="cell-content">
-                          <div className="news-info">
-                            {news.image && (
-                              <img 
-                                src={getImageUrl(news.image)} 
-                                alt={news.title}
-                                className="news-thumbnail"
-                              />
-                            )}
-                            <div>
-                              <strong>{news.title}</strong>
+                  filteredNews.map((news) => {
+                    try {
+                      return (
+                        <tr key={news.id || news._id}>
+                          <td>
+                            <div className="cell-content">
+                              <div className="news-info">
+                                {news.image && (
+                                  <img 
+                                    src={getImageUrl(news.image)} 
+                                    alt={news.title || 'Actualité'}
+                                    className="news-thumbnail"
+                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                  />
+                                )}
+                                <div>
+                                  <strong>{news.title || 'Sans titre'}</strong>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        {news.date ? new Date(news.date).toLocaleDateString('fr-FR') : 'Non définie'}
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ fontWeight: '500' }}>
-                            {news.organizer || 'Non défini'}
-                          </span>
-                          {news.club && (
-                            <small style={{ color: 'var(--text-muted)' }}>
-                              Club: {news.club.club}
-                            </small>
-                          )}
-                        </div>
-                      </td>
-                      <td>{news.content?.substring(0, 60)}...</td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                          {news.image && (
-                            <span className="badge badge-info" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '2px' }}>
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                                <circle cx="8.5" cy="8.5" r="1.5"/>
-                                <polyline points="21,15 16,10 5,21"/>
-                              </svg>
-                              Image
-                            </span>
-                          )}
-                          {news.document && (
-                            <span className="badge badge-success" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '2px' }}>
-                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z"/>
-                                <polyline points="14,2 14,8 20,8"/>
-                              </svg>
-                              Doc
-                            </span>
-                          )}
-                          {!news.image && !news.document && (
-                            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>-</span>
-                          )}
-                        </div>
-                      </td>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <button
-                            onClick={() => handleReorder(news.id || news._id, 'up')}
-                            style={{
-                              background: 'none',
-                              border: '1px solid var(--border-color)',
-                              borderRadius: '4px',
-                              padding: '4px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                            title="Monter"
-                          >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="18,15 12,9 6,15"/>
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleReorder(news.id || news._id, 'down')}
-                            style={{
-                              background: 'none',
-                              border: '1px solid var(--border-color)',
-                              borderRadius: '4px',
-                              padding: '4px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
-                            title="Descendre"
-                          >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="6,9 12,15 18,9"/>
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="admin-actions">
-                          <button
-                            className="admin-action-btn edit"
-                            onClick={() => handleEdit(news)}
-                            title="Modifier cette actualité"
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                          </button>
-                          <button
-                            className="admin-action-btn delete"
-                            onClick={() => handleDelete(news.id || news._id)}
-                            title="Supprimer cette actualité"
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="3 6 5 6 21 6"/>
-                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                              <line x1="10" y1="11" x2="10" y2="17"/>
-                              <line x1="14" y1="11" x2="14" y2="17"/>
-                            </svg>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                          </td>
+                          <td>
+                            {news.date ? new Date(news.date).toLocaleDateString('fr-FR') : 'Non définie'}
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontWeight: '500' }}>
+                                {news.organizer || 'Non défini'}
+                              </span>
+                              {news.club && (
+                                <small style={{ color: 'var(--text-muted)' }}>
+                                  Club: {news.club.club || 'Club sans nom'}
+                                </small>
+                              )}
+                            </div>
+                          </td>
+                          <td>{news.content?.substring(0, 60) || ''}...</td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                              {news.image && (
+                                <span className="badge badge-info" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '2px' }}>
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                                    <polyline points="21,15 16,10 5,21"/>
+                                  </svg>
+                                  Image
+                                </span>
+                              )}
+                              {news.document && (
+                                <span className="badge badge-success" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center' }}>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '2px' }}>
+                                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z"/>
+                                    <polyline points="14,2 14,8 20,8"/>
+                                  </svg>
+                                  Doc
+                                </span>
+                              )}
+                              {!news.image && !news.document && (
+                                <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>-</span>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <button
+                                onClick={() => handleReorder(news.id || news._id, 'up')}
+                                style={{
+                                  background: 'none',
+                                  border: '1px solid var(--border-color)',
+                                  borderRadius: '4px',
+                                  padding: '4px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                                title="Monter"
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="18,15 12,9 6,15"/>
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => handleReorder(news.id || news._id, 'down')}
+                                style={{
+                                  background: 'none',
+                                  border: '1px solid var(--border-color)',
+                                  borderRadius: '4px',
+                                  padding: '4px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                                title="Descendre"
+                              >
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="6,9 12,15 18,9"/>
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="admin-actions">
+                              <button
+                                className="admin-action-btn edit"
+                                onClick={() => handleEdit(news)}
+                                title="Modifier cette actualité"
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                              </button>
+                              <button
+                                className="admin-action-btn delete"
+                                onClick={() => handleDelete(news.id || news._id)}
+                                title="Supprimer cette actualité"
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="3 6 5 6 21 6"/>
+                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                  <line x1="10" y1="11" x2="10" y2="17"/>
+                                  <line x1="14" y1="11" x2="14" y2="17"/>
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    } catch (error) {
+                      console.error('Erreur lors du rendu de la ligne:', news, error);
+                      return null;
+                    }
+                  })
                 )}
               </tbody>
             </table>
@@ -702,6 +794,37 @@ const NewsAdmin = () => {
       </div>
     </>
   );
+  } catch (error) {
+    console.error('Erreur dans le composant NewsAdmin:', error);
+    return (
+      <div style={{ 
+        padding: '20px', 
+        textAlign: 'center',
+        minHeight: '50vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <h2>Erreur du composant</h2>
+        <p>Une erreur s'est produite dans le composant NewsAdmin: {error?.message}</p>
+        <button 
+          onClick={() => window.location.href = '/'}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#ff3b30',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            marginTop: '10px'
+          }}
+        >
+          Retour à l'accueil
+        </button>
+      </div>
+    );
+  }
 };
 
 export default NewsAdmin;

@@ -44,6 +44,17 @@ const News = sequelize.define('News', {
     type: DataTypes.STRING(500),
     allowNull: true,
     comment: 'Lien externe vers plus d\'informations'
+  },
+  category: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+    defaultValue: 'autre'
+  },
+  order_display: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    comment: 'Ordre d\'affichage des actualités'
   }
 }, {
   tableName: 'news',
