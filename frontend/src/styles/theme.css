@@ -1155,16 +1155,54 @@ input[type="password"]::-webkit-input-placeholder {
 [data-theme="light"] input[type="password"] {
   color: var(--text-primary) !important;
   -webkit-text-fill-color: var(--text-primary) !important;
+  background: var(--white) !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  letter-spacing: normal !important;
 }
 
 [data-theme="light"] input[type="password"]:focus {
   color: var(--text-primary) !important;
   -webkit-text-fill-color: var(--text-primary) !important;
+  background: var(--white) !important;
 }
 
 [data-theme="light"] input[type="password"]::-webkit-input-placeholder {
   color: var(--text-muted) !important;
   -webkit-text-fill-color: var(--text-muted) !important;
+}
+
+/* Force password dots to show properly in light theme */
+[data-theme="light"] input[type="password"]:not(:placeholder-shown) {
+  font-family: caption !important;
+  letter-spacing: 0.1em !important;
+}
+
+/* Dark theme password inputs */
+input[type="password"] {
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  background: var(--black-card) !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  letter-spacing: normal !important;
+}
+
+input[type="password"]:focus {
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  background: var(--black-hover) !important;
+}
+
+input[type="password"]::-webkit-input-placeholder {
+  color: var(--text-muted) !important;
+  -webkit-text-fill-color: var(--text-muted) !important;
+}
+
+/* Force password dots to show properly */
+input[type="password"]:not(:placeholder-shown) {
+  font-family: caption !important;
+  letter-spacing: 0.1em !important;
 }
 
 .form-row {
@@ -2696,15 +2734,20 @@ input[type="password"]::-webkit-input-placeholder {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .password-input-container .form-input {
-  padding-right: 50px;
+  padding-right: 50px !important;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .password-toggle-btn {
   position: absolute;
-  right: 12px;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
@@ -2713,14 +2756,16 @@ input[type="password"]::-webkit-input-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
+  padding: 8px;
   border-radius: var(--radius-sm);
+  z-index: 2;
+  width: 32px;
+  height: 32px;
 }
 
 .password-toggle-btn:hover {
   color: var(--primary);
   background: var(--gray-800);
-  transform: scale(1.1);
 }
 
 .password-toggle-btn:focus {
@@ -2731,9 +2776,9 @@ input[type="password"]::-webkit-input-placeholder {
 }
 
 .password-toggle-btn svg {
-  width: 20px;
-  height: 20px;
-  transition: transform 0.2s ease;
+  width: 18px;
+  height: 18px;
+  transition: color 0.2s ease;
 }
 
 .password-toggle-btn:active svg {
@@ -4192,11 +4237,31 @@ html body .adei-member-photo::before {
 /* Light theme adjustments for password features */
 [data-theme="light"] .password-toggle-btn {
   color: var(--text-muted);
+  background: transparent;
 }
 
 [data-theme="light"] .password-toggle-btn:hover,
 [data-theme="light"] .password-toggle-btn:focus {
   color: var(--primary);
+  background: var(--primary-light);
+}
+
+[data-theme="light"] .password-input-container .form-input {
+  background: var(--white) !important;
+  border: 2px solid var(--card-border) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Dark theme password toggle button */
+.password-toggle-btn {
+  color: var(--gray-400);
+  background: transparent;
+}
+
+.password-toggle-btn:hover,
+.password-toggle-btn:focus {
+  color: var(--primary);
+  background: var(--gray-800);
 }
 
 [data-theme="light"] .password-summary {

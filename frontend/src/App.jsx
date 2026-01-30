@@ -21,6 +21,18 @@ import Contact from './pages/Contact';
 import Messages from './pages/Messages';
 import Profile from './pages/Profile';
 import ImageUploadTest from './components/ui/ImageUploadTest';
+
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import FilieresAdmin from './pages/admin/FilieresAdmin';
+import ClubsAdmin from './pages/admin/ClubsAdmin';
+import NewsAdmin from './pages/admin/NewsAdmin';
+import EventsAdmin from './pages/admin/EventsAdmin';
+import UsersAdmin from './pages/admin/UsersAdmin';
+import PartnersAdmin from './pages/admin/PartnersAdmin';
+import ADEIMembersAdmin from './pages/admin/ADEIMembersAdmin';
+import FeedbacksAdmin from './pages/admin/FeedbacksAdmin';
+
 import './styles/theme.css';
 import './styles/floating-theme-toggle.css';
 import './styles/modern-navbar.css';
@@ -59,7 +71,7 @@ function NotFound() {
 
 function AppContent() {
   const location = useLocation();
-  const isAdminPage = location.pathname === '/admin';
+  const isAdminPage = location.pathname.startsWith('/admin');
   const isProfilePage = location.pathname === '/profile';
   const shouldHideFooter = isAdminPage || isProfilePage;
 
@@ -86,6 +98,51 @@ function AppContent() {
               </ProtectedRoute>
             } />
             <Route path="/admin" element={
+              <ProtectedRoute requireAdmin={true}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/filieres" element={
+              <ProtectedRoute requireAdmin={true}>
+                <FilieresAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/clubs" element={
+              <ProtectedRoute requireAdmin={true}>
+                <ClubsAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/news" element={
+              <ProtectedRoute requireAdmin={true}>
+                <NewsAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/events" element={
+              <ProtectedRoute requireAdmin={true}>
+                <EventsAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute requireAdmin={true}>
+                <UsersAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/partners" element={
+              <ProtectedRoute requireAdmin={true}>
+                <PartnersAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/adei-members" element={
+              <ProtectedRoute requireAdmin={true}>
+                <ADEIMembersAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/feedbacks" element={
+              <ProtectedRoute requireAdmin={true}>
+                <FeedbacksAdmin />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/legacy" element={
               <ProtectedRoute requireAdmin={true}>
                 <AdminPanel />
               </ProtectedRoute>

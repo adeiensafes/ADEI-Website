@@ -27,6 +27,14 @@ const Profile = () => {
     different: false
   });
 
+  // État pour la sécurité du compte
+  const [passwordSecurityInfo, setPasswordSecurityInfo] = useState({
+    lastChangeDate: null,
+    daysAgo: null,
+    needsChange: false,
+    loading: true
+  });
+
   // Validation en temps réel des mots de passe
   useEffect(() => {
     const newPassword = passwordData.newPassword;
@@ -52,9 +60,58 @@ const Profile = () => {
     }
   }, [token, refreshUserProfile]);
 
+  // Charger les informations de sécurité du compte
+  useEffect(() => {
+    const fetchPasswordSecurityInfo = async () => {
+      if (!token) return;
+      
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/users/password-security`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            const lastChangeDate = result.data?.lastPasswordChange ? new Date(result.data.lastPasswordChange) : null;
+            const now = new Date();
+            const daysAgo = lastChangeDate ? Math.floor((now - lastChangeDate) / (1000 * 60 * 60 * 24)) : null;
+            const needsChange = daysAgo && daysAgo > 90; // Recommander changement après 90 jours
+
+            setPasswordSecurityInfo({
+              lastChangeDate,
+              daysAgo,
+              needsChange,
+              loading: false
+            });
+          }
+        } else {
+          // Si l'API n'existe pas encore, on met juste loading à false
+          setPasswordSecurityInfo(prev => ({ ...prev, loading: false }));
+        }
+      } catch (error) {
+        console.log('Sécurité du compte non disponible');
+        setPasswordSecurityInfo(prev => ({ ...prev, loading: false }));
+      }
+    };
+
+    fetchPasswordSecurityInfo();
+  }, [token]);
+
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 4000);
+  };
+
+  const showModalNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    // Ne pas auto-close les notifications modales pour les erreurs
+    if (type === 'success') {
+      setTimeout(() => setNotification(null), 3000);
+    }
   };
 
   const handlePasswordChange = async (e) => {
@@ -62,27 +119,27 @@ const Profile = () => {
     
     // Validation côté client
     if (!passwordData.currentPassword.trim()) {
-      showNotification('Veuillez entrer votre mot de passe actuel', 'error');
+      showModalNotification('Veuillez entrer votre mot de passe actuel', 'error');
       return;
     }
     
     if (!passwordData.newPassword.trim()) {
-      showNotification('Veuillez entrer un nouveau mot de passe', 'error');
+      showModalNotification('Veuillez entrer un nouveau mot de passe', 'error');
       return;
     }
     
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      showNotification('Les nouveaux mots de passe ne correspondent pas', 'error');
+      showModalNotification('Les nouveaux mots de passe ne correspondent pas', 'error');
       return;
     }
     
     if (passwordData.newPassword.length < 6) {
-      showNotification('Le nouveau mot de passe doit contenir au moins 6 caractères', 'error');
+      showModalNotification('Le nouveau mot de passe doit contenir au moins 6 caractères', 'error');
       return;
     }
     
     if (passwordData.currentPassword === passwordData.newPassword) {
-      showNotification('Le nouveau mot de passe doit être différent de l\'ancien', 'error');
+      showModalNotification('Le nouveau mot de passe doit être différent de l\'ancien', 'error');
       return;
     }
     
@@ -107,15 +164,28 @@ const Profile = () => {
       console.log('Password change response:', { status: response.status, result });
       
       if (response.ok) {
-        showNotification('Mot de passe modifié avec succès', 'success');
-        setShowPasswordModal(false);
-        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        showModalNotification('Mot de passe modifié avec succès', 'success');
+        
+        // Fermer le modal après un délai
+        setTimeout(() => {
+          setShowPasswordModal(false);
+          setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        }, 1500);
+        
+        // Mettre à jour les informations de sécurité
+        const now = new Date();
+        setPasswordSecurityInfo({
+          lastChangeDate: now,
+          daysAgo: 0,
+          needsChange: false,
+          loading: false
+        });
       } else {
-        showNotification(result.message || 'Erreur lors de la modification du mot de passe', 'error');
+        showModalNotification(result.message || 'Erreur lors de la modification du mot de passe', 'error');
       }
     } catch (error) {
       console.error('Password change error:', error);
-      showNotification('Erreur de connexion. Veuillez réessayer.', 'error');
+      showModalNotification('Erreur de connexion. Veuillez réessayer.', 'error');
     } finally {
       setPasswordLoading(false);
     }
@@ -284,6 +354,62 @@ const Profile = () => {
                   <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
                     Modifiez votre mot de passe pour sécuriser votre compte
                   </p>
+                  
+                  {/* Statut du mot de passe */}
+                  <div style={{ marginTop: 'var(--spacing-sm)' }}>
+                    {passwordSecurityInfo.loading ? (
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        <span style={{ display: 'inline-block', marginRight: '8px' }}>⏳</span>
+                        Vérification...
+                      </div>
+                    ) : passwordSecurityInfo.lastChangeDate ? (
+                      <div>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '0.85rem',
+                          color: passwordSecurityInfo.needsChange ? '#dc2626' : '#059669',
+                          fontWeight: '500'
+                        }}>
+                          {passwordSecurityInfo.needsChange ? (
+                            <>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                              </svg>
+                              <span>Changement recommandé</span>
+                            </>
+                          ) : (
+                            <>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polyline points="20,6 9,17 4,12"/>
+                              </svg>
+                              <span>Mot de passe sécurisé</span>
+                            </>
+                          )}
+                        </div>
+                        <div style={{
+                          fontSize: '0.8rem',
+                          color: 'var(--text-muted)',
+                          marginTop: '4px',
+                          marginLeft: '24px'
+                        }}>
+                          {passwordSecurityInfo.daysAgo === 0
+                            ? 'Modifié aujourd\'hui'
+                            : passwordSecurityInfo.daysAgo === 1
+                            ? 'Modifié hier'
+                            : `Modifié il y a ${passwordSecurityInfo.daysAgo} jours`}
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        <span style={{ display: 'inline-block', marginRight: '8px' }}>ℹ️</span>
+                        Aucun changement enregistré
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={() => {
@@ -444,6 +570,37 @@ const Profile = () => {
             }}>
               Changer le mot de passe
             </h3>
+            
+            {/* Notification modale */}
+            {notification && (
+              <div style={{
+                marginBottom: 'var(--spacing-lg)',
+                padding: 'var(--spacing-md)',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: notification.type === 'error' ? '#fee2e2' : '#f0fdf4',
+                border: `1px solid ${notification.type === 'error' ? '#fecaca' : '#86efac'}`,
+                color: notification.type === 'error' ? '#dc2626' : '#059669',
+                display: 'flex',
+                gap: 'var(--spacing-sm)',
+                alignItems: 'flex-start'
+              }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0, marginTop: '2px' }}>
+                  {notification.type === 'error' ? (
+                    <>
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="15" y1="9" x2="9" y2="15"/>
+                      <line x1="9" y1="9" x2="15" y2="15"/>
+                    </>
+                  ) : (
+                    <>
+                      <polyline points="20,6 9,17 4,12"/>
+                      <circle cx="12" cy="12" r="10"/>
+                    </>
+                  )}
+                </svg>
+                <span>{notification.message}</span>
+              </div>
+            )}
             
             <form onSubmit={handlePasswordChange}>
               {/* Mot de passe actuel */}

@@ -40,7 +40,8 @@ const ENSA = () => {
         ? result.data 
         : (Array.isArray(result) ? result : []);
       
-      console.log('📚 Filières récupérées:', data.length);
+      console.log('Filières récupérées:', data.length);
+      console.log('Données des filières:', data);
       
       // Parser les données et s'assurer que years est un tableau
       const parsedData = data.map(item => ({
@@ -56,8 +57,8 @@ const ENSA = () => {
       const filieresData = parsedData.filter(item => item.type === 'filiere');
       const prepaData = parsedData.filter(item => item.type === 'prepa');
       
-      console.log('🎓 Filières d\'ingénierie:', filieresData.length);
-      console.log('📖 Classes préparatoires:', prepaData.length);
+      console.log('Filières d\'ingénierie:', filieresData.length);
+      console.log('Classes préparatoires:', prepaData.length);
       
       setFilieres(filieresData);
       setClassesPrepa(prepaData);
@@ -105,9 +106,9 @@ const ENSA = () => {
             id: `${baseData.id}-A1`,
             name: `Classes Préparatoires CP1 - Section A1`,
             abbreviation: `CP1 - Section A1`,
-            responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
-            delegue: baseData.delegueA1 || 'Étudiant Délégué A1',
-            telDelegue: baseData.telDelegueA1 || '',
+            responsablePedagogique: baseData.responsable_pedagogique || 'Prof. Responsable Pédagogique',
+            delegue: baseData.delegue_cp1_a || 'Étudiant Délégué A1',
+            telDelegue: baseData.tel_delegue_cp1_a || '',
             section: 'A1',
             level: 'CP1',
             description: 'Formation préparatoire aux études d\'ingénieur - 1ère année, Section A. Cette section couvre les matières fondamentales : mathématiques, physique, chimie, informatique et langues.'
@@ -117,9 +118,9 @@ const ENSA = () => {
             id: `${baseData.id}-B1`,
             name: `Classes Préparatoires CP1 - Section B1`,
             abbreviation: `CP1 - Section B1`,
-            responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
-            delegue: baseData.delegueB1 || 'Étudiant Délégué B1',
-            telDelegue: baseData.telDelegueB1 || '',
+            responsablePedagogique: baseData.responsable_pedagogique || 'Prof. Responsable Pédagogique',
+            delegue: baseData.delegue_cp1_b || 'Étudiant Délégué B1',
+            telDelegue: baseData.tel_delegue_cp1_b || '',
             section: 'B1',
             level: 'CP1',
             description: 'Formation préparatoire aux études d\'ingénieur - 1ère année, Section B. Cette section couvre les matières fondamentales : mathématiques, physique, chimie, informatique et langues.'
@@ -129,9 +130,9 @@ const ENSA = () => {
             id: `${baseData.id}-C1`,
             name: `Classes Préparatoires CP1 - Section C1`,
             abbreviation: `CP1 - Section C1`,
-            responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
-            delegue: baseData.delegueC1 || 'Étudiant Délégué C1',
-            telDelegue: baseData.telDelegueC1 || '',
+            responsablePedagogique: baseData.responsable_pedagogique || 'Prof. Responsable Pédagogique',
+            delegue: baseData.delegue_cp1_c || 'Étudiant Délégué C1',
+            telDelegue: baseData.tel_delegue_cp1_c || '',
             section: 'C1',
             level: 'CP1',
             description: 'Formation préparatoire aux études d\'ingénieur - 1ère année, Section C. Cette section couvre les matières fondamentales : mathématiques, physique, chimie, informatique et langues.'
@@ -150,9 +151,9 @@ const ENSA = () => {
             id: `${baseData.id}-A2`,
             name: `Classes Préparatoires CP2 - Section A2`,
             abbreviation: `CP2 - Section A2`,
-            responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
-            delegue: baseData.delegueA2 || 'Étudiant Délégué A2',
-            telDelegue: baseData.telDelegueA2 || '',
+            responsablePedagogique: baseData.responsable_pedagogique || 'Prof. Responsable Pédagogique',
+            delegue: baseData.delegue_cp2_a || 'Étudiant Délégué A2',
+            telDelegue: baseData.tel_delegue_cp2_a || '',
             section: 'A2',
             level: 'CP2',
             description: 'Formation préparatoire aux études d\'ingénieur - 2ème année, Section A. Cette section approfondit les matières fondamentales et prépare à l\'accès au cycle ingénieur.'
@@ -162,9 +163,9 @@ const ENSA = () => {
             id: `${baseData.id}-B2`,
             name: `Classes Préparatoires CP2 - Section B2`,
             abbreviation: `CP2 - Section B2`,
-            responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
-            delegue: baseData.delegueB2 || 'Étudiant Délégué B2',
-            telDelegue: baseData.telDelegueB2 || '',
+            responsablePedagogique: baseData.responsable_pedagogique || 'Prof. Responsable Pédagogique',
+            delegue: baseData.delegue_cp2_b || 'Étudiant Délégué B2',
+            telDelegue: baseData.tel_delegue_cp2_b || '',
             section: 'B2',
             level: 'CP2',
             description: 'Formation préparatoire aux études d\'ingénieur - 2ème année, Section B. Cette section approfondit les matières fondamentales et prépare à l\'accès au cycle ingénieur.'
@@ -174,9 +175,9 @@ const ENSA = () => {
             id: `${baseData.id}-C2`,
             name: `Classes Préparatoires CP2 - Section C2`,
             abbreviation: `CP2 - Section C2`,
-            responsablePedagogique: baseData.responsablePedagogique || 'Prof. Responsable Pédagogique',
-            delegue: baseData.delegueC2 || 'Étudiant Délégué C2',
-            telDelegue: baseData.telDelegueC2 || '',
+            responsablePedagogique: baseData.responsable_pedagogique || 'Prof. Responsable Pédagogique',
+            delegue: baseData.delegue_cp2_c || 'Étudiant Délégué C2',
+            telDelegue: baseData.tel_delegue_cp2_c || '',
             section: 'C2',
             level: 'CP2',
             description: 'Formation préparatoire aux études d\'ingénieur - 2ème année, Section C. Cette section approfondit les matières fondamentales et prépare à l\'accès au cycle ingénieur.'
@@ -217,6 +218,7 @@ const ENSA = () => {
             abbreviation: `${filiere.abbreviation}${levelNumber}`,
             displayName: `${filiere.abbreviation} ${levelNumber}`,
             level: activeSection.toUpperCase(),
+            responsable: filiere.responsable_pedagogique || 'Prof. Responsable',
             delegue: delegue,
             telDelegue: telDelegue,
             description: description
@@ -268,7 +270,7 @@ const ENSA = () => {
         cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
-        height: '100%' // Assure que toutes les cartes ont la même hauteur
+        height: '100%'
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-5px)';
@@ -282,38 +284,48 @@ const ENSA = () => {
       {/* Header de la carte */}
       <div style={{ 
         display: 'flex', 
-        alignItems: 'center', 
+        alignItems: 'flex-start', 
         justifyContent: 'space-between',
-        marginBottom: 'var(--spacing-lg)'
+        marginBottom: 'var(--spacing-lg)',
+        position: 'relative'
       }}>
-        <div>
+        <div style={{ flex: 1 }}>
           <h3 style={{ 
             color: 'var(--color-primary)', 
             margin: 0,
             fontSize: 'var(--font-size-xl)',
-            fontWeight: 'bold'
+            fontWeight: '800',
+            letterSpacing: '-0.025em',
+            marginBottom: 'var(--spacing-xs)'
           }}>
             {filiere.displayName || filiere.abbreviation}
           </h3>
           <p style={{ 
             margin: 0, 
             color: 'var(--text-muted)',
-            fontSize: 'var(--font-size-sm)',
-            marginTop: 'var(--spacing-xs)'
+            fontSize: 'var(--font-size-md)',
+            lineHeight: '1.4',
+            fontWeight: '500'
           }}>
             {filiere.name}
           </p>
         </div>
         <div style={{
-          background: 'var(--color-primary)',
+          background: filiere.level === 'CI3' 
+            ? 'linear-gradient(135deg, #F59E0B, #FBBF24)' 
+            : 'linear-gradient(135deg, var(--color-primary), #3B82F6)',
           color: 'white',
-          padding: 'var(--spacing-xs) var(--spacing-sm)',
+          padding: 'var(--spacing-sm) var(--spacing-md)',
           borderRadius: 'var(--radius-lg)',
           fontSize: 'var(--font-size-sm)',
-          fontWeight: 'bold'
+          fontWeight: '700',
+          boxShadow: filiere.level === 'CI3' 
+            ? '0 4px 12px rgba(245, 158, 11, 0.3)' 
+            : '0 4px 12px rgba(37, 99, 235, 0.3)',
+          flexShrink: 0,
+          marginLeft: 'var(--spacing-md)'
         }}>
-          {filiere.section ? `Section ${filiere.section}` : 
-           filiere.level ? filiere.level :
+          {filiere.level ? filiere.level :
            filiere.type === 'prepa' ? 'Prépa' : 'Filière'}
         </div>
       </div>
@@ -321,186 +333,251 @@ const ENSA = () => {
       {/* Avertissement pour CI3 */}
       {filiere.level === 'CI3' && (
         <div style={{
-          background: '#FEF3C7',
-          border: '2px solid #F59E0B',
-          borderRadius: 'var(--radius-md)',
-          padding: 'var(--spacing-sm)',
+          background: 'linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)',
+          border: '3px solid #F59E0B',
+          borderRadius: 'var(--radius-lg)',
+          padding: 'var(--spacing-lg)',
           marginBottom: 'var(--spacing-lg)',
           display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--spacing-xs)',
-          boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)'
+          alignItems: 'flex-start',
+          gap: 'var(--spacing-md)',
+          boxShadow: '0 8px 25px rgba(245, 158, 11, 0.25)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#D97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <span style={{ 
-            fontSize: 'var(--font-size-sm)', 
-            color: '#B45309',
-            fontWeight: '700'
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '4px',
+            background: 'linear-gradient(90deg, #F59E0B, #FBBF24, #F59E0B)',
+          }}></div>
+          <div style={{
+            background: '#F59E0B',
+            borderRadius: '50%',
+            padding: 'var(--spacing-sm)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
           }}>
-            Filière en restructuration - Nouvelle version à venir
-          </span>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <div style={{ flex: 1 }}>
+            <h5 style={{ 
+              fontSize: 'var(--font-size-md)', 
+              color: '#D97706',
+              fontWeight: '800',
+              margin: '0 0 var(--spacing-sm) 0'
+            }}>
+              Filière en restructuration
+            </h5>
+            <p style={{ 
+              fontSize: 'var(--font-size-sm)', 
+              color: '#B45309',
+              lineHeight: '1.5',
+              fontWeight: '600',
+              margin: 0
+            }}>
+              <strong>Nouvelle version à venir :</strong> Cette filière fait partie de la réforme des filières de l'ENSA Fès. 
+              La version actuelle sera remplacée par une nouvelle filière l'année prochaine.
+            </p>
+          </div>
         </div>
       )}
 
-      {/* Responsables et Délégués */}
+      {/* Responsables et Délégués - Version Simplifiée */}
       <div style={{ marginBottom: 'var(--spacing-lg)' }}>
         {filiere.section ? (
-          // Pour les sections CP1/CP2 - Responsable pédagogique commun + délégué de section
-          <div>
-            <h4 style={{ 
-              color: 'var(--text-color)', 
-              marginBottom: 'var(--spacing-sm)',
-              fontSize: 'var(--font-size-md)'
-            }}>
-              Encadrement
-            </h4>
-            
-            {/* Responsable pédagogique */}
-            <div style={{ 
-              padding: 'var(--spacing-sm)',
-              background: 'var(--bg-secondary)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--card-border)',
-              marginBottom: 'var(--spacing-sm)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginBottom: 'var(--spacing-xs)' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="var(--color-primary)"/>
-                  <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="var(--color-primary)"/>
-                  <path d="M20 8H22V10H20V12H18V10H16V8H18V6H20V8Z" fill="var(--color-primary)"/>
+          // Pour les sections CP1/CP2 - Seulement le délégué de section
+          <div style={{ 
+            padding: 'var(--spacing-md)',
+            background: 'linear-gradient(135deg, var(--bg-secondary) 0%, rgba(220, 38, 38, 0.05) 100%)',
+            borderRadius: 'var(--radius-lg)',
+            border: '2px solid #DC2626',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '3px',
+              background: 'linear-gradient(90deg, #DC2626, #EF4444)',
+            }}></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
+              <div style={{
+                background: '#DC2626',
+                borderRadius: '50%',
+                padding: 'var(--spacing-xs)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="white"/>
+                  <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="white"/>
+                  <path d="M15 2L17 4L21 0" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                <strong style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-sm)' }}>
-                  Responsable Pédagogique
-                </strong>
               </div>
-              <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-sm)' }}>
-                {filiere.responsablePedagogique}
-              </p>
+              <strong style={{ color: '#DC2626', fontSize: 'var(--font-size-md)', fontWeight: '700' }}>
+                Délégué {filiere.section}
+              </strong>
             </div>
-            
-            {/* Délégué étudiant de section */}
-            <div style={{ 
-              padding: 'var(--spacing-sm)',
-              background: 'var(--bg-secondary)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--card-border)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginBottom: 'var(--spacing-xs)' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#DC2626"/>
-                  <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="#DC2626"/>
-                  <path d="M15 2L17 4L21 0" stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-md)', fontWeight: '600', marginBottom: 'var(--spacing-sm)' }}>
+              {filiere.delegue}
+            </p>
+            {filiere.telDelegue && (
+              <a 
+                href={`tel:${filiere.telDelegue}`}
+                style={{
+                  color: 'white',
+                  textDecoration: 'none',
+                  fontSize: 'var(--font-size-sm)',
+                  fontWeight: '600',
+                  padding: 'var(--spacing-sm) var(--spacing-md)',
+                  background: 'linear-gradient(135deg, #DC2626, #EF4444)',
+                  borderRadius: 'var(--radius-md)',
+                  transition: 'all 0.3s ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 'var(--spacing-sm)',
+                  boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)',
+                  transform: 'translateY(0)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 20px rgba(220, 38, 38, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.3)';
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M22 16.92V19.92C22 20.52 21.52 21 20.92 21C9.4 21 0 11.6 0 0.08C0 -0.52 0.48 -1 1.08 -1H4.08C4.68 -1 5.16 -0.52 5.16 0.08C5.16 2.08 5.52 4.04 6.2 5.88C6.36 6.24 6.24 6.68 5.92 6.96L4.4 8.48C6.44 12.44 9.56 15.56 13.52 17.6L15.04 16.08C15.32 15.76 15.76 15.64 16.12 15.8C17.96 16.48 19.92 16.84 21.92 16.84C22.52 16.84 23 17.32 23 17.92V20.92Z" fill="currentColor"/>
                 </svg>
-                <strong style={{ color: '#DC2626', fontSize: 'var(--font-size-sm)' }}>
-                  Délégué Section {filiere.section}
-                </strong>
-              </div>
-              <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-sm)', marginBottom: 'var(--spacing-xs)' }}>
-                {filiere.delegue}
-              </p>
-              {filiere.telDelegue && (
-                <a 
-                  href={`tel:${filiere.telDelegue}`}
-                  style={{
-                    color: 'var(--color-primary)',
-                    textDecoration: 'none',
-                    fontSize: 'var(--font-size-xs)',
-                    fontWeight: '600',
-                    padding: 'var(--spacing-xs) var(--spacing-sm)',
-                    background: 'var(--primary-light)',
-                    borderRadius: 'var(--radius-sm)',
-                    transition: 'all 0.3s ease',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 'var(--spacing-xs)'
-                  }}
-                  onMouseEnter={(e) => e.target.style.opacity = '0.8'}
-                  onMouseLeave={(e) => e.target.style.opacity = '1'}
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22 16.92V19.92C22 20.52 21.52 21 20.92 21C9.4 21 0 11.6 0 0.08C0 -0.52 0.48 -1 1.08 -1H4.08C4.68 -1 5.16 -0.52 5.16 0.08C5.16 2.08 5.52 4.04 6.2 5.88C6.36 6.24 6.24 6.68 5.92 6.96L4.4 8.48C6.44 12.44 9.56 15.56 13.52 17.6L15.04 16.08C15.32 15.76 15.76 15.64 16.12 15.8C17.96 16.48 19.92 16.84 21.92 16.84C22.52 16.84 23 17.32 23 17.92V20.92Z" fill="currentColor"/>
-                  </svg>
-                  {filiere.telDelegue}
-                </a>
-              )}
-            </div>
+                {filiere.telDelegue}
+              </a>
+            )}
           </div>
         ) : (
-          // Pour les filières - Responsable + délégué représentant
+          // Pour les filières - Responsable + délégué
           <div>
-            <h4 style={{ 
-              color: 'var(--text-color)', 
-              marginBottom: 'var(--spacing-sm)',
-              fontSize: 'var(--font-size-md)'
-            }}>
-              Encadrement
-            </h4>
-            
             {/* Responsable de filière */}
             <div style={{ 
-              padding: 'var(--spacing-sm)',
-              background: 'var(--bg-secondary)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--card-border)',
-              marginBottom: 'var(--spacing-sm)'
+              padding: 'var(--spacing-md)',
+              background: 'linear-gradient(135deg, var(--bg-secondary) 0%, rgba(37, 99, 235, 0.05) 100%)',
+              borderRadius: 'var(--radius-lg)',
+              border: '2px solid var(--color-primary)',
+              marginBottom: 'var(--spacing-md)',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginBottom: 'var(--spacing-xs)' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="var(--color-primary)"/>
-                  <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="var(--color-primary)"/>
-                  <path d="M20 8H22V10H20V12H18V10H16V8H18V6H20V8Z" fill="var(--color-primary)"/>
-                </svg>
-                <strong style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-sm)' }}>
-                  Responsable de Filière (3 ans)
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '3px',
+                background: 'linear-gradient(90deg, var(--color-primary), #3B82F6)',
+              }}></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
+                <div style={{
+                  background: 'var(--color-primary)',
+                  borderRadius: '50%',
+                  padding: 'var(--spacing-xs)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="white"/>
+                    <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="white"/>
+                    <path d="M20 8H22V10H20V12H18V10H16V8H18V6H20V8Z" fill="white"/>
+                  </svg>
+                </div>
+                <strong style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-md)', fontWeight: '700' }}>
+                  Responsable de Filière
                 </strong>
               </div>
-              <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-sm)' }}>
-                {filiere.responsable || 'Prof. Responsable'}
+              <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-md)', fontWeight: '600' }}>
+                {filiere.responsable || filiere.responsablePedagogique || 'Prof. Responsable'}
               </p>
             </div>
             
             {/* Délégué représentant */}
             <div style={{ 
-              padding: 'var(--spacing-sm)',
-              background: 'var(--bg-secondary)',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--card-border)'
+              padding: 'var(--spacing-md)',
+              background: 'linear-gradient(135deg, var(--bg-secondary) 0%, rgba(22, 163, 74, 0.05) 100%)',
+              borderRadius: 'var(--radius-lg)',
+              border: '2px solid #16A34A',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginBottom: 'var(--spacing-xs)' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#16A34A"/>
-                  <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="#16A34A"/>
-                  <path d="M15 2L17 4L21 0" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <strong style={{ color: '#16A34A', fontSize: 'var(--font-size-sm)' }}>
-                  Délégué Représentant
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '3px',
+                background: 'linear-gradient(90deg, #16A34A, #22C55E)',
+              }}></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
+                <div style={{
+                  background: '#16A34A',
+                  borderRadius: '50%',
+                  padding: 'var(--spacing-xs)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="white"/>
+                    <path d="M12 14C8.13401 14 5 17.134 5 21C5 21.5523 5.44772 22 6 22H18C18.5523 22 19 21.5523 19 21C19 17.134 15.866 14 12 14Z" fill="white"/>
+                    <path d="M15 2L17 4L21 0" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <strong style={{ color: '#16A34A', fontSize: 'var(--font-size-md)', fontWeight: '700' }}>
+                  Délégué {filiere.level || 'Représentant'}
                 </strong>
               </div>
-              <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-sm)', marginBottom: 'var(--spacing-xs)' }}>
+              <p style={{ margin: 0, color: 'var(--text-color)', fontSize: 'var(--font-size-md)', fontWeight: '600', marginBottom: 'var(--spacing-sm)' }}>
                 {filiere.delegue}
               </p>
               {filiere.telDelegue && (
                 <a 
                   href={`tel:${filiere.telDelegue}`}
                   style={{
-                    color: 'var(--color-primary)',
+                    color: 'white',
                     textDecoration: 'none',
-                    fontSize: 'var(--font-size-xs)',
+                    fontSize: 'var(--font-size-sm)',
                     fontWeight: '600',
-                    padding: 'var(--spacing-xs) var(--spacing-sm)',
-                    background: 'var(--primary-light)',
-                    borderRadius: 'var(--radius-sm)',
+                    padding: 'var(--spacing-sm) var(--spacing-md)',
+                    background: 'linear-gradient(135deg, #16A34A, #22C55E)',
+                    borderRadius: 'var(--radius-md)',
                     transition: 'all 0.3s ease',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: 'var(--spacing-xs)'
+                    gap: 'var(--spacing-sm)',
+                    boxShadow: '0 4px 12px rgba(22, 163, 74, 0.3)',
+                    transform: 'translateY(0)'
                   }}
-                  onMouseEnter={(e) => e.target.style.opacity = '0.8'}
-                  onMouseLeave={(e) => e.target.style.opacity = '1'}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 6px 20px rgba(22, 163, 74, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 4px 12px rgba(22, 163, 74, 0.3)';
+                  }}
                 >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22 16.92V19.92C22 20.52 21.52 21 20.92 21C9.4 21 0 11.6 0 0.08C0 -0.52 0.48 -1 1.08 -1H4.08C4.68 -1 5.16 -0.52 5.16 0.08C5.16 2.08 5.52 4.04 6.2 5.88C6.36 6.24 6.24 6.68 5.92 6.96L4.4 8.48C6.44 12.44 9.56 15.56 13.52 17.6L15.04 16.08C15.32 15.76 15.76 15.64 16.12 15.8C17.96 16.48 19.92 16.84 21.92 16.84C22.52 16.84 23 17.32 23 17.92V20.92Z" fill="currentColor"/>
                   </svg>
                   {filiere.telDelegue}
@@ -518,34 +595,43 @@ const ENSA = () => {
         flexWrap: 'wrap',
         marginBottom: 'var(--spacing-lg)'
       }}>
-        {filiere.documentation && (
-          <a
-            href={filiere.documentation}
-            target="_blank"
-            rel="noopener noreferrer"
+        {/* Toujours afficher le bouton Documentation */}
+        <a
+          href={filiere.documentation || '#'}
+          target={filiere.documentation ? "_blank" : "_self"}
+          rel="noopener noreferrer"
+          style={{ 
+            fontSize: 'var(--font-size-md)',
+            textDecoration: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--spacing-sm)',
+            opacity: filiere.documentation ? 1 : 0.5,
+            cursor: filiere.documentation ? 'pointer' : 'not-allowed',
+            color: filiere.documentation ? '#DC2626' : '#9CA3AF',
+            transition: 'opacity 0.3s ease',
+            padding: 'var(--spacing-xs) 0'
+          }}
+          onClick={!filiere.documentation ? (e) => e.preventDefault() : undefined}
+          onMouseEnter={(e) => {
+            if (filiere.documentation) e.target.style.opacity = '0.8';
+          }}
+          onMouseLeave={(e) => {
+            if (filiere.documentation) e.target.style.opacity = '1';
+          }}
+        >
+          <img 
+            src={`${process.env.PUBLIC_URL}/images/acrobat.png`} 
+            alt="Adobe Acrobat" 
+            width="18" 
+            height="18"
             style={{ 
-              fontSize: 'var(--font-size-md)',
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-sm)',
-              color: '#DC2626',
-              transition: 'opacity 0.3s ease',
-              padding: 'var(--spacing-xs) 0'
+              objectFit: 'contain',
+              filter: filiere.documentation ? 'none' : 'grayscale(1) opacity(0.5)'
             }}
-            onMouseEnter={(e) => e.target.style.opacity = '0.8'}
-            onMouseLeave={(e) => e.target.style.opacity = '1'}
-          >
-            <img 
-              src={`${process.env.PUBLIC_URL}/images/acrobat.png`} 
-              alt="Adobe Acrobat" 
-              width="18" 
-              height="18"
-              style={{ objectFit: 'contain' }}
-            />
-            Documentation
-          </a>
-        )}
+          />
+          {filiere.documentation ? 'Documentation' : 'Documentation (bientôt)'}
+        </a>
         {/* Toujours afficher le bouton Drive */}
         <a
           href={filiere.drive || '#'}
@@ -559,7 +645,7 @@ const ENSA = () => {
             gap: 'var(--spacing-sm)',
             opacity: filiere.drive ? 1 : 0.5,
             cursor: filiere.drive ? 'pointer' : 'not-allowed',
-            color: '#16A34A',
+            color: filiere.drive ? '#16A34A' : '#9CA3AF',
             transition: 'opacity 0.3s ease',
             padding: 'var(--spacing-xs) 0'
           }}
@@ -576,9 +662,12 @@ const ENSA = () => {
             alt="Google Drive" 
             width="18" 
             height="18"
-            style={{ objectFit: 'contain' }}
+            style={{ 
+              objectFit: 'contain',
+              filter: filiere.drive ? 'none' : 'grayscale(1) opacity(0.5)'
+            }}
           />
-          Drive
+          {filiere.drive ? 'Drive' : 'Drive (bientôt)'}
         </a>
       </div>
       
@@ -586,7 +675,7 @@ const ENSA = () => {
       <div style={{ 
         display: 'flex', 
         justifyContent: 'center',
-        marginTop: 'auto' // Pousse le bouton vers le bas
+        marginTop: 'auto'
       }}>
         <button
           onClick={() => openModal(filiere)}

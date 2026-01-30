@@ -44,6 +44,11 @@ const User = sequelize.define('User', {
   is_bureau_adei: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  lastPasswordChange: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    defaultValue: null
   }
 }, {
   tableName: 'users',

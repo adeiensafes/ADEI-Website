@@ -1060,15 +1060,62 @@ app.post('/api/users/change-password', authMiddleware, async (req, res) => {
     // Hash new password
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     
-    // Update password
-    await user.update({ password: hashedNewPassword });
+    // Update password and last password change date
+    await user.update({ 
+      password: hashedNewPassword,
+      lastPasswordChange: new Date()
+    });
     
     console.log('Password updated successfully for user:', user.username);
     
     res.json({ message: 'Mot de passe modifié avec succès' });
   } catch (error) {
     console.error('Error changing password:', error);
-    res.status(500).json({ message: 'Erreur lors de la modification du mot de passe' });
+    // Message d'erreur spécifique pour l'utilisateur
+    let errorMessage = 'Erreur lors de la modification du mot de passe';
+    
+    if (error.message && error.message.includes('Unknown column')) {
+      errorMessage = 'La base de données n\'est pas à jour. Veuillez contacter l\'administrateur.';
+    }
+    
+    res.status(500).json({ message: errorMessage });
+  }
+});
+
+// Get password security information endpoint
+app.get('/api/users/password-security', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'createdAt']
+    });
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
+    }
+    
+    // Try to get lastPasswordChange, fallback to createdAt if column doesn't exist
+    let lastPasswordChange = null;
+    try {
+      const userWithPassword = await User.findByPk(userId, {
+        attributes: ['lastPasswordChange']
+      });
+      lastPasswordChange = userWithPassword?.lastPasswordChange;
+    } catch (err) {
+      console.log('Column lastPasswordChange might not exist yet');
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        lastPasswordChange: lastPasswordChange || user.createdAt,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching password security info:', error);
+    res.status(500).json({ success: false, message: 'Erreur lors de la récupération des informations de sécurité' });
   }
 });
 
@@ -1274,9 +1321,20 @@ app.post('/api/filieres', authMiddleware, adminMiddleware, async (req, res) => {
 
 app.put('/api/filieres/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
+    console.log('🎓 FILIERES UPDATE DEBUG:');
+    console.log('Request body:', req.body);
+    console.log('Delegate fields in request:');
+    console.log('- delegue_annee1:', req.body.delegue_annee1);
+    console.log('- tel_delegue_annee1:', req.body.tel_delegue_annee1);
+    console.log('- delegue_annee2:', req.body.delegue_annee2);
+    console.log('- tel_delegue_annee2:', req.body.tel_delegue_annee2);
+    console.log('- delegue_annee3:', req.body.delegue_annee3);
+    console.log('- tel_delegue_annee3:', req.body.tel_delegue_annee3);
+    
     const [updated] = await Filiere.update(req.body, { where: { id: req.params.id } });
     if (updated) {
       const filiere = await Filiere.findByPk(req.params.id);
+      console.log('✅ Filiere updated successfully:', filiere.toJSON());
       res.json({ 
         success: true, 
         message: 'Filière modifiée avec succès!', 
@@ -1289,7 +1347,7 @@ app.put('/api/filieres/:id', authMiddleware, adminMiddleware, async (req, res) =
       });
     }
   } catch (error) {
-    console.error('Erreur mise à jour filière:', error);
+    console.error('❌ Erreur mise à jour filière:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Erreur lors de la mise à jour de la filière - Veuillez réessayer' 
