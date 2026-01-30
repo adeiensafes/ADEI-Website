@@ -680,6 +680,76 @@ const AdminPanel = () => {
         delete cleanedData.updatedAt;
         delete cleanedData.documentFile; // Remove this from JSON submissions
 
+        // Special field mapping for filières
+        if (activeTab === 'filieres') {
+          // Map frontend field names to database field names
+          if (cleanedData.responsablePedagogique !== undefined) {
+            cleanedData.responsable_pedagogique = cleanedData.responsablePedagogique;
+            delete cleanedData.responsablePedagogique;
+          }
+          if (cleanedData.RespoContact !== undefined) {
+            cleanedData.responsable_contact = cleanedData.RespoContact;
+            delete cleanedData.RespoContact;
+          }
+          // Map CP1 delegates
+          if (cleanedData.delegueA1 !== undefined) {
+            cleanedData.delegue_cp1_a = cleanedData.delegueA1;
+            delete cleanedData.delegueA1;
+          }
+          if (cleanedData.telDelegueA1 !== undefined) {
+            cleanedData.tel_delegue_cp1_a = cleanedData.telDelegueA1;
+            delete cleanedData.telDelegueA1;
+          }
+          if (cleanedData.delegueB1 !== undefined) {
+            cleanedData.delegue_cp1_b = cleanedData.delegueB1;
+            delete cleanedData.delegueB1;
+          }
+          if (cleanedData.telDelegueB1 !== undefined) {
+            cleanedData.tel_delegue_cp1_b = cleanedData.telDelegueB1;
+            delete cleanedData.telDelegueB1;
+          }
+          if (cleanedData.delegueC1 !== undefined) {
+            cleanedData.delegue_cp1_c = cleanedData.delegueC1;
+            delete cleanedData.delegueC1;
+          }
+          if (cleanedData.telDelegueC1 !== undefined) {
+            cleanedData.tel_delegue_cp1_c = cleanedData.telDelegueC1;
+            delete cleanedData.telDelegueC1;
+          }
+          // Map CP2 delegates
+          if (cleanedData.delegueA2 !== undefined) {
+            cleanedData.delegue_cp2_a = cleanedData.delegueA2;
+            delete cleanedData.delegueA2;
+          }
+          if (cleanedData.telDelegueA2 !== undefined) {
+            cleanedData.tel_delegue_cp2_a = cleanedData.telDelegueA2;
+            delete cleanedData.telDelegueA2;
+          }
+          if (cleanedData.delegueB2 !== undefined) {
+            cleanedData.delegue_cp2_b = cleanedData.delegueB2;
+            delete cleanedData.delegueB2;
+          }
+          if (cleanedData.telDelegueB2 !== undefined) {
+            cleanedData.tel_delegue_cp2_b = cleanedData.telDelegueB2;
+            delete cleanedData.telDelegueB2;
+          }
+          if (cleanedData.delegueC2 !== undefined) {
+            cleanedData.delegue_cp2_c = cleanedData.delegueC2;
+            delete cleanedData.delegueC2;
+          }
+          if (cleanedData.telDelegueC2 !== undefined) {
+            cleanedData.tel_delegue_cp2_c = cleanedData.telDelegueC2;
+            delete cleanedData.telDelegueC2;
+          }
+          // Remove unused fields
+          if (cleanedData.delegueFiliere !== undefined) {
+            delete cleanedData.delegueFiliere;
+          }
+          if (cleanedData.telDelegueFiliere !== undefined) {
+            delete cleanedData.telDelegueFiliere;
+          }
+        }
+
         // Handle special organizer values
         if (cleanedData.clubId === 'adei' || cleanedData.clubId === 'ensa') {
           cleanedData.organizer = cleanedData.clubId === 'adei' ? 'ADEI' : 'Administration ENSA Fès';
