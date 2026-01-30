@@ -1028,11 +1028,11 @@ app.post('/api/users/change-password', authMiddleware, async (req, res) => {
     });
     
     if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: 'Mot de passe actuel et nouveau mot de passe requis' });
+      return res.status(400).json({ success: false, message: 'Mot de passe actuel et nouveau mot de passe requis' });
     }
     
     if (newPassword.length < 6) {
-      return res.status(400).json({ message: 'Le nouveau mot de passe doit contenir au moins 6 caractères' });
+      return res.status(400).json({ success: false, message: 'Le nouveau mot de passe doit contenir au moins 6 caractères' });
     }
     
     // Use req.user.id from JWT token
@@ -1042,17 +1042,16 @@ app.post('/api/users/change-password', authMiddleware, async (req, res) => {
     const user = await User.findByPk(userId);
     if (!user) {
       console.log('User not found with ID:', userId);
-      return res.status(404).json({ message: 'Utilisateur non trouvé' });
+      return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
     }
     
     console.log('User found:', { id: user.id, username: user.username });
     
     // Verify current password
-    const bcrypt = require('bcryptjs');
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
     if (!isCurrentPasswordValid) {
       console.log('Current password is invalid for user:', user.username);
-      return res.status(400).json({ message: 'Mot de passe actuel incorrect' });
+      return res.status(400).json({ success: false, message: 'Mot de passe actuel incorrect' });
     }
     
     console.log('Current password is valid, updating password...');
@@ -1060,62 +1059,15 @@ app.post('/api/users/change-password', authMiddleware, async (req, res) => {
     // Hash new password
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     
-    // Update password and last password change date
-    await user.update({ 
-      password: hashedNewPassword,
-      lastPasswordChange: new Date()
-    });
+    // Update password
+    await user.update({ password: hashedNewPassword });
     
     console.log('Password updated successfully for user:', user.username);
     
-    res.json({ message: 'Mot de passe modifié avec succès' });
+    res.json({ success: true, message: 'Mot de passe modifié avec succès' });
   } catch (error) {
     console.error('Error changing password:', error);
-    // Message d'erreur spécifique pour l'utilisateur
-    let errorMessage = 'Erreur lors de la modification du mot de passe';
-    
-    if (error.message && error.message.includes('Unknown column')) {
-      errorMessage = 'La base de données n\'est pas à jour. Veuillez contacter l\'administrateur.';
-    }
-    
-    res.status(500).json({ message: errorMessage });
-  }
-});
-
-// Get password security information endpoint
-app.get('/api/users/password-security', authMiddleware, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    
-    const user = await User.findByPk(userId, {
-      attributes: ['id', 'createdAt']
-    });
-    
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
-    }
-    
-    // Try to get lastPasswordChange, fallback to createdAt if column doesn't exist
-    let lastPasswordChange = null;
-    try {
-      const userWithPassword = await User.findByPk(userId, {
-        attributes: ['lastPasswordChange']
-      });
-      lastPasswordChange = userWithPassword?.lastPasswordChange;
-    } catch (err) {
-      console.log('Column lastPasswordChange might not exist yet');
-    }
-    
-    res.json({
-      success: true,
-      data: {
-        lastPasswordChange: lastPasswordChange || user.createdAt,
-        createdAt: user.createdAt
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching password security info:', error);
-    res.status(500).json({ success: false, message: 'Erreur lors de la récupération des informations de sécurité' });
+    res.status(500).json({ success: false, message: 'Erreur lors de la modification du mot de passe' });
   }
 });
 
@@ -1321,20 +1273,9 @@ app.post('/api/filieres', authMiddleware, adminMiddleware, async (req, res) => {
 
 app.put('/api/filieres/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    console.log('🎓 FILIERES UPDATE DEBUG:');
-    console.log('Request body:', req.body);
-    console.log('Delegate fields in request:');
-    console.log('- delegue_annee1:', req.body.delegue_annee1);
-    console.log('- tel_delegue_annee1:', req.body.tel_delegue_annee1);
-    console.log('- delegue_annee2:', req.body.delegue_annee2);
-    console.log('- tel_delegue_annee2:', req.body.tel_delegue_annee2);
-    console.log('- delegue_annee3:', req.body.delegue_annee3);
-    console.log('- tel_delegue_annee3:', req.body.tel_delegue_annee3);
-    
     const [updated] = await Filiere.update(req.body, { where: { id: req.params.id } });
     if (updated) {
       const filiere = await Filiere.findByPk(req.params.id);
-      console.log('✅ Filiere updated successfully:', filiere.toJSON());
       res.json({ 
         success: true, 
         message: 'Filière modifiée avec succès!', 
@@ -1347,7 +1288,7 @@ app.put('/api/filieres/:id', authMiddleware, adminMiddleware, async (req, res) =
       });
     }
   } catch (error) {
-    console.error('❌ Erreur mise à jour filière:', error);
+    console.error('Erreur mise à jour filière:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Erreur lors de la mise à jour de la filière - Veuillez réessayer' 
