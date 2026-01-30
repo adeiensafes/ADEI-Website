@@ -153,7 +153,7 @@ function AppContent() {
           </Routes>
         </main>
         {!shouldHideFooter && <Footer />}
-        <FloatingThemeToggle />
+        {!location.pathname.startsWith('/admin') && <FloatingThemeToggle />}
       </div>
     </ErrorBoundary>
   );

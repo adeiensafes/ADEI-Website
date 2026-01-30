@@ -3340,8 +3340,7 @@ body:has(.admin-navigation.collapsed) .admin-panel {
   :root {
     --sidebar-width: 70px;
     --sidebar-collapsed-width: 50px;
-  }
-    justify-content: center;
+      justify-content : center;
   }
   
   .admin-nav-links {
@@ -3761,4 +3760,5 @@ body.sidebar-collapsed {
 
 .admin-navigation.collapsed .admin-nav-link:hover::after {
   opacity: 1;
+}
 }
