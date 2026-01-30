@@ -3304,20 +3304,71 @@ const AdminPanel = () => {
 
   return (
     <div className={`admin-dashboard ${pageReady ? 'fade-in' : ''}`}>
-      <div className="admin-header">
-        <h1>Tableau de Bord Admin</h1>
+      {/* Sidebar */}
+      <div className={`admin-sidebar ${dashboardCollapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-header">
+          <h2>Admin Panel</h2>
+          <button 
+            className="sidebar-toggle"
+            onClick={() => setDashboardCollapsed(!dashboardCollapsed)}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d={dashboardCollapsed ? "M9 18l6-6-6-6" : "M15 18l-6-6 6-6"}/>
+            </svg>
+          </button>
+        </div>
+        
+        <nav className="sidebar-nav">
+          {['news', 'events', 'clubs', 'filieres', 'partners', 'adei-members', 'feedbacks', 'users'].map(tab => (
+            <button
+              key={tab}
+              onClick={() => {
+                setActiveTab(tab);
+                setSearchTerm('');
+              }}
+              className={`sidebar-item ${activeTab === tab ? 'active' : ''}`}
+            >
+              <div className="sidebar-icon">
+                {tab === 'news' ? '📰' :
+                 tab === 'events' ? '📅' :
+                 tab === 'clubs' ? '🏛️' :
+                 tab === 'filieres' ? '🎓' :
+                 tab === 'partners' ? '🤝' :
+                 tab === 'adei-members' ? '👥' :
+                 tab === 'feedbacks' ? '💬' :
+                 '👤'}
+              </div>
+              <span className="sidebar-text">
+                {tab === 'news' ? 'Actualités' :
+                 tab === 'events' ? 'Événements' :
+                 tab === 'clubs' ? 'Clubs' :
+                 tab === 'filieres' ? 'Filières' :
+                 tab === 'partners' ? 'Partenaires' :
+                 tab === 'adei-members' ? 'Membres ADEI' :
+                 tab === 'feedbacks' ? 'Feedbacks' :
+                 'Utilisateurs'}
+              </span>
+            </button>
+          ))}
+        </nav>
       </div>
 
-      <div className="admin-stats">
-        <div className="stat-card">
-          <div className="stat-number">{newsData.length}</div>
-          <div className="stat-label">Actualités</div>
+      {/* Main Content */}
+      <div className={`admin-main ${dashboardCollapsed ? 'expanded' : ''}`}>
+        <div className="admin-header">
+          <h1>Tableau de Bord Admin</h1>
         </div>
-        <div className="stat-card secondary">
-          <div className="stat-number">{eventsData.length}</div>
-          <div className="stat-label">Événements</div>
-        </div>
-        <div className="stat-card success">
+
+        <div className="admin-stats">
+          <div className="stat-card">
+            <div className="stat-number">{newsData.length}</div>
+            <div className="stat-label">Actualités</div>
+          </div>
+          <div className="stat-card secondary">
+            <div className="stat-number">{eventsData.length}</div>
+            <div className="stat-label">Événements</div>
+          </div>
+          <div className="stat-card success">
           <div className="stat-number">{clubsData.length}</div>
           <div className="stat-label">Clubs</div>
         </div>
@@ -3867,6 +3918,7 @@ const AdminPanel = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      </div> {/* Close admin-main */}
     </div>
   );
 };

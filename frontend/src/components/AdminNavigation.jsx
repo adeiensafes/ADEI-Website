@@ -1,8 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 const AdminNavigation = () => {
   const location = useLocation();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Update body class when collapsed state changes
+  useEffect(() => {
+    if (isCollapsed) {
+      document.body.classList.add('sidebar-collapsed');
+    } else {
+      document.body.classList.remove('sidebar-collapsed');
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('sidebar-collapsed');
+    };
+  }, [isCollapsed]);
 
   const adminRoutes = [
     {
@@ -108,7 +123,7 @@ const AdminNavigation = () => {
   ];
 
   return (
-    <nav className="admin-navigation">
+    <nav className={`admin-navigation ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="admin-nav-container">
         <div className="admin-nav-brand">
           <Link to="/admin" className="admin-nav-logo">
@@ -117,8 +132,19 @@ const AdminNavigation = () => {
               <path d="M2 17l10 5 10-5"/>
               <path d="M2 12l10 5 10-5"/>
             </svg>
-            <span>ADEI Admin</span>
+            <span className="nav-text">ADEI Admin</span>
           </Link>
+          
+          {/* Toggle Button */}
+          <button 
+            className="nav-toggle-btn"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d={isCollapsed ? "M9 18l6-6-6-6" : "M15 18l-6-6 6-6"}/>
+            </svg>
+          </button>
         </div>
         
         <div className="admin-nav-links">
@@ -127,20 +153,21 @@ const AdminNavigation = () => {
               key={route.path}
               to={route.path}
               className={`admin-nav-link ${location.pathname === route.path ? 'active' : ''}`}
+              title={isCollapsed ? route.label : ''}
             >
               {route.icon}
-              <span>{route.label}</span>
+              <span className="nav-text">{route.label}</span>
             </Link>
           ))}
         </div>
 
         <div className="admin-nav-actions">
-          <Link to="/" className="admin-nav-link">
+          <Link to="/" className="admin-nav-link" title={isCollapsed ? 'Retour au site' : ''}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
               <polyline points="9,22 9,12 15,12 15,22"/>
             </svg>
-            <span>Retour au site</span>
+            <span className="nav-text">Retour au site</span>
           </Link>
         </div>
       </div>
