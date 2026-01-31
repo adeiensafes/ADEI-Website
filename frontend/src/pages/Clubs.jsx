@@ -24,7 +24,20 @@ const Clubs = () => {
   const fetchClubs = useCallback(async () => {
     try {
       const response = await fetch(API_ENDPOINTS.CLUBS);
+      
+      // Check if response is ok
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const result = await response.json();
+      
+      // Handle error responses from API
+      if (result.success === false) {
+        console.error('API Error:', result.message || result.error);
+        setClubs([]);
+        return;
+      }
       
       // Gérer la nouvelle structure de réponse de l'API
       let clubsData = [];

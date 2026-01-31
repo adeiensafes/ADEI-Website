@@ -705,14 +705,74 @@ app.delete('/api/events/:id', authMiddleware, adminMiddleware, async (req, res) 
 });
 
 // Routes Clubs
-app.get('/api/clubs', asyncWrapper(async (req, res) => {
-  const clubs = await Club.findAll({ order: [['createdAt', 'DESC']] });
-  res.json({
-    success: true,
-    data: clubs,
-    count: clubs.length
-  });
-}));
+app.get('/api/clubs', async (req, res) => {
+  try {
+    console.log('🏢 Fetching clubs from database...');
+    
+    // Use raw SQL query with actual database columns
+    const [clubs] = await sequelize.query(`
+      SELECT 
+        id, club, president, annees_etude, tel, email, website, image, 
+        description, activities, achievements, members,
+        facebook, instagram, linkedin, createdAt, updatedAt
+      FROM clubs 
+      ORDER BY createdAt DESC
+    `);
+    
+    // Transform the data to match frontend expectations
+    const transformedClubs = clubs.map(club => {
+      let activitiesArray = [];
+      let achievementsArray = [];
+      
+      // Parse activities if it's JSON, otherwise treat as text
+      if (club.activities) {
+        try {
+          activitiesArray = JSON.parse(club.activities);
+        } catch (e) {
+          activitiesArray = club.activities.split(',').map(item => item.trim()).filter(item => item);
+        }
+      }
+      
+      // Parse achievements if it's JSON, otherwise treat as text
+      if (club.achievements) {
+        try {
+          achievementsArray = JSON.parse(club.achievements);
+        } catch (e) {
+          achievementsArray = club.achievements.split(',').map(item => item.trim()).filter(item => item);
+        }
+      }
+      
+      return {
+        ...club,
+        activities: activitiesArray,
+        achievements: achievementsArray,
+        members: club.members || 0,
+        socialMedia: {
+          facebook: club.facebook || '',
+          instagram: club.instagram || '',
+          linkedin: club.linkedin || ''
+        }
+      };
+    });
+    
+    console.log(`✅ Found ${transformedClubs.length} clubs in database`);
+    
+    res.json({
+      success: true,
+      data: transformedClubs,
+      count: transformedClubs.length,
+      source: 'database'
+    });
+    
+  } catch (error) {
+    console.error('❌ Database error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des clubs',
+      error: error.message
+    });
+  }
+});
 
 app.post('/api/clubs', authMiddleware, adminMiddleware, upload.single('image'), async (req, res) => {
   try {
