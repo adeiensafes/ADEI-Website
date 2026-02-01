@@ -40,11 +40,11 @@ const Club = sequelize.define('Club', {
     defaultValue: ''
   },
   activities: {
-    type: DataTypes.LONGTEXT,
+    type: DataTypes.TEXT,
     defaultValue: ''
   },
   achievements: {
-    type: DataTypes.LONGTEXT,
+    type: DataTypes.TEXT,
     defaultValue: ''
   },
   members: {
