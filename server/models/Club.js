@@ -35,37 +35,33 @@ const Club = sequelize.define('Club', {
     type: DataTypes.STRING(500),
     defaultValue: ''
   },
-  observations: {
-    type: DataTypes.TEXT,
-    defaultValue: ''
-  },
   description: {
     type: DataTypes.TEXT,
     defaultValue: ''
   },
   activities: {
-    type: DataTypes.JSON,
-    defaultValue: []
+    type: DataTypes.LONGTEXT,
+    defaultValue: ''
   },
   achievements: {
-    type: DataTypes.JSON,
-    defaultValue: []
+    type: DataTypes.LONGTEXT,
+    defaultValue: ''
   },
   members: {
-    type: DataTypes.JSON,
-    defaultValue: []
+    type: DataTypes.INTEGER,
+    defaultValue: 0
   },
-  meetings: {
+  facebook: {
     type: DataTypes.STRING(500),
     defaultValue: ''
   },
-  socialMedia: {
-    type: DataTypes.JSON,
-    defaultValue: {
-      facebook: '',
-      instagram: '',
-      linkedin: ''
-    }
+  instagram: {
+    type: DataTypes.STRING(500),
+    defaultValue: ''
+  },
+  linkedin: {
+    type: DataTypes.STRING(500),
+    defaultValue: ''
   }
 }, {
   tableName: 'clubs',

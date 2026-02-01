@@ -705,19 +705,14 @@ app.delete('/api/events/:id', authMiddleware, adminMiddleware, async (req, res) 
 });
 
 // Routes Clubs
-app.get('/api/clubs', async (req, res) => {
+app.get('/api/clubs', asyncWrapper(async (req, res) => {
   try {
     console.log('🏢 Fetching clubs from database...');
     
-    // Use raw SQL query with actual database columns
-    const [clubs] = await sequelize.query(`
-      SELECT 
-        id, club, president, annees_etude, tel, email, website, image, 
-        description, activities, achievements, members,
-        facebook, instagram, linkedin, createdAt, updatedAt
-      FROM clubs 
-      ORDER BY createdAt DESC
-    `);
+    // Use Sequelize to fetch clubs - safer than raw queries
+    const clubs = await Club.findAll({
+      order: [['createdAt', 'DESC']]
+    });
     
     // Transform the data to match frontend expectations
     const transformedClubs = clubs.map(club => {
@@ -727,26 +722,43 @@ app.get('/api/clubs', async (req, res) => {
       // Parse activities if it's JSON, otherwise treat as text
       if (club.activities) {
         try {
-          activitiesArray = JSON.parse(club.activities);
+          activitiesArray = Array.isArray(club.activities) ? club.activities : JSON.parse(club.activities);
         } catch (e) {
-          activitiesArray = club.activities.split(',').map(item => item.trim()).filter(item => item);
+          activitiesArray = typeof club.activities === 'string' 
+            ? club.activities.split(',').map(item => item.trim()).filter(item => item)
+            : [];
         }
       }
       
       // Parse achievements if it's JSON, otherwise treat as text
       if (club.achievements) {
         try {
-          achievementsArray = JSON.parse(club.achievements);
+          achievementsArray = Array.isArray(club.achievements) ? club.achievements : JSON.parse(club.achievements);
         } catch (e) {
-          achievementsArray = club.achievements.split(',').map(item => item.trim()).filter(item => item);
+          achievementsArray = typeof club.achievements === 'string'
+            ? club.achievements.split(',').map(item => item.trim()).filter(item => item)
+            : [];
         }
       }
       
       return {
-        ...club,
+        id: club.id,
+        club: club.club,
+        president: club.president,
+        annees_etude: club.annees_etude,
+        tel: club.tel,
+        email: club.email,
+        website: club.website || '',
+        image: club.image || '',
+        description: club.description || '',
         activities: activitiesArray,
         achievements: achievementsArray,
         members: club.members || 0,
+        facebook: club.facebook || '',
+        instagram: club.instagram || '',
+        linkedin: club.linkedin || '',
+        createdAt: club.createdAt,
+        updatedAt: club.updatedAt,
         socialMedia: {
           facebook: club.facebook || '',
           instagram: club.instagram || '',
@@ -765,14 +777,10 @@ app.get('/api/clubs', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('❌ Database error:', error.message);
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la récupération des clubs',
-      error: error.message
-    });
+    console.error('❌ Database error in /api/clubs:', error);
+    throw error;
   }
-});
+}));
 
 app.post('/api/clubs', authMiddleware, adminMiddleware, upload.single('image'), async (req, res) => {
   try {
