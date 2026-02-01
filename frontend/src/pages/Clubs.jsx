@@ -64,11 +64,11 @@ const Clubs = () => {
           : (typeof club.achievements === 'string' 
               ? (club.achievements.trim() ? JSON.parse(club.achievements) : [])
               : []),
-        members: Array.isArray(club.members) 
+        members: typeof club.members === 'number' 
           ? club.members 
           : (typeof club.members === 'string' 
-              ? (club.members.trim() ? JSON.parse(club.members) : [])
-              : []),
+              ? parseInt(club.members) || 0
+              : 0),
         socialMedia: typeof club.socialMedia === 'object' && club.socialMedia !== null
           ? club.socialMedia
           : (typeof club.socialMedia === 'string'
@@ -109,7 +109,41 @@ const Clubs = () => {
   }
 
   return (
-    <div className={`page-container ${pageReady ? 'fade-in' : ''}`}>
+    <>
+      <style>
+        {`
+          @keyframes pulse-glow {
+            0% {
+              box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4), 0 0 0 4px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 107, 107, 0.3);
+            }
+            100% {
+              box-shadow: 0 12px 35px rgba(255, 107, 107, 0.6), 0 0 0 6px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 107, 107, 0.5);
+            }
+          }
+          
+          @keyframes gradient-shift {
+            0% {
+              background-position: 0% 50%;
+            }
+            50% {
+              background-position: 100% 50%;
+            }
+            100% {
+              background-position: 0% 50%;
+            }
+          }
+          
+          @keyframes float {
+            0%, 100% {
+              transform: translateY(0px) scale(1);
+            }
+            50% {
+              transform: translateY(-5px) scale(1.02);
+            }
+          }
+        `}
+      </style>
+      <div className={`page-container ${pageReady ? 'fade-in' : ''}`}>
       <div
         className="hero"
         style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/images/hero-clubs.png)` }}
@@ -212,8 +246,65 @@ const Clubs = () => {
                   alignItems: 'flex-start', 
                   gap: 'var(--spacing-lg)', 
                   marginBottom: 'var(--spacing-lg)',
-                  flex: 1 // Prend l'espace disponible
+                  flex: 1,
+                  position: 'relative'
                 }}>
+                  {/* Member count badge - positioned at bottom right with effects */}
+                  {club.members > 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '-15px',
+                      right: '-15px',
+                      background: 'linear-gradient(135deg, #ff6b6b, #ee5a24, #ff9ff3, #54a0ff)',
+                      backgroundSize: '300% 300%',
+                      color: 'white',
+                      borderRadius: '50%',
+                      width: '80px',
+                      height: '80px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 8px 25px rgba(255, 107, 107, 0.4), 0 0 0 4px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 107, 107, 0.3)',
+                      border: '3px solid white',
+                      zIndex: 10,
+                      animation: 'pulse-glow 2s ease-in-out infinite alternate, gradient-shift 4s ease-in-out infinite',
+                      transform: 'scale(1)',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.1) rotate(5deg)';
+                      e.currentTarget.style.boxShadow = '0 12px 35px rgba(255, 107, 107, 0.6), 0 0 0 6px rgba(255, 255, 255, 0.9), 0 0 30px rgba(255, 107, 107, 0.5)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(255, 107, 107, 0.4), 0 0 0 4px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 107, 107, 0.3)';
+                    }}
+                    >
+                      <span style={{ 
+                        fontSize: '24px', 
+                        fontWeight: '900',
+                        lineHeight: '1',
+                        textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+                        filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))'
+                      }}>
+                        {club.members}
+                      </span>
+                      <span style={{ 
+                        fontSize: '11px', 
+                        textTransform: 'uppercase',
+                        letterSpacing: '1px',
+                        lineHeight: '1',
+                        fontWeight: '700',
+                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                        marginTop: '2px'
+                      }}>
+                        {club.members === 1 ? 'membre' : 'membres'}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="club-card-content-wrapper" style={{ flex: 1 }}>
                     <div className="club-card-info">
                       <h2 className="club-card-title" style={{
@@ -230,24 +321,14 @@ const Clubs = () => {
                         <p style={{ margin: '0 0 var(--spacing-xs) 0' }}>
                           <strong>Président :</strong> {club.president}
                         </p>
-                        <p style={{ margin: '0 0 var(--spacing-xs) 0' }}>
-                          <strong>Année d'étude :</strong> {club.annees_etude}
-                        </p>
-                      </div>
-
-                      <div style={{ marginBottom: 'var(--spacing-md)' }}>
-                        <p style={{ margin: '0 0 var(--spacing-xs) 0' }}>
-                          <strong>Téléphone :</strong>{' '}
-                          <a href={`tel:${club.tel}`} className="text-primary">
-                            {club.tel}
-                          </a>
-                        </p>
-                        <p style={{ margin: '0 0 var(--spacing-xs) 0' }}>
-                          <strong>Email :</strong>{' '}
-                          <a href={`mailto:${club.email}`} className="text-primary">
-                            {club.email}
-                          </a>
-                        </p>
+                        {club.tel && (
+                          <p style={{ margin: '0 0 var(--spacing-xs) 0' }}>
+                            <strong>Contact :</strong>{' '}
+                            <a href={`tel:${club.tel}`} className="text-primary">
+                              {club.tel}
+                            </a>
+                          </p>
+                        )}
                         {club.website && (
                           <p style={{ margin: '0 0 var(--spacing-xs) 0' }}>
                             <strong>Site web :</strong>{' '}
@@ -265,9 +346,6 @@ const Clubs = () => {
 
                       {club.description && (
                         <div style={{ marginBottom: 'var(--spacing-md)' }}>
-                          <p style={{ margin: '0 0 var(--spacing-xs) 0' }}>
-                            <strong>Description :</strong>
-                          </p>
                           <p style={{ 
                             color: 'var(--text-muted)', 
                             lineHeight: '1.5',
@@ -521,38 +599,35 @@ const Clubs = () => {
                   </div>
                 )}
 
-                {/* Membres */}
-                {selectedClub.members && Array.isArray(selectedClub.members) && selectedClub.members.length > 0 && (
+                {/* Nombre de membres */}
+                {selectedClub.members > 0 && (
                   <div style={{ marginBottom: 'var(--spacing-lg)' }}>
                     <h3 style={{ color: 'var(--color-primary)', marginBottom: 'var(--spacing-sm)' }}>
-                      Membres du bureau
+                      Membres du club
                     </h3>
                     <div style={{ 
-                      display: 'grid', 
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
-                      gap: 'var(--spacing-md)' 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 'var(--spacing-sm)',
+                      background: 'var(--bg-secondary)', 
+                      padding: 'var(--spacing-md)', 
+                      borderRadius: 'var(--radius-lg)',
+                      border: '1px solid var(--card-border)'
                     }}>
-                      {selectedClub.members.map((member, index) => (
-                        <div 
-                          key={index} 
-                          style={{ 
-                            background: 'var(--bg-secondary)', 
-                            padding: 'var(--spacing-md)', 
-                            borderRadius: 'var(--radius-lg)',
-                            border: '1px solid var(--card-border)'
-                          }}
-                        >
-                          <p style={{ margin: 0, fontWeight: 'bold' }}>{member.name}</p>
-                          <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                            {member.role}
-                          </p>
-                          {member.year && (
-                            <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 'var(--font-size-sm)' }}>
-                              {member.year}
-                            </p>
-                          )}
-                        </div>
-                      ))}
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--color-primary)' }}>
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                      <div>
+                        <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'bold', color: 'var(--color-primary)' }}>
+                          {selectedClub.members}
+                        </span>
+                        <span style={{ marginLeft: 'var(--spacing-xs)', color: 'var(--text-muted)' }}>
+                          {selectedClub.members === 1 ? 'membre' : 'membres'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -665,6 +740,7 @@ const Clubs = () => {
         document.body
       )}
     </div>
+    </>
   );
 };
 

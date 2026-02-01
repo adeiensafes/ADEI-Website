@@ -370,6 +370,18 @@ const ClubsAdmin = () => {
                     </div>
 
                     <div className="form-group">
+                      <label className="form-label">Nombre de membres</label>
+                      <input
+                        type="number"
+                        className="form-input"
+                        value={formData.members || ''}
+                        onChange={(e) => setFormData({ ...formData, members: parseInt(e.target.value) || 0 })}
+                        placeholder="Nombre de membres du club"
+                        min="0"
+                      />
+                    </div>
+
+                    <div className="form-group">
                       <label className="form-label">Réseaux sociaux</label>
                       <div className="form-grid three-cols">
                         <input
