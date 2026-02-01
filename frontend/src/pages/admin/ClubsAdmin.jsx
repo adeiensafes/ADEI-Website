@@ -77,11 +77,13 @@ const ClubsAdmin = () => {
       email: '',
       website: '',
       description: '',
-      activities: [],
-      achievements: [],
-      members: [],
+      activities: '',
+      achievements: '',
+      members: 0,
       meetings: '',
-      socialMedia: { facebook: '', instagram: '', linkedin: '' },
+      facebook: '',
+      instagram: '',
+      linkedin: '',
       observations: ''
     });
     setImageFile(null);
@@ -95,45 +97,24 @@ const ClubsAdmin = () => {
     
     const preparedData = { ...item };
     
-    // S'assurer que les champs JSON sont des tableaux/objets
-    if (typeof preparedData.members === 'string') {
-      try {
-        preparedData.members = JSON.parse(preparedData.members);
-      } catch (e) {
-        preparedData.members = [];
-      }
-    } else if (!Array.isArray(preparedData.members)) {
-      preparedData.members = [];
+    // Convert socialMedia object to separate fields if it exists
+    if (preparedData.socialMedia && typeof preparedData.socialMedia === 'object') {
+      preparedData.facebook = preparedData.socialMedia.facebook || '';
+      preparedData.instagram = preparedData.socialMedia.instagram || '';
+      preparedData.linkedin = preparedData.socialMedia.linkedin || '';
     }
     
-    if (typeof preparedData.activities === 'string') {
-      try {
-        preparedData.activities = JSON.parse(preparedData.activities);
-      } catch (e) {
-        preparedData.activities = [];
-      }
-    } else if (!Array.isArray(preparedData.activities)) {
-      preparedData.activities = [];
+    // Ensure members is a number
+    if (typeof preparedData.members !== 'number') {
+      preparedData.members = parseInt(preparedData.members) || 0;
     }
     
-    if (typeof preparedData.achievements === 'string') {
-      try {
-        preparedData.achievements = JSON.parse(preparedData.achievements);
-      } catch (e) {
-        preparedData.achievements = [];
-      }
-    } else if (!Array.isArray(preparedData.achievements)) {
-      preparedData.achievements = [];
+    // Handle activities and achievements as text
+    if (Array.isArray(preparedData.activities)) {
+      preparedData.activities = preparedData.activities.join(', ');
     }
-    
-    if (typeof preparedData.socialMedia === 'string') {
-      try {
-        preparedData.socialMedia = JSON.parse(preparedData.socialMedia);
-      } catch (e) {
-        preparedData.socialMedia = { facebook: '', instagram: '', linkedin: '' };
-      }
-    } else if (!preparedData.socialMedia || typeof preparedData.socialMedia !== 'object') {
-      preparedData.socialMedia = { facebook: '', instagram: '', linkedin: '' };
+    if (Array.isArray(preparedData.achievements)) {
+      preparedData.achievements = preparedData.achievements.join(', ');
     }
     
     setFormData(preparedData);
@@ -179,13 +160,9 @@ const ClubsAdmin = () => {
       
       // Add all form fields except files and metadata
       Object.keys(formData).forEach(key => {
-        if (key !== '_id' && key !== 'id' && key !== '__v' && key !== 'createdAt' && key !== 'updatedAt' && key !== 'image') {
-          if (key === 'activities' || key === 'achievements') {
-            formDataObj.append(key, JSON.stringify(formData[key] || []));
-          } else if (key === 'socialMedia') {
-            formDataObj.append(key, JSON.stringify(formData[key] || {}));
-          } else if (key === 'members') {
-            formDataObj.append(key, JSON.stringify(formData[key] || []));
+        if (key !== '_id' && key !== 'id' && key !== '__v' && key !== 'createdAt' && key !== 'updatedAt' && key !== 'image' && key !== 'socialMedia') {
+          if (key === 'members') {
+            formDataObj.append(key, parseInt(formData[key]) || 0);
           } else if (formData[key] !== null && formData[key] !== undefined && formData[key] !== '') {
             formDataObj.append(key, formData[key]);
           }
@@ -390,6 +367,33 @@ const ClubsAdmin = () => {
                         imagePreview={imagePreview}
                         getImageUrl={getImageUrl}
                       />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Réseaux sociaux</label>
+                      <div className="form-grid three-cols">
+                        <input
+                          type="url"
+                          className="form-input"
+                          placeholder="Facebook URL"
+                          value={formData.facebook || ''}
+                          onChange={(e) => setFormData({ ...formData, facebook: e.target.value })}
+                        />
+                        <input
+                          type="url"
+                          className="form-input"
+                          placeholder="Instagram URL"
+                          value={formData.instagram || ''}
+                          onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                        />
+                        <input
+                          type="url"
+                          className="form-input"
+                          placeholder="LinkedIn URL"
+                          value={formData.linkedin || ''}
+                          onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+                        />
+                      </div>
                     </div>
 
                     <div className="form-group">

@@ -585,15 +585,18 @@ const AdminPanel = () => {
         
         // Add all form fields except files and metadata
         Object.keys(formData).forEach(key => {
-          if (key !== '_id' && key !== 'id' && key !== '__v' && key !== 'createdAt' && key !== 'updatedAt' && key !== 'photo' && key !== 'documentFile') {
-            if (key === 'activities' || key === 'achievements') {
-              // Convert arrays to JSON string for FormData
+          if (key !== '_id' && key !== 'id' && key !== '__v' && key !== 'createdAt' && key !== 'updatedAt' && key !== 'photo' && key !== 'documentFile' && key !== 'socialMedia') {
+            if (activeTab === 'clubs' && (key === 'activities' || key === 'achievements')) {
+              // For clubs, activities and achievements are text fields
+              formDataObj.append(key, formData[key] || '');
+            } else if (activeTab === 'clubs' && key === 'members') {
+              // For clubs, members is a number
+              formDataObj.append(key, parseInt(formData[key]) || 0);
+            } else if (key === 'activities' || key === 'achievements') {
+              // For other tabs, convert arrays to JSON string for FormData
               formDataObj.append(key, JSON.stringify(formData[key] || []));
-            } else if (key === 'socialMedia') {
-              // Convert socialMedia object to JSON string
-              formDataObj.append(key, JSON.stringify(formData[key] || {}));
-            } else if (key === 'members') {
-              // Convert members array to JSON string
+            } else if (key === 'members' && activeTab !== 'clubs') {
+              // For non-clubs, convert members array to JSON string
               formDataObj.append(key, JSON.stringify(formData[key] || []));
             } else if (key === 'clubId') {
               // Handle special organizer values
@@ -1361,39 +1364,30 @@ const AdminPanel = () => {
                     type="url"
                     className="form-input"
                     placeholder="Facebook URL"
-                    value={formData.socialMedia?.facebook || ''}
+                    value={formData.facebook || ''}
                     onChange={(e) => setFormData({ 
                       ...formData, 
-                      socialMedia: { 
-                        ...formData.socialMedia, 
-                        facebook: e.target.value 
-                      } 
+                      facebook: e.target.value 
                     })}
                   />
                   <input
                     type="url"
                     className="form-input"
                     placeholder="Instagram URL"
-                    value={formData.socialMedia?.instagram || ''}
+                    value={formData.instagram || ''}
                     onChange={(e) => setFormData({ 
                       ...formData, 
-                      socialMedia: { 
-                        ...formData.socialMedia, 
-                        instagram: e.target.value 
-                      } 
+                      instagram: e.target.value 
                     })}
                   />
                   <input
                     type="url"
                     className="form-input"
                     placeholder="LinkedIn URL"
-                    value={formData.socialMedia?.linkedin || ''}
+                    value={formData.linkedin || ''}
                     onChange={(e) => setFormData({ 
                       ...formData, 
-                      socialMedia: { 
-                        ...formData.socialMedia, 
-                        linkedin: e.target.value 
-                      } 
+                      linkedin: e.target.value 
                     })}
                   />
                 </div>

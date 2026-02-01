@@ -789,44 +789,44 @@ app.post('/api/clubs', authMiddleware, adminMiddleware, upload.single('image'), 
       clubData.image = `/uploads/${req.file.filename}`;
     }
 
-    // Parser les champs JSON si nécessaire
-    if (typeof clubData.activities === 'string') {
-      try {
-        clubData.activities = JSON.parse(clubData.activities);
-      } catch (e) {
-        clubData.activities = [];
-      }
-    }
-
-    if (typeof clubData.achievements === 'string') {
-      try {
-        clubData.achievements = JSON.parse(clubData.achievements);
-      } catch (e) {
-        clubData.achievements = [];
-      }
-    }
-
+    // Ensure members is a number
     if (typeof clubData.members === 'string') {
-      try {
-        clubData.members = JSON.parse(clubData.members);
-      } catch (e) {
-        clubData.members = [];
-      }
+      clubData.members = parseInt(clubData.members) || 0;
     }
 
-    if (typeof clubData.socialMedia === 'string') {
-      try {
-        clubData.socialMedia = JSON.parse(clubData.socialMedia);
-      } catch (e) {
-        clubData.socialMedia = { facebook: '', instagram: '', linkedin: '' };
-      }
-    }
+    // Activities and achievements are stored as text in the database
+    // No need to parse them as JSON
 
-    const club = await Club.create(clubData);
+    // Use raw SQL insert to match database structure
+    const [result] = await sequelize.query(`
+      INSERT INTO clubs (
+        club, president, annees_etude, tel, email, website, image, 
+        description, activities, achievements, members,
+        facebook, instagram, linkedin, createdAt, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+    `, {
+      replacements: [
+        clubData.club,
+        clubData.president,
+        clubData.annees_etude,
+        clubData.tel,
+        clubData.email,
+        clubData.website || '',
+        clubData.image || '',
+        clubData.description || '',
+        clubData.activities || '',
+        clubData.achievements || '',
+        clubData.members || 0,
+        clubData.facebook || '',
+        clubData.instagram || '',
+        clubData.linkedin || ''
+      ]
+    });
+
     res.status(201).json({ 
       success: true, 
       message: 'Club créé avec succès!', 
-      club: club 
+      club: { id: result, ...clubData }
     });
   } catch (error) {
     console.error('Erreur création club:', error);
@@ -848,62 +848,53 @@ app.put('/api/clubs/:id', authMiddleware, adminMiddleware, upload.single('image'
       clubData.image = `/uploads/${req.file.filename}`;
     }
 
-    // Parser les champs JSON si nécessaire
-    if (typeof clubData.activities === 'string') {
-      try {
-        clubData.activities = JSON.parse(clubData.activities);
-      } catch (e) {
-        clubData.activities = [];
-      }
-    }
-
-    if (typeof clubData.achievements === 'string') {
-      try {
-        clubData.achievements = JSON.parse(clubData.achievements);
-      } catch (e) {
-        clubData.achievements = [];
-      }
-    }
-
+    // Ensure members is a number
     if (typeof clubData.members === 'string') {
-      try {
-        clubData.members = JSON.parse(clubData.members);
-      } catch (e) {
-        clubData.members = [];
-      }
+      clubData.members = parseInt(clubData.members) || 0;
     }
 
-    if (typeof clubData.socialMedia === 'string') {
-      try {
-        clubData.socialMedia = JSON.parse(clubData.socialMedia);
-      } catch (e) {
-        clubData.socialMedia = { facebook: '', instagram: '', linkedin: '' };
-      }
-    }
+    // Activities and achievements are stored as text in the database
+    // No need to parse them as JSON
 
-    console.log('=== DÉBUT MODIFICATION CLUB ===');
-    console.log('ID du club:', req.params.id);
-    console.log('Type de l\'ID:', typeof req.params.id);
-    
-    // Vérifier si le club existe d'abord
-    const existingClub = await Club.findByPk(req.params.id);
-    console.log('Club existant trouvé:', existingClub ? 'Oui' : 'Non');
-    
-    if (!existingClub) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Club non trouvé - Impossible de modifier ce club' 
+    // Use raw SQL update to match database structure
+    const [result] = await sequelize.query(`
+      UPDATE clubs SET 
+        club = ?, president = ?, annees_etude = ?, tel = ?, email = ?, 
+        website = ?, image = ?, description = ?, activities = ?, achievements = ?, 
+        members = ?, facebook = ?, instagram = ?, linkedin = ?, updatedAt = NOW()
+      WHERE id = ?
+    `, {
+      replacements: [
+        clubData.club,
+        clubData.president,
+        clubData.annees_etude,
+        clubData.tel,
+        clubData.email,
+        clubData.website || '',
+        clubData.image || '',
+        clubData.description || '',
+        clubData.activities || '',
+        clubData.achievements || '',
+        clubData.members || 0,
+        clubData.facebook || '',
+        clubData.instagram || '',
+        clubData.linkedin || '',
+        req.params.id
+      ]
+    });
+
+    if (result > 0) {
+      // Get the updated club
+      const [updatedClub] = await sequelize.query(`
+        SELECT * FROM clubs WHERE id = ?
+      `, {
+        replacements: [req.params.id]
       });
-    }
-    
-    const [updated] = await Club.update(clubData, { where: { id: req.params.id } });
-    console.log('Nombre de lignes mises à jour:', updated);
-    if (updated) {
-      const club = await Club.findByPk(req.params.id);
+
       res.json({ 
         success: true, 
         message: 'Club modifié avec succès!', 
-        club: club 
+        club: updatedClub[0]
       });
     } else {
       res.status(404).json({ 
