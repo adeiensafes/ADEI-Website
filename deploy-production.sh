@@ -1,6 +1,11 @@
 #!/bin/bash
 
 echo "🚀 Déploiement en PRODUCTION..."
+echo ""
+echo "⚠️  IMPORTANT: Ce script prépare le frontend localement."
+echo "    Les dépendances backend (api/ et server/) doivent être"
+echo "    installées DIRECTEMENT sur le serveur de production !"
+echo ""
 
 # S'assurer qu'on est en mode production
 ./switch-to-prod.sh
@@ -13,23 +18,23 @@ npm run build
 cd ..
 
 echo ""
-echo "📦 Installation des dépendances serveur..."
-cd server
-npm install --production
-cd ..
-
+echo "✅ Build terminé!"
 echo ""
-echo "📦 Installation des dépendances API (Passenger entry point)..."
-cd api
-npm install --production
-cd ..
-
+echo "📤 PROCHAINES ÉTAPES SUR LE SERVEUR:"
 echo ""
-echo "✅ Déploiement terminé!"
+echo "1. Transférer les fichiers (sans node_modules) :"
+echo "   rsync -av --exclude='node_modules' --exclude='.git' . adeiensa@adei-ensaf.ma:~/public_html/"
+echo ""
+echo "2. Sur le serveur, installer les dépendances :"
+echo "   ssh adeiensa@adei-ensaf.ma"
+echo "   cd ~/public_html/api && npm install --production"
+echo "   cd ~/public_html/server && npm install --production"
+echo "   touch ~/public_html/api/tmp/restart.txt"
+echo ""
+echo "3. Vérifier le déploiement :"
+echo "   curl https://api.adei-ensaf.ma/auth/check"
+echo ""
 echo "🌐 Site: https://adei-ensaf.ma"
 echo "🔗 API: https://api.adei-ensaf.ma"
 echo ""
-echo "🚀 Pour démarrer le serveur:"
-echo "   cd server && node index.js"
-echo ""
-echo "📝 NOTE: Passenger utilise /api/index.js comme point d'entrée"
+echo "📖 Documentation: docs/fix-bcrypt-deployment.md"
