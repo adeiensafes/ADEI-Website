@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 const path = require('path');
 
 // Try to require models with error handling
@@ -115,7 +116,7 @@ router.get('/ingenieur', async (req, res) => {
 });
 
 // Update cycle responsable pédagogique
-router.put('/cycles/:id/responsable', async (req, res) => {
+router.put('/cycles/:id/responsable', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { responsable_pedagogique, responsable_contact } = req.body;
     
@@ -137,7 +138,7 @@ router.put('/cycles/:id/responsable', async (req, res) => {
 });
 
 // Update filière responsable pédagogique
-router.put('/filieres/:id/responsable', async (req, res) => {
+router.put('/filieres/:id/responsable', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { responsable_pedagogique, responsable_contact } = req.body;
     
@@ -159,7 +160,7 @@ router.put('/filieres/:id/responsable', async (req, res) => {
 });
 
 // Update section delegate
-router.put('/sections/:id/delegate', async (req, res) => {
+router.put('/sections/:id/delegate', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { delegate_name, delegate_phone, delegate_email } = req.body;
     
@@ -182,7 +183,7 @@ router.put('/sections/:id/delegate', async (req, res) => {
 });
 
 // Update academic year delegate (for filière years)
-router.put('/academic-years/:id/delegate', async (req, res) => {
+router.put('/academic-years/:id/delegate', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { delegate_name, delegate_phone } = req.body;
     
