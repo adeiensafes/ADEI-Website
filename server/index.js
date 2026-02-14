@@ -257,7 +257,12 @@ app.get('/health', (req, res) => {
 });
 
 // Debug/test endpoints — ONLY available in development
+// Double protection: checks NODE_ENV AND hostname to prevent exposure on production
 if (process.env.NODE_ENV !== 'production') {
+  const isProductionHost = (req) => {
+    const host = req.get('host') || '';
+    return host.includes('adei-ensaf.ma');
+  };
   // Test endpoint pour vérifier les routes API
   app.get('/api/test', (req, res) => {
     res.status(200).json({
@@ -277,6 +282,7 @@ if (process.env.NODE_ENV !== 'production') {
 
   // Test endpoint spécifique pour les feedbacks
   app.get('/api/feedbacks/test', async (req, res) => {
+    if (isProductionHost(req)) return res.status(404).json({ error: 'Not Found' });
     try {
       console.log('=== TESTING FEEDBACKS CONNECTION ===');
       const count = await Feedback.count();
