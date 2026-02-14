@@ -256,61 +256,51 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Test endpoint pour vérifier les routes API
-app.get('/api/test', (req, res) => {
-  res.status(200).json({ 
-    message: 'API routes are working',
-    availableRoutes: {
-      'POST /api/login': 'Authentication endpoint',
-      'GET /api/clubs': 'Get clubs data',
-      'GET /api/events': 'Get events data',
-      'GET /api/news': 'Get news data',
-      'GET /api/filieres': 'Get filieres data',
-      'GET /api/feedbacks/public': 'Get public feedbacks',
-      'GET /api/feedbacks/test': 'Test feedbacks connection'
-    },
-    timestamp: new Date().toISOString()
+// Debug/test endpoints — ONLY available in development
+if (process.env.NODE_ENV !== 'production') {
+  // Test endpoint pour vérifier les routes API
+  app.get('/api/test', (req, res) => {
+    res.status(200).json({
+      message: 'API routes are working',
+      availableRoutes: {
+        'POST /api/login': 'Authentication endpoint',
+        'GET /api/clubs': 'Get clubs data',
+        'GET /api/events': 'Get events data',
+        'GET /api/news': 'Get news data',
+        'GET /api/filieres': 'Get filieres data',
+        'GET /api/feedbacks/public': 'Get public feedbacks',
+        'GET /api/feedbacks/test': 'Test feedbacks connection'
+      },
+      timestamp: new Date().toISOString()
+    });
   });
-});
 
-// Test endpoint spécifique pour les feedbacks
-app.get('/api/feedbacks/test', async (req, res) => {
-  try {
-    console.log('=== TESTING FEEDBACKS CONNECTION ===');
-    
-    // Test 1: Check if Feedback model is loaded
-    console.log('Feedback model:', typeof Feedback);
-    
-    // Test 2: Simple count
-    const count = await Feedback.count();
-    console.log('Feedback count:', count);
-    
-    // Test 3: Simple findAll without associations
-    const simpleFeedbacks = await Feedback.findAll({ limit: 1 });
-    console.log('Simple feedback query result:', simpleFeedbacks.length);
-    
-    // Test 4: Check User model
-    console.log('User model:', typeof User);
-    const userCount = await User.count();
-    console.log('User count:', userCount);
-    
-    res.json({
-      success: true,
-      feedbackModel: typeof Feedback,
-      userModel: typeof User,
-      feedbackCount: count,
-      userCount: userCount,
-      sampleFeedback: simpleFeedbacks[0] || null
-    });
-  } catch (error) {
-    console.error('Test error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      stack: error.stack
-    });
-  }
-});
+  // Test endpoint spécifique pour les feedbacks
+  app.get('/api/feedbacks/test', async (req, res) => {
+    try {
+      console.log('=== TESTING FEEDBACKS CONNECTION ===');
+      const count = await Feedback.count();
+      const simpleFeedbacks = await Feedback.findAll({ limit: 1 });
+      const userCount = await User.count();
+
+      res.json({
+        success: true,
+        feedbackModel: typeof Feedback,
+        userModel: typeof User,
+        feedbackCount: count,
+        userCount: userCount,
+        sampleFeedback: simpleFeedbacks[0] || null
+      });
+    } catch (error) {
+      console.error('Test error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+        // stack trace removed
+      });
+    }
+  });
+}
 
 // Route pour la racine - Interface web de l'API
 app.get('/', (req, res) => {
