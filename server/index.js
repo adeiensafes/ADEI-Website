@@ -82,6 +82,30 @@ const { Op } = require('sequelize');
 const models = require('./models');
 const { User, News, Event, Club, Feedback, ADEIMember, Filiere, Partner, Cycle, AcademicYear, Section } = models;
 
+
+// Field whitelists to prevent mass assignment
+const ALLOWED_FIELDS = {
+  news: ['title', 'content', 'date', 'clubId', 'organizer', 'image', 'document', 'link', 'category', 'order_display'],
+  events: ['title', 'description', 'date', 'time', 'location', 'category', 'clubId', 'organizer', 'image', 'document', 'link'],
+  clubs: ['club', 'president', 'annees_etude', 'tel', 'email', 'website', 'image', 'description', 'activities', 'achievements', 'members', 'facebook', 'instagram', 'linkedin'],
+  feedbacks: ['name', 'email', 'type', 'message'],
+  'adei-members': ['name', 'role', 'email', 'photo'],
+  partners: ['name', 'description', 'website', 'logo', 'facebook', 'instagram', 'whatsapp', 'isActive', 'order_display'],
+  filieres: ['name', 'abbreviation', 'type', 'documentation', 'drive', 'description', 'isActive', 'order_display', 'responsable_pedagogique', 'responsable_contact', 'delegue_cp1_a', 'tel_delegue_cp1_a', 'delegue_cp1_b', 'tel_delegue_cp1_b', 'delegue_cp1_c', 'tel_delegue_cp1_c', 'delegue_cp2_a', 'tel_delegue_cp2_a', 'delegue_cp2_b', 'tel_delegue_cp2_b', 'delegue_cp2_c', 'tel_delegue_cp2_c', 'delegue_annee1', 'tel_delegue_annee1', 'delegue_annee2', 'tel_delegue_annee2', 'delegue_annee3', 'tel_delegue_annee3', 'cycle_id'],
+  users: ['username', 'email', 'password', 'role', 'is_president', 'is_representant', 'is_membre_adei', 'is_bureau_adei']
+};
+
+const pickFields = (body, type) => {
+  const allowed = ALLOWED_FIELDS[type] || [];
+  const result = {};
+  for (const key of allowed) {
+    if (body[key] !== undefined) {
+      result[key] = body[key];
+    }
+  }
+  return result;
+};
+
 // Import academic routes with error handling
 let academicRoutes;
 try {
@@ -232,61 +256,52 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Test endpoint pour vérifier les routes API
-app.get('/api/test', (req, res) => {
-  res.status(200).json({ 
-    message: 'API routes are working',
-    availableRoutes: {
-      'POST /api/login': 'Authentication endpoint',
-      'GET /api/clubs': 'Get clubs data',
-      'GET /api/events': 'Get events data',
-      'GET /api/news': 'Get news data',
-      'GET /api/filieres': 'Get filieres data',
-      'GET /api/feedbacks/public': 'Get public feedbacks',
-      'GET /api/feedbacks/test': 'Test feedbacks connection'
-    },
-    timestamp: new Date().toISOString()
-  });
-});
+// Debug/test endpoints — ONLY available in development
+if (process.env.NODE_ENV !== 'production') {
 
-// Test endpoint spécifique pour les feedbacks
-app.get('/api/feedbacks/test', async (req, res) => {
-  try {
-    console.log('=== TESTING FEEDBACKS CONNECTION ===');
-    
-    // Test 1: Check if Feedback model is loaded
-    console.log('Feedback model:', typeof Feedback);
-    
-    // Test 2: Simple count
-    const count = await Feedback.count();
-    console.log('Feedback count:', count);
-    
-    // Test 3: Simple findAll without associations
-    const simpleFeedbacks = await Feedback.findAll({ limit: 1 });
-    console.log('Simple feedback query result:', simpleFeedbacks.length);
-    
-    // Test 4: Check User model
-    console.log('User model:', typeof User);
-    const userCount = await User.count();
-    console.log('User count:', userCount);
-    
-    res.json({
-      success: true,
-      feedbackModel: typeof Feedback,
-      userModel: typeof User,
-      feedbackCount: count,
-      userCount: userCount,
-      sampleFeedback: simpleFeedbacks[0] || null
+  // Test endpoint pour vérifier les routes API
+  app.get('/api/test', (req, res) => {
+    res.status(200).json({
+      message: 'API routes are working',
+      availableRoutes: {
+        'POST /api/login': 'Authentication endpoint',
+        'GET /api/clubs': 'Get clubs data',
+        'GET /api/events': 'Get events data',
+        'GET /api/news': 'Get news data',
+        'GET /api/filieres': 'Get filieres data',
+        'GET /api/feedbacks/public': 'Get public feedbacks',
+        'GET /api/feedbacks/test': 'Test feedbacks connection'
+      },
+      timestamp: new Date().toISOString()
     });
-  } catch (error) {
-    console.error('Test error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      stack: error.stack
-    });
-  }
-});
+  });
+
+  // Test endpoint spécifique pour les feedbacks
+  app.get('/api/feedbacks/test', async (req, res) => {
+    try {
+      console.log('=== TESTING FEEDBACKS CONNECTION ===');
+      const count = await Feedback.count();
+      const simpleFeedbacks = await Feedback.findAll({ limit: 1 });
+      const userCount = await User.count();
+
+      res.json({
+        success: true,
+        feedbackModel: typeof Feedback,
+        userModel: typeof User,
+        feedbackCount: count,
+        userCount: userCount,
+        sampleFeedback: simpleFeedbacks[0] || null
+      });
+    } catch (error) {
+      console.error('Test error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message
+        // stack trace removed
+      });
+    }
+  });
+}
 
 // Route pour la racine - Interface web de l'API
 app.get('/', (req, res) => {
@@ -784,7 +799,7 @@ app.get('/api/clubs', asyncWrapper(async (req, res) => {
 
 app.post('/api/clubs', authMiddleware, adminMiddleware, upload.single('image'), async (req, res) => {
   try {
-    const clubData = { ...req.body };
+    const clubData = pickFields(req.body, 'clubs');
     if (req.file) {
       clubData.image = `/uploads/${req.file.filename}`;
     }
@@ -843,7 +858,7 @@ app.put('/api/clubs/:id', authMiddleware, adminMiddleware, upload.single('image'
     console.log('ID du club:', req.params.id);
     console.log('Données reçues:', JSON.stringify(req.body, null, 2));
     
-    const clubData = { ...req.body };
+    const clubData = pickFields(req.body, 'clubs');
     if (req.file) {
       clubData.image = `/uploads/${req.file.filename}`;
     }
@@ -993,7 +1008,7 @@ app.get('/api/feedbacks', authMiddleware, adminMiddleware, async (req, res) => {
 
 app.post('/api/feedbacks', async (req, res) => {
   try {
-    const feedbackData = { ...req.body };
+    const feedbackData = pickFields(req.body, 'feedbacks');
     
     // If there's an authorization header, try to get the user ID
     const authHeader = req.headers.authorization;
@@ -1251,7 +1266,7 @@ app.get('/api/adei-members', async (req, res) => {
 
 app.post('/api/adei-members', authMiddleware, adminMiddleware, upload.single('photo'), async (req, res) => {
   try {
-    const memberData = { ...req.body };
+    const memberData = pickFields(req.body, 'adei-members');
     if (req.file) {
       memberData.photo = `/uploads/${req.file.filename}`;
     }
@@ -1264,7 +1279,7 @@ app.post('/api/adei-members', authMiddleware, adminMiddleware, upload.single('ph
 
 app.put('/api/adei-members/:id', authMiddleware, adminMiddleware, upload.single('photo'), async (req, res) => {
   try {
-    const memberData = { ...req.body };
+    const memberData = pickFields(req.body, 'adei-members');
     if (req.file) {
       memberData.photo = `/uploads/${req.file.filename}`;
     }
@@ -1315,7 +1330,7 @@ app.get('/api/filieres', asyncWrapper(async (req, res) => {
 
 app.post('/api/filieres', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const filiere = await Filiere.create(req.body);
+    const filiere = await Filiere.create(pickFields(req.body, 'filieres'));
     res.status(201).json({ 
       success: true, 
       message: 'Filière créée avec succès!', 
@@ -1335,7 +1350,7 @@ app.put('/api/filieres/:id', authMiddleware, adminMiddleware, async (req, res) =
     console.log('Updating filière with ID:', req.params.id);
     console.log('Update data:', req.body);
     
-    const [updated] = await Filiere.update(req.body, { where: { id: req.params.id } });
+    const [updated] = await Filiere.update(pickFields(req.body, 'filieres'), { where: { id: req.params.id } });
     
     if (updated) {
       const filiere = await Filiere.findByPk(req.params.id);
@@ -1415,7 +1430,7 @@ app.get('/api/partners', async (req, res) => {
 
 app.post('/api/partners', authMiddleware, adminMiddleware, upload.single('logo'), async (req, res) => {
   try {
-    const partnerData = { ...req.body };
+    const partnerData = pickFields(req.body, 'partners');
     if (req.file) {
       partnerData.logo = `/uploads/${req.file.filename}`;
     }
@@ -1437,7 +1452,7 @@ app.post('/api/partners', authMiddleware, adminMiddleware, upload.single('logo')
 
 app.put('/api/partners/:id', authMiddleware, adminMiddleware, upload.single('logo'), async (req, res) => {
   try {
-    const partnerData = { ...req.body };
+    const partnerData = pickFields(req.body, 'partners');
     if (req.file) {
       partnerData.logo = `/uploads/${req.file.filename}`;
     }
