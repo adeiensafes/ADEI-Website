@@ -1,12 +1,14 @@
 // Configuration de l'API
-const API_BASE_URL = 'https://api.adei-ensaf.ma';
+const API_BASE_URL = process.env.NODE_ENV === 'development'
+  ? 'http://localhost:5001'
+  : 'https://api.adei-ensaf.ma';
 
 export const API_ENDPOINTS = {
   // Auth
   LOGIN: `${API_BASE_URL}/api/login`,
   REGISTER: `${API_BASE_URL}/api/register`,
   LOGOUT: `${API_BASE_URL}/api/logout`,
-  
+
   // Data
   NEWS: `${API_BASE_URL}/api/news`,
   EVENTS: `${API_BASE_URL}/api/events`,
@@ -16,7 +18,7 @@ export const API_ENDPOINTS = {
   PARTNERS: `${API_BASE_URL}/api/partners`,
   USERS: `${API_BASE_URL}/api/users`,
   USER_PROFILE: `${API_BASE_URL}/api/users/me`,
-  
+
   // User interactions
   CONTACT: `${API_BASE_URL}/api/contact`,
   FEEDBACKS: `${API_BASE_URL}/api/feedbacks`,
@@ -29,9 +31,6 @@ export const apiFetch = async (url, options = {}) => {
   const defaultHeaders = {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-    'Referer': 'https://adei-ensaf.ma/',
-    'Origin': 'https://adei-ensaf.ma',
   };
 
   const mergedOptions = {
