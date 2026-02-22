@@ -127,12 +127,12 @@ app.use(cors({
   origin: function (origin, callback) {
     // Permettre les requêtes sans origin (mobile apps, etc.)
     if (!origin) return callback(null, true);
-    
+
     // Utiliser les origins depuis les variables d'environnement ou valeurs par défaut
-    const corsOrigins = process.env.CORS_ORIGINS 
+    const corsOrigins = process.env.CORS_ORIGINS
       ? process.env.CORS_ORIGINS.split(',')
       : ["https://adei-ensaf.ma", "https://www.adei-ensaf.ma", "http://localhost:3000", "http://localhost:3001"];
-    
+
     if (corsOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -183,14 +183,14 @@ const upload = multer({
 
     // Check if it's an image
     const isImage = allowedImageTypes.test(extname) && /image/.test(mimetype);
-    
+
     // Check if it's a document
-    const isDocument = allowedDocTypes.test(extname) && 
-      (mimetype.includes('pdf') || 
-       mimetype.includes('document') || 
-       mimetype.includes('text') ||
-       mimetype.includes('msword') ||
-       mimetype.includes('wordprocessingml'));
+    const isDocument = allowedDocTypes.test(extname) &&
+      (mimetype.includes('pdf') ||
+        mimetype.includes('document') ||
+        mimetype.includes('text') ||
+        mimetype.includes('msword') ||
+        mimetype.includes('wordprocessingml'));
 
     if (isImage || isDocument) {
       return cb(null, true);
@@ -204,12 +204,12 @@ const upload = multer({
 async function connectWithRetry() {
   const maxRetries = 5; // Réduire les tentatives pour Vercel
   let retries = 0;
-  
+
   while (retries < maxRetries) {
     try {
       await sequelize.authenticate();
       console.log('MySQL connecté avec succès');
-      
+
       // Synchroniser les modèles avec la base de données
       await sequelize.sync({ force: false });
       console.log('Modèles synchronisés');
@@ -248,8 +248,8 @@ connectWithRetry();
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
+  res.status(200).json({
+    status: 'ok',
     message: 'API ADEI is running',
     timestamp: new Date().toISOString(),
     port: PORT
@@ -447,7 +447,7 @@ const clearCache = (key) => {
 app.get('/api/news', asyncWrapper(async (req, res) => {
   const cacheKey = 'news';
   const cachedNews = getCachedData(cacheKey);
-  
+
   if (cachedNews) {
     return res.json({
       success: true,
@@ -455,8 +455,8 @@ app.get('/api/news', asyncWrapper(async (req, res) => {
       cached: true
     });
   }
-  
-  const news = await News.findAll({ 
+
+  const news = await News.findAll({
     order: [['createdAt', 'DESC']],
     include: [{
       model: Club,
@@ -465,7 +465,7 @@ app.get('/api/news', asyncWrapper(async (req, res) => {
       required: false
     }]
   });
-  
+
   setCachedData(cacheKey, news);
   res.json({
     success: true,
@@ -480,23 +480,23 @@ app.post('/api/news', authMiddleware, adminMiddleware, upload.fields([
 ]), async (req, res) => {
   try {
     const newsData = { ...req.body };
-    
+
     // Handle special organizer values
     if (newsData.clubId === 'adei' || newsData.clubId === 'ensa') {
       newsData.organizer = newsData.clubId === 'adei' ? 'ADEI' : 'Administration ENSA Fès';
       delete newsData.clubId; // Remove clubId for special values
     }
-    
+
     // Convert clubId to null if empty string
     if (newsData.clubId === '' || newsData.clubId === 'null' || newsData.clubId === 'undefined') {
       newsData.clubId = null;
     }
-    
+
     // Convert clubId to integer if it's a valid number
     if (newsData.clubId && !isNaN(newsData.clubId)) {
       newsData.clubId = parseInt(newsData.clubId);
     }
-    
+
     if (req.files) {
       if (req.files.image) {
         newsData.image = `/uploads/${req.files.image[0].filename}`;
@@ -507,18 +507,18 @@ app.post('/api/news', authMiddleware, adminMiddleware, upload.fields([
     }
 
     const news = await News.create(newsData);
-    
+
     clearCache('news');
-    res.status(201).json({ 
-      success: true, 
-      message: 'Actualité créée avec succès!', 
-      news: news 
+    res.status(201).json({
+      success: true,
+      message: 'Actualité créée avec succès!',
+      news: news
     });
   } catch (error) {
     console.error('Error creating news:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      message: `Erreur lors de la création de l'actualité: ${error.message}` 
+    res.status(500).json({
+      success: false,
+      message: `Erreur lors de la création de l'actualité: ${error.message}`
     });
   }
 });
@@ -529,18 +529,18 @@ app.put('/api/news/:id', authMiddleware, adminMiddleware, upload.fields([
 ]), async (req, res) => {
   try {
     const newsData = { ...req.body };
-    
+
     // Handle special organizer values
     if (newsData.clubId === 'adei' || newsData.clubId === 'ensa') {
       newsData.organizer = newsData.clubId === 'adei' ? 'ADEI' : 'Administration ENSA Fès';
       delete newsData.clubId; // Remove clubId for special values
     }
-    
+
     // Convert clubId to null if empty string
     if (newsData.clubId === '' || newsData.clubId === 'null' || newsData.clubId === 'undefined') {
       newsData.clubId = null;
     }
-    
+
     if (req.files) {
       if (req.files.image) {
         newsData.image = `/uploads/${req.files.image[0].filename}`;
@@ -554,10 +554,10 @@ app.put('/api/news/:id', authMiddleware, adminMiddleware, upload.fields([
     if (updated) {
       const news = await News.findByPk(req.params.id);
       clearCache('news');
-      res.json({ 
-        success: true, 
-        message: 'Actualité modifiée avec succès!', 
-        news: news 
+      res.json({
+        success: true,
+        message: 'Actualité modifiée avec succès!',
+        news: news
       });
     } else {
       res.status(404).json({ message: 'Actualité non trouvée' });
@@ -585,7 +585,7 @@ app.delete('/api/news/:id', authMiddleware, adminMiddleware, async (req, res) =>
 app.get('/api/events', asyncWrapper(async (req, res) => {
   const cacheKey = 'events';
   const cachedEvents = getCachedData(cacheKey);
-  
+
   if (cachedEvents) {
     return res.json({
       success: true,
@@ -593,8 +593,8 @@ app.get('/api/events', asyncWrapper(async (req, res) => {
       cached: true
     });
   }
-  
-  const events = await Event.findAll({ 
+
+  const events = await Event.findAll({
     order: [['createdAt', 'DESC']],
     include: [{
       model: Club,
@@ -603,7 +603,7 @@ app.get('/api/events', asyncWrapper(async (req, res) => {
       required: false
     }]
   });
-  
+
   setCachedData(cacheKey, events);
   res.json({
     success: true,
@@ -618,23 +618,23 @@ app.post('/api/events', authMiddleware, adminMiddleware, upload.fields([
 ]), async (req, res) => {
   try {
     const eventData = { ...req.body };
-    
+
     // Handle special organizer values
     if (eventData.clubId === 'adei' || eventData.clubId === 'ensa') {
       eventData.organizer = eventData.clubId === 'adei' ? 'ADEI' : 'Administration ENSA Fès';
       delete eventData.clubId; // Remove clubId for special values
     }
-    
+
     // Convert clubId to null if empty string
     if (eventData.clubId === '' || eventData.clubId === 'null' || eventData.clubId === 'undefined') {
       eventData.clubId = null;
     }
-    
+
     // Convert clubId to integer if it's a valid number
     if (eventData.clubId && !isNaN(eventData.clubId)) {
       eventData.clubId = parseInt(eventData.clubId);
     }
-    
+
     if (req.files) {
       if (req.files.image) {
         eventData.image = `/uploads/${req.files.image[0].filename}`;
@@ -645,18 +645,18 @@ app.post('/api/events', authMiddleware, adminMiddleware, upload.fields([
     }
 
     const event = await Event.create(eventData);
-    
+
     clearCache('events');
-    res.status(201).json({ 
-      success: true, 
-      message: 'Événement créé avec succès!', 
-      event: event 
+    res.status(201).json({
+      success: true,
+      message: 'Événement créé avec succès!',
+      event: event
     });
   } catch (error) {
     console.error('Error creating event:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      message: `Erreur lors de la création de l'événement: ${error.message}` 
+    res.status(500).json({
+      success: false,
+      message: `Erreur lors de la création de l'événement: ${error.message}`
     });
   }
 });
@@ -667,18 +667,18 @@ app.put('/api/events/:id', authMiddleware, adminMiddleware, upload.fields([
 ]), async (req, res) => {
   try {
     const eventData = { ...req.body };
-    
+
     // Handle special organizer values
     if (eventData.clubId === 'adei' || eventData.clubId === 'ensa') {
       eventData.organizer = eventData.clubId === 'adei' ? 'ADEI' : 'Administration ENSA Fès';
       delete eventData.clubId; // Remove clubId for special values
     }
-    
+
     // Convert clubId to null if empty string
     if (eventData.clubId === '' || eventData.clubId === 'null' || eventData.clubId === 'undefined') {
       eventData.clubId = null;
     }
-    
+
     if (req.files) {
       if (req.files.image) {
         eventData.image = `/uploads/${req.files.image[0].filename}`;
@@ -692,10 +692,10 @@ app.put('/api/events/:id', authMiddleware, adminMiddleware, upload.fields([
     if (updated) {
       const event = await Event.findByPk(req.params.id);
       clearCache('events');
-      res.json({ 
-        success: true, 
-        message: 'Événement modifié avec succès!', 
-        event: event 
+      res.json({
+        success: true,
+        message: 'Événement modifié avec succès!',
+        event: event
       });
     } else {
       res.status(404).json({ message: 'Événement non trouvé' });
@@ -723,28 +723,28 @@ app.delete('/api/events/:id', authMiddleware, adminMiddleware, async (req, res) 
 app.get('/api/clubs', asyncWrapper(async (req, res) => {
   try {
     console.log('🏢 Fetching clubs from database...');
-    
+
     // Use Sequelize to fetch clubs - safer than raw queries
     const clubs = await Club.findAll({
       order: [['createdAt', 'DESC']]
     });
-    
+
     // Transform the data to match frontend expectations
     const transformedClubs = clubs.map(club => {
       let activitiesArray = [];
       let achievementsArray = [];
-      
+
       // Parse activities if it's JSON, otherwise treat as text
       if (club.activities) {
         try {
           activitiesArray = Array.isArray(club.activities) ? club.activities : JSON.parse(club.activities);
         } catch (e) {
-          activitiesArray = typeof club.activities === 'string' 
+          activitiesArray = typeof club.activities === 'string'
             ? club.activities.split(',').map(item => item.trim()).filter(item => item)
             : [];
         }
       }
-      
+
       // Parse achievements if it's JSON, otherwise treat as text
       if (club.achievements) {
         try {
@@ -755,7 +755,7 @@ app.get('/api/clubs', asyncWrapper(async (req, res) => {
             : [];
         }
       }
-      
+
       return {
         id: club.id,
         club: club.club,
@@ -781,16 +781,16 @@ app.get('/api/clubs', asyncWrapper(async (req, res) => {
         }
       };
     });
-    
+
     console.log(`✅ Found ${transformedClubs.length} clubs in database`);
-    
+
     res.json({
       success: true,
       data: transformedClubs,
       count: transformedClubs.length,
       source: 'database'
     });
-    
+
   } catch (error) {
     console.error('❌ Database error in /api/clubs:', error);
     throw error;
@@ -805,49 +805,32 @@ app.post('/api/clubs', authMiddleware, adminMiddleware, upload.single('image'), 
     }
 
     // Ensure members is a number
-    if (typeof clubData.members === 'string') {
+    if (clubData.members) {
       clubData.members = parseInt(clubData.members) || 0;
     }
 
-    // Activities and achievements are stored as text in the database
-    // No need to parse them as JSON
+    // Activities and achievements are stored as text (JSON string or comma-separated)
+    // We'll keep them as they come from the frontend, ensuring they are strings
+    if (clubData.activities && typeof clubData.activities !== 'string') {
+      clubData.activities = JSON.stringify(clubData.activities);
+    }
+    if (clubData.achievements && typeof clubData.achievements !== 'string') {
+      clubData.achievements = JSON.stringify(clubData.achievements);
+    }
 
-    // Use raw SQL insert to match database structure
-    const [result] = await sequelize.query(`
-      INSERT INTO clubs (
-        club, president, annees_etude, tel, email, website, image, 
-        description, activities, achievements, members,
-        facebook, instagram, linkedin, createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-    `, {
-      replacements: [
-        clubData.club,
-        clubData.president,
-        clubData.annees_etude,
-        clubData.tel,
-        clubData.email,
-        clubData.website || '',
-        clubData.image || '',
-        clubData.description || '',
-        clubData.activities || '',
-        clubData.achievements || '',
-        clubData.members || 0,
-        clubData.facebook || '',
-        clubData.instagram || '',
-        clubData.linkedin || ''
-      ]
-    });
+    // Use Sequelize create for better reliability
+    const newClub = await Club.create(clubData);
 
-    res.status(201).json({ 
-      success: true, 
-      message: 'Club créé avec succès!', 
-      club: { id: result, ...clubData }
+    res.status(201).json({
+      success: true,
+      message: 'Club créé avec succès!',
+      club: newClub
     });
   } catch (error) {
     console.error('Erreur création club:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erreur lors de la création du club - Veuillez réessayer' 
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la création du club - Veuillez réessayer'
     });
   }
 });
@@ -856,72 +839,53 @@ app.put('/api/clubs/:id', authMiddleware, adminMiddleware, upload.single('image'
   try {
     console.log('=== DÉBUT MODIFICATION CLUB ===');
     console.log('ID du club:', req.params.id);
-    console.log('Données reçues:', JSON.stringify(req.body, null, 2));
-    
+
+    const club = await Club.findByPk(req.params.id);
+    if (!club) {
+      return res.status(404).json({
+        success: false,
+        message: 'Club non trouvé - Impossible de modifier ce club'
+      });
+    }
+
     const clubData = pickFields(req.body, 'clubs');
     if (req.file) {
+      // Delete old image if it exists and a new one is uploaded
+      if (club.image) {
+        const oldImagePath = path.join(__dirname, club.image);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      }
       clubData.image = `/uploads/${req.file.filename}`;
     }
 
     // Ensure members is a number
-    if (typeof clubData.members === 'string') {
+    if (clubData.members) {
       clubData.members = parseInt(clubData.members) || 0;
     }
 
-    // Activities and achievements are stored as text in the database
-    // No need to parse them as JSON
-
-    // Use raw SQL update to match database structure
-    const [result] = await sequelize.query(`
-      UPDATE clubs SET 
-        club = ?, president = ?, annees_etude = ?, tel = ?, email = ?, 
-        website = ?, image = ?, description = ?, activities = ?, achievements = ?, 
-        members = ?, facebook = ?, instagram = ?, linkedin = ?, updatedAt = NOW()
-      WHERE id = ?
-    `, {
-      replacements: [
-        clubData.club,
-        clubData.president,
-        clubData.annees_etude,
-        clubData.tel,
-        clubData.email,
-        clubData.website || '',
-        clubData.image || '',
-        clubData.description || '',
-        clubData.activities || '',
-        clubData.achievements || '',
-        clubData.members || 0,
-        clubData.facebook || '',
-        clubData.instagram || '',
-        clubData.linkedin || '',
-        req.params.id
-      ]
-    });
-
-    if (result > 0) {
-      // Get the updated club
-      const [updatedClub] = await sequelize.query(`
-        SELECT * FROM clubs WHERE id = ?
-      `, {
-        replacements: [req.params.id]
-      });
-
-      res.json({ 
-        success: true, 
-        message: 'Club modifié avec succès!', 
-        club: updatedClub[0]
-      });
-    } else {
-      res.status(404).json({ 
-        success: false, 
-        message: 'Club non trouvé - Impossible de modifier ce club' 
-      });
+    // Cleanup arrays
+    if (clubData.activities && typeof clubData.activities !== 'string') {
+      clubData.activities = JSON.stringify(clubData.activities);
     }
+    if (clubData.achievements && typeof clubData.achievements !== 'string') {
+      clubData.achievements = JSON.stringify(clubData.achievements);
+    }
+
+    // Use Sequelize update
+    await club.update(clubData);
+
+    res.json({
+      success: true,
+      message: 'Club modifié avec succès!',
+      club: club
+    });
   } catch (error) {
     console.error('Erreur mise à jour club:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erreur lors de la mise à jour du club - Veuillez réessayer' 
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la mise à jour du club - Veuillez réessayer'
     });
   }
 });
@@ -929,20 +893,33 @@ app.put('/api/clubs/:id', authMiddleware, adminMiddleware, upload.single('image'
 app.delete('/api/clubs/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const club = await Club.findByPk(req.params.id);
-    if (club && club.image) {
+    if (!club) {
+      return res.status(404).json({
+        success: false,
+        message: 'Club non trouvé'
+      });
+    }
+
+    // Delete associated image file
+    if (club.image) {
       const imagePath = path.join(__dirname, club.image);
       if (fs.existsSync(imagePath)) {
         fs.unlinkSync(imagePath);
       }
     }
-    const deleted = await Club.destroy({ where: { id: req.params.id } });
-    if (deleted) {
-      res.json({ success: true, message: 'Club supprimé' });
-    } else {
-      res.status(404).json({ message: 'Club non trouvé' });
-    }
+
+    await club.destroy();
+
+    res.json({
+      success: true,
+      message: 'Club supprimé avec succès!'
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Erreur lors de la suppression du club' });
+    console.error('Erreur suppression club:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la suppression du club'
+    });
   }
 });
 
@@ -951,7 +928,7 @@ app.delete('/api/clubs/:id', authMiddleware, adminMiddleware, async (req, res) =
 app.get('/api/feedbacks/public', asyncWrapper(async (req, res) => {
   try {
     // Essayer d'abord avec l'association User
-    const feedbacks = await Feedback.findAll({ 
+    const feedbacks = await Feedback.findAll({
       order: [['createdAt', 'DESC']],
       attributes: ['id', 'name', 'type', 'message', 'createdAt', 'userId'],
       include: [{
@@ -961,7 +938,7 @@ app.get('/api/feedbacks/public', asyncWrapper(async (req, res) => {
         required: false
       }]
     });
-    
+
     res.json({
       success: true,
       data: feedbacks,
@@ -970,11 +947,11 @@ app.get('/api/feedbacks/public', asyncWrapper(async (req, res) => {
   } catch (associationError) {
     // Fallback: récupérer sans association User si la colonne userId n'existe pas
     try {
-      const simpleFeedbacks = await Feedback.findAll({ 
+      const simpleFeedbacks = await Feedback.findAll({
         order: [['createdAt', 'DESC']],
         attributes: ['id', 'name', 'type', 'message', 'createdAt']
       });
-      
+
       res.json({
         success: true,
         data: simpleFeedbacks,
@@ -990,7 +967,7 @@ app.get('/api/feedbacks/public', asyncWrapper(async (req, res) => {
 // Admin endpoint to get all feedbacks (with full details)
 app.get('/api/feedbacks', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const feedbacks = await Feedback.findAll({ 
+    const feedbacks = await Feedback.findAll({
       order: [['createdAt', 'DESC']],
       include: [{
         model: User,
@@ -1009,7 +986,7 @@ app.get('/api/feedbacks', authMiddleware, adminMiddleware, async (req, res) => {
 app.post('/api/feedbacks', async (req, res) => {
   try {
     const feedbackData = pickFields(req.body, 'feedbacks');
-    
+
     // If there's an authorization header, try to get the user ID
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -1024,7 +1001,7 @@ app.post('/api/feedbacks', async (req, res) => {
         console.log('Invalid token for feedback, proceeding as anonymous');
       }
     }
-    
+
     const feedback = await Feedback.create(feedbackData);
     console.log('Feedback created:', feedback.toJSON());
     res.status(201).json({ success: true, message: 'Votre feedback a été envoyé avec succès!' });
@@ -1067,20 +1044,20 @@ app.get('/api/users/me', authMiddleware, async (req, res) => {
   try {
     console.log('=== FETCHING USER PROFILE ===');
     console.log('User from token:', req.user);
-    
+
     // Use req.user.id instead of req.user.userId
     const userId = req.user.id || req.user.userId;
     console.log('User ID:', userId);
-    
-    const user = await User.findByPk(userId, { 
+
+    const user = await User.findByPk(userId, {
       attributes: { exclude: ['password'] }
     });
-    
+
     if (!user) {
       console.log('User not found in database');
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
-    
+
     console.log('User found:', user.toJSON());
     res.json(user);
   } catch (error) {
@@ -1093,51 +1070,51 @@ app.get('/api/users/me', authMiddleware, async (req, res) => {
 app.post('/api/users/change-password', authMiddleware, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    
+
     console.log('Change password request:', {
       userId: req.user.id,
       userObject: req.user,
       hasCurrentPassword: !!currentPassword,
       hasNewPassword: !!newPassword
     });
-    
+
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ success: false, message: 'Mot de passe actuel et nouveau mot de passe requis' });
     }
-    
+
     if (newPassword.length < 6) {
       return res.status(400).json({ success: false, message: 'Le nouveau mot de passe doit contenir au moins 6 caractères' });
     }
-    
+
     // Use req.user.id from JWT token
     const userId = req.user.id;
     console.log('Looking for user with ID:', userId);
-    
+
     const user = await User.findByPk(userId);
     if (!user) {
       console.log('User not found with ID:', userId);
       return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
     }
-    
+
     console.log('User found:', { id: user.id, username: user.username });
-    
+
     // Verify current password
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
     if (!isCurrentPasswordValid) {
       console.log('Current password is invalid for user:', user.username);
       return res.status(400).json({ success: false, message: 'Mot de passe actuel incorrect' });
     }
-    
+
     console.log('Current password is valid, updating password...');
-    
+
     // Hash new password
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    
+
     // Update password
     await user.update({ password: hashedNewPassword });
-    
+
     console.log('Password updated successfully for user:', user.username);
-    
+
     res.json({ success: true, message: 'Mot de passe modifié avec succès' });
   } catch (error) {
     console.error('Error changing password:', error);
@@ -1147,9 +1124,9 @@ app.post('/api/users/change-password', authMiddleware, async (req, res) => {
 
 app.get('/api/users', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const users = await User.findAll({ 
+    const users = await User.findAll({
       attributes: { exclude: ['password'] },
-      order: [['createdAt', 'DESC']] 
+      order: [['createdAt', 'DESC']]
     });
     res.json(users);
   } catch (error) {
@@ -1161,8 +1138,8 @@ app.post('/api/users', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
 
-    const existingUser = await User.findOne({ 
-      where: { 
+    const existingUser = await User.findOne({
+      where: {
         [Op.or]: [
           { username },
           { email }
@@ -1195,7 +1172,7 @@ app.put('/api/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
     console.log('=== USER UPDATE REQUEST ===');
     console.log('User ID:', req.params.id);
     console.log('Request body:', req.body);
-    
+
     const { username, email, password, role, is_president, is_representant, is_membre_adei, is_bureau_adei } = req.body;
     const updateData = { username, email, role };
 
@@ -1219,7 +1196,7 @@ app.put('/api/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
 
     const [updated] = await User.update(updateData, { where: { id: req.params.id } });
     console.log('Update result:', updated);
-    
+
     if (updated) {
       const user = await User.findByPk(req.params.id, { attributes: { exclude: ['password'] } });
       console.log('Updated user:', user.toJSON());
@@ -1317,9 +1294,9 @@ app.delete('/api/adei-members/:id', authMiddleware, adminMiddleware, async (req,
 
 // Routes Filières
 app.get('/api/filieres', asyncWrapper(async (req, res) => {
-  const filieres = await Filiere.findAll({ 
+  const filieres = await Filiere.findAll({
     where: { isActive: true },
-    order: [['order_display', 'ASC'], ['abbreviation', 'ASC']] 
+    order: [['order_display', 'ASC'], ['abbreviation', 'ASC']]
   });
   res.json({
     success: true,
@@ -1331,16 +1308,16 @@ app.get('/api/filieres', asyncWrapper(async (req, res) => {
 app.post('/api/filieres', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const filiere = await Filiere.create(pickFields(req.body, 'filieres'));
-    res.status(201).json({ 
-      success: true, 
-      message: 'Filière créée avec succès!', 
-      filiere: filiere 
+    res.status(201).json({
+      success: true,
+      message: 'Filière créée avec succès!',
+      filiere: filiere
     });
   } catch (error) {
     console.error('Erreur création filière:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erreur lors de la création de la filière - Veuillez réessayer' 
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la création de la filière - Veuillez réessayer'
     });
   }
 });
@@ -1349,22 +1326,22 @@ app.put('/api/filieres/:id', authMiddleware, adminMiddleware, async (req, res) =
   try {
     console.log('Updating filière with ID:', req.params.id);
     console.log('Update data:', req.body);
-    
+
     const [updated] = await Filiere.update(pickFields(req.body, 'filieres'), { where: { id: req.params.id } });
-    
+
     if (updated) {
       const filiere = await Filiere.findByPk(req.params.id);
       console.log('Filière updated successfully:', filiere.name);
-      res.json({ 
-        success: true, 
-        message: 'Filière modifiée avec succès!', 
-        filiere: filiere 
+      res.json({
+        success: true,
+        message: 'Filière modifiée avec succès!',
+        filiere: filiere
       });
     } else {
       console.log('Filière not found with ID:', req.params.id);
-      res.status(404).json({ 
-        success: false, 
-        message: 'Filière non trouvée - Impossible de modifier cette filière' 
+      res.status(404).json({
+        success: false,
+        message: 'Filière non trouvée - Impossible de modifier cette filière'
       });
     }
   } catch (error) {
@@ -1374,27 +1351,27 @@ app.put('/api/filieres/:id', authMiddleware, adminMiddleware, async (req, res) =
       name: error.name,
       sql: error.sql
     });
-    
+
     // More specific error messages
     if (error.name === 'SequelizeUniqueConstraintError') {
-      res.status(400).json({ 
-        success: false, 
-        message: 'Cette abréviation existe déjà. Veuillez choisir une autre abréviation.' 
+      res.status(400).json({
+        success: false,
+        message: 'Cette abréviation existe déjà. Veuillez choisir une autre abréviation.'
       });
     } else if (error.name === 'SequelizeValidationError') {
-      res.status(400).json({ 
-        success: false, 
-        message: `Erreur de validation: ${error.errors.map(e => e.message).join(', ')}` 
+      res.status(400).json({
+        success: false,
+        message: `Erreur de validation: ${error.errors.map(e => e.message).join(', ')}`
       });
     } else if (error.name === 'SequelizeDatabaseError') {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Erreur de base de données. Vérifiez les données saisies.' 
+      res.status(500).json({
+        success: false,
+        message: 'Erreur de base de données. Vérifiez les données saisies.'
       });
     } else {
-      res.status(500).json({ 
-        success: false, 
-        message: 'Erreur lors de la mise à jour de la filière - Veuillez réessayer' 
+      res.status(500).json({
+        success: false,
+        message: 'Erreur lors de la mise à jour de la filière - Veuillez réessayer'
       });
     }
   }
@@ -1417,9 +1394,9 @@ app.delete('/api/filieres/:id', authMiddleware, adminMiddleware, async (req, res
 // Routes Partners
 app.get('/api/partners', async (req, res) => {
   try {
-    const partners = await Partner.findAll({ 
+    const partners = await Partner.findAll({
       where: { isActive: true },
-      order: [['order_display', 'ASC'], ['name', 'ASC']] 
+      order: [['order_display', 'ASC'], ['name', 'ASC']]
     });
     res.json(partners);
   } catch (error) {
@@ -1436,16 +1413,16 @@ app.post('/api/partners', authMiddleware, adminMiddleware, upload.single('logo')
     }
 
     const partner = await Partner.create(partnerData);
-    res.status(201).json({ 
-      success: true, 
-      message: 'Partenaire créé avec succès!', 
-      partner: partner 
+    res.status(201).json({
+      success: true,
+      message: 'Partenaire créé avec succès!',
+      partner: partner
     });
   } catch (error) {
     console.error('Erreur création partenaire:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erreur lors de la création du partenaire - Veuillez réessayer' 
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la création du partenaire - Veuillez réessayer'
     });
   }
 });
@@ -1460,22 +1437,22 @@ app.put('/api/partners/:id', authMiddleware, adminMiddleware, upload.single('log
     const [updated] = await Partner.update(partnerData, { where: { id: req.params.id } });
     if (updated) {
       const partner = await Partner.findByPk(req.params.id);
-      res.json({ 
-        success: true, 
-        message: 'Partenaire modifié avec succès!', 
-        partner: partner 
+      res.json({
+        success: true,
+        message: 'Partenaire modifié avec succès!',
+        partner: partner
       });
     } else {
-      res.status(404).json({ 
-        success: false, 
-        message: 'Partenaire non trouvé - Impossible de modifier ce partenaire' 
+      res.status(404).json({
+        success: false,
+        message: 'Partenaire non trouvé - Impossible de modifier ce partenaire'
       });
     }
   } catch (error) {
     console.error('Erreur mise à jour partenaire:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erreur lors de la mise à jour du partenaire - Veuillez réessayer' 
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la mise à jour du partenaire - Veuillez réessayer'
     });
   }
 });
@@ -1506,7 +1483,7 @@ app.patch('/api/news/:id/reorder', authMiddleware, adminMiddleware, async (req, 
   try {
     const { id } = req.params;
     const { direction } = req.body;
-    
+
     const currentNews = await News.findByPk(id);
     if (!currentNews) {
       return res.status(404).json({ message: 'Actualité non trouvée' });
@@ -1514,7 +1491,7 @@ app.patch('/api/news/:id/reorder', authMiddleware, adminMiddleware, async (req, 
 
     const allNews = await News.findAll({ order: [['createdAt', 'DESC']] });
     const currentIndex = allNews.findIndex(news => news.id == id);
-    
+
     if (currentIndex === -1) {
       return res.status(404).json({ message: 'Actualité non trouvée dans la liste' });
     }
@@ -1531,10 +1508,10 @@ app.patch('/api/news/:id/reorder', authMiddleware, adminMiddleware, async (req, 
     // Swap the created dates to change order
     const targetNews = allNews[targetIndex];
     const tempDate = currentNews.createdAt;
-    
+
     await currentNews.update({ createdAt: targetNews.createdAt });
     await targetNews.update({ createdAt: tempDate });
-    
+
     clearCache('news');
     res.json({ success: true, message: 'Ordre modifié avec succès' });
   } catch (error) {
@@ -1548,7 +1525,7 @@ app.patch('/api/events/:id/reorder', authMiddleware, adminMiddleware, async (req
   try {
     const { id } = req.params;
     const { direction } = req.body;
-    
+
     const currentEvent = await Event.findByPk(id);
     if (!currentEvent) {
       return res.status(404).json({ message: 'Événement non trouvé' });
@@ -1556,7 +1533,7 @@ app.patch('/api/events/:id/reorder', authMiddleware, adminMiddleware, async (req
 
     const allEvents = await Event.findAll({ order: [['createdAt', 'DESC']] });
     const currentIndex = allEvents.findIndex(event => event.id == id);
-    
+
     if (currentIndex === -1) {
       return res.status(404).json({ message: 'Événement non trouvé dans la liste' });
     }
@@ -1573,10 +1550,10 @@ app.patch('/api/events/:id/reorder', authMiddleware, adminMiddleware, async (req
     // Swap the created dates to change order
     const targetEvent = allEvents[targetIndex];
     const tempDate = currentEvent.createdAt;
-    
+
     await currentEvent.update({ createdAt: targetEvent.createdAt });
     await targetEvent.update({ createdAt: tempDate });
-    
+
     clearCache('events');
     res.json({ success: true, message: 'Ordre modifié avec succès' });
   } catch (error) {
