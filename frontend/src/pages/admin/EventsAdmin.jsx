@@ -371,15 +371,26 @@ const EventsAdmin = () => {
                       </div>
                     </div>
 
-                    <div className="form-grid two-cols">
-                      <div className="form-group">
-                        <label className="form-label">Club organisateur</label>
+                    <div className="form-group">
+                      <label className="form-label">Clubs organisateurs</label>
+                      <div style={{ marginBottom: '10px' }}>
                         <select
                           className="form-select form-input"
-                          value={formData.clubId || ''}
-                          onChange={(e) => setFormData({ ...formData, clubId: e.target.value || null })}
+                          value=""
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              const selectedClubs = formData.clubIds || [];
+                              if (!selectedClubs.includes(e.target.value)) {
+                                setFormData({ 
+                                  ...formData, 
+                                  clubIds: [...selectedClubs, e.target.value] 
+                                });
+                              }
+                              e.target.value = '';
+                            }
+                          }}
                         >
-                          <option value="">Sélectionner un organisateur</option>
+                          <option value="">Ajouter un club organisateur</option>
                           <option value="adei">ADEI</option>
                           <option value="ensa">Administration ENSA Fès</option>
                           {clubsData.map(club => (
@@ -389,15 +400,119 @@ const EventsAdmin = () => {
                           ))}
                         </select>
                       </div>
+                      
+                      {/* Display selected clubs */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
+                        {(formData.clubIds || []).map((clubId, index) => {
+                          let clubName = '';
+                          let badgeColor = 'var(--primary-color)';
+                          
+                          if (clubId === 'adei') {
+                            clubName = 'ADEI';
+                            badgeColor = '#dc2626';
+                          } else if (clubId === 'ensa') {
+                            clubName = 'Administration ENSA Fès';
+                            badgeColor = '#059669';
+                          } else {
+                            const club = clubsData.find(c => c.id.toString() === clubId.toString());
+                            clubName = club ? club.club : `Club ${clubId}`;
+                            badgeColor = '#3b82f6';
+                          }
+                          
+                          return (
+                            <div
+                              key={index}
+                              style={{
+                                background: badgeColor,
+                                color: 'white',
+                                padding: '6px 12px',
+                                borderRadius: '20px',
+                                fontSize: '0.9rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                              }}
+                            >
+                              <span style={{ fontWeight: '500' }}>{clubName}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updatedClubs = (formData.clubIds || []).filter((_, i) => i !== index);
+                                  setFormData({ ...formData, clubIds: updatedClubs });
+                                }}
+                                style={{
+                                  background: 'rgba(255,255,255,0.2)',
+                                  border: 'none',
+                                  color: 'white',
+                                  cursor: 'pointer',
+                                  padding: '2px 6px',
+                                  borderRadius: '50%',
+                                  fontSize: '1rem',
+                                  lineHeight: '1',
+                                  width: '20px',
+                                  height: '20px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  transition: 'all 0.2s ease'
+                                }}
+                                title={`Retirer ${clubName}`}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          );
+                        })}
+                        
+                        {/* Show helpful message when no organizers selected */}
+                        {(!formData.clubIds || formData.clubIds.length === 0) && (
+                          <div style={{
+                            color: 'var(--text-muted)',
+                            fontSize: '0.9rem',
+                            fontStyle: 'italic',
+                            padding: '8px 0'
+                          }}>
+                            Aucun club organisateur sélectionné
+                          </div>
+                        )}
+                        
+                        {/* Show count when multiple organizers */}
+                        {formData.clubIds && formData.clubIds.length > 1 && (
+                          <div style={{
+                            background: 'var(--success)',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '12px',
+                            fontSize: '0.8rem',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                              <circle cx="9" cy="7" r="4"/>
+                              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                            {formData.clubIds.length} organisateurs
+                          </div>
+                        )}
+                      </div>
+                      
                       <div className="form-group">
-                        <label className="form-label">Organisateur personnalisé</label>
+                        <label className="form-label">Organisateur personnalisé (optionnel)</label>
                         <input
                           type="text"
                           className="form-input"
                           value={formData.organizer || ''}
                           onChange={(e) => setFormData({ ...formData, organizer: e.target.value })}
-                          placeholder="Nom de l'organisateur (optionnel)"
+                          placeholder="Nom de l'organisateur personnalisé"
                         />
+                        <small style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                          Utilisé uniquement si aucun club n'est sélectionné
+                        </small>
                       </div>
                     </div>
 

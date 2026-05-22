@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { getImageUrl } from '../config/api';
 
-const DetailsModal = ({ item, type, isOpen, onClose }) => {
+const DetailsModal = ({ item, type, isOpen, onClose, clubs = [] }) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -222,7 +222,7 @@ const DetailsModal = ({ item, type, isOpen, onClose }) => {
                     Organisateur
                   </h4>
                   <p style={{ margin: 0, fontWeight: '500' }}>
-                    {getOrganizerName(item)}
+                    {getOrganizerName(item, clubs)}
                   </p>
                   {item.club && (
                     <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>

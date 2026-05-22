@@ -10,6 +10,7 @@ const Events = () => {
   const location = useLocation();
   const [news, setNews] = useState([]);
   const [events, setEvents] = useState([]);
+  const [clubs, setClubs] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('all'); // 'all', 'events', 'news'
@@ -36,13 +37,15 @@ const Events = () => {
 
   const fetchData = async () => {
     try {
-      const [newsRes, eventsRes] = await Promise.all([
+      const [newsRes, eventsRes, clubsRes] = await Promise.all([
         fetch(API_ENDPOINTS.NEWS),
-        fetch(API_ENDPOINTS.EVENTS)
+        fetch(API_ENDPOINTS.EVENTS),
+        fetch(API_ENDPOINTS.CLUBS)
       ]);
 
       const newsResult = await newsRes.json();
       const eventsResult = await eventsRes.json();
+      const clubsResult = await clubsRes.json();
 
       // Gérer la nouvelle structure de réponse de l'API
       const newsData = newsResult.success && Array.isArray(newsResult.data) 
@@ -53,12 +56,18 @@ const Events = () => {
         ? eventsResult.data 
         : (Array.isArray(eventsResult) ? eventsResult : []);
 
+      const clubsData = clubsResult.success && Array.isArray(clubsResult.data) 
+        ? clubsResult.data 
+        : (Array.isArray(clubsResult) ? clubsResult : []);
+
       setNews(newsData);
       setEvents(eventsData);
+      setClubs(clubsData);
     } catch (error) {
       console.error('Error fetching data:', error);
       setNews([]);
       setEvents([]);
+      setClubs([]);
     } finally {
       setLoading(false);
       setTimeout(() => setPageReady(true), 100);
@@ -93,7 +102,7 @@ const Events = () => {
         (item.content && item.content.toLowerCase().includes(search.toLowerCase())) ||
         (item.description && item.description.toLowerCase().includes(search.toLowerCase())) ||
         (item.category && getCategoryLabel(item.category).toLowerCase().includes(search.toLowerCase())) ||
-        getOrganizerName(item).toLowerCase().includes(search.toLowerCase())
+        getOrganizerName(item, clubs).toLowerCase().includes(search.toLowerCase())
       );
     }
 
@@ -392,7 +401,7 @@ const Events = () => {
                             )}
                           </small>
                           <small className="organizer-badge">
-                            {getOrganizerName(item)}
+                            {getOrganizerName(item, clubs)}
                           </small>
                         </div>
                       </div>
@@ -604,6 +613,7 @@ const Events = () => {
         type={selectedItem?.type}
         isOpen={showModal}
         onClose={handleCloseModal}
+        clubs={clubs}
       />
     </div>
   );
