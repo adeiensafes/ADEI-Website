@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import Typewriter from '../components/ui/Typewriter';
 import DetailsModal from '../components/DetailsModal';
-import { API_ENDPOINTS, getImageUrl } from '../config/api';
+import { API_ENDPOINTS, getImageUrl, handleImageError } from '../config/api';
 import { getCategoryLabel, getOrganizerName, handleOrganizerClick } from '../utils/helpers';
 
 const Events = () => {
@@ -506,10 +506,7 @@ const Events = () => {
                         <img
                           src={getImageUrl(item.image)}
                           alt={item.title}
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.parentElement.style.display = 'none';
-                          }}
+                          onError={(e) => handleImageError(e)}
                         />
                       </div>
                     )}

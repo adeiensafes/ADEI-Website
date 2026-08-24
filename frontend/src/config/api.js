@@ -49,12 +49,41 @@ export const getApiUrl = (endpoint) => {
   return `${API_BASE_URL}/api/${endpoint}`;
 };
 
-// Fonction utilitaire pour construire les URLs d'images
-export const getImageUrl = (imagePath) => {
-  if (!imagePath) return '/images/default.jpg';
-  if (imagePath.startsWith('http')) return imagePath;
-  if (imagePath.startsWith('/uploads')) return `${API_BASE_URL}${imagePath}`;
-  return imagePath;
+// Fonction utilitaire pour construire les URLs d'images robustes
+export const getImageUrl = (imagePath, fallback = '/images/default.jpg') => {
+  if (!imagePath || typeof imagePath !== 'string') return fallback;
+  
+  // Normaliser les séparateurs de fichiers (Windows vs Unix)
+  const cleanPath = imagePath.replace(/\\/g, '/').trim();
+  if (!cleanPath) return fallback;
+
+  // Si c'est déjà une URL absolue ou base64
+  if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://') || cleanPath.startsWith('data:')) {
+    return cleanPath;
+  }
+
+  // Traitement des chemins d'uploads
+  if (cleanPath.startsWith('/uploads/')) {
+    return `${API_BASE_URL}${cleanPath}`;
+  }
+  if (cleanPath.startsWith('uploads/')) {
+    return `${API_BASE_URL}/${cleanPath}`;
+  }
+
+  // Chemins locaux statiques
+  if (cleanPath.startsWith('/')) {
+    return cleanPath;
+  }
+
+  return `/${cleanPath}`;
+};
+
+// Gestionnaire d'erreur pour les balises <img> (remplacement automatique des images cassées)
+export const handleImageError = (e, fallback = '/images/default.jpg') => {
+  if (e && e.target && e.target.src !== fallback) {
+    e.target.onerror = null; // Éviter les boucles infinies
+    e.target.src = fallback;
+  }
 };
 
 export default API_BASE_URL;

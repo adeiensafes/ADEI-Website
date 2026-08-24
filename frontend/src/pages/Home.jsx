@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthContext } from '../AuthContext';
 import Typewriter from '../components/ui/Typewriter';
-import { API_ENDPOINTS, getImageUrl } from '../config/api';
+import { API_ENDPOINTS, getImageUrl, handleImageError } from '../config/api';
 import { getOrganizerName } from '../utils/helpers';
 import '../styles/home.css';
 
@@ -193,10 +193,7 @@ const Home = () => {
                             <img
                               src={getImageUrl(article.image)}
                               alt={article.title}
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.parentElement.style.display = 'none';
-                              }}
+                              onError={(e) => handleImageError(e)}
                             />
                           </div>
                         )}
@@ -277,10 +274,7 @@ const Home = () => {
                             <img
                               src={getImageUrl(event.image)}
                               alt={event.title}
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.parentElement.style.display = 'none';
-                              }}
+                              onError={(e) => handleImageError(e)}
                             />
                           </div>
                         )}

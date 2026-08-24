@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -16,22 +16,22 @@ import ADEI from './pages/ADEI';
 import ClubDetails from './pages/ClubDetails';
 import Feedbacks from './pages/Feedbacks';
 import Login from './pages/Login';
-import AdminPanel from './pages/AdminPanel';
 import Contact from './pages/Contact';
 import Messages from './pages/Messages';
 import Profile from './pages/Profile';
-import ImageUploadTest from './components/ui/ImageUploadTest';
 
-// Admin Pages
-import AdminDashboard from './pages/admin/AdminDashboard';
-import FilieresAdmin from './pages/admin/FilieresAdmin';
-import ClubsAdmin from './pages/admin/ClubsAdmin';
-import NewsAdmin from './pages/admin/NewsAdmin';
-import EventsAdmin from './pages/admin/EventsAdmin';
-import UsersAdmin from './pages/admin/UsersAdmin';
-import PartnersAdmin from './pages/admin/PartnersAdmin';
-import ADEIMembersAdmin from './pages/admin/ADEIMembersAdmin';
-import FeedbacksAdmin from './pages/admin/FeedbacksAdmin';
+// Lazy Loaded Admin & Heavy Components
+const AdminPanel = lazy(() => import('./pages/AdminPanel'));
+const ImageUploadTest = lazy(() => import('./components/ui/ImageUploadTest'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const FilieresAdmin = lazy(() => import('./pages/admin/FilieresAdmin'));
+const ClubsAdmin = lazy(() => import('./pages/admin/ClubsAdmin'));
+const NewsAdmin = lazy(() => import('./pages/admin/NewsAdmin'));
+const EventsAdmin = lazy(() => import('./pages/admin/EventsAdmin'));
+const UsersAdmin = lazy(() => import('./pages/admin/UsersAdmin'));
+const PartnersAdmin = lazy(() => import('./pages/admin/PartnersAdmin'));
+const ADEIMembersAdmin = lazy(() => import('./pages/admin/ADEIMembersAdmin'));
+const FeedbacksAdmin = lazy(() => import('./pages/admin/FeedbacksAdmin'));
 
 import './styles/theme.css';
 import './styles/floating-theme-toggle.css';
@@ -80,77 +80,85 @@ function AppContent() {
       <div className="app-container fade-in">
         <ModernNavbar />
         <main className="main-content">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/news" element={<News />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/clubs" element={<Clubs />} />
-            <Route path="/ensa" element={<ENSA />} />
-            <Route path="/adei" element={<ADEI />} />
-            <Route path="/club/:clubId" element={<ClubDetails />} />
-            <Route path="/feedbacks" element={<Feedbacks />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/filieres" element={
-              <ProtectedRoute requireAdmin={true}>
-                <FilieresAdmin />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/clubs" element={
-              <ProtectedRoute requireAdmin={true}>
-                <ClubsAdmin />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/news" element={
-              <ProtectedRoute requireAdmin={true}>
-                <NewsAdmin />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/events" element={
-              <ProtectedRoute requireAdmin={true}>
-                <EventsAdmin />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/users" element={
-              <ProtectedRoute requireAdmin={true}>
-                <UsersAdmin />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/partners" element={
-              <ProtectedRoute requireAdmin={true}>
-                <PartnersAdmin />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/adei-members" element={
-              <ProtectedRoute requireAdmin={true}>
-                <ADEIMembersAdmin />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/feedbacks" element={
-              <ProtectedRoute requireAdmin={true}>
-                <FeedbacksAdmin />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/legacy" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminPanel />
-              </ProtectedRoute>
-            } />
-            <Route path="/test-image-upload" element={<ImageUploadTest />} />
-            {/* Catch-all route for 404 */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+              <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text-secondary, #666)' }}>
+                Chargement de la page...
+              </div>
+            </div>
+          }>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/news" element={<News />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/clubs" element={<Clubs />} />
+              <Route path="/ensa" element={<ENSA />} />
+              <Route path="/adei" element={<ADEI />} />
+              <Route path="/club/:clubId" element={<ClubDetails />} />
+              <Route path="/feedbacks" element={<Feedbacks />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/filieres" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <FilieresAdmin />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/clubs" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <ClubsAdmin />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/news" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <NewsAdmin />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/events" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <EventsAdmin />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <UsersAdmin />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/partners" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <PartnersAdmin />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/adei-members" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <ADEIMembersAdmin />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/feedbacks" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <FeedbacksAdmin />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/legacy" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <AdminPanel />
+                </ProtectedRoute>
+              } />
+              <Route path="/test-image-upload" element={<ImageUploadTest />} />
+              {/* Catch-all route for 404 */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </main>
         {!shouldHideFooter && <Footer />}
         {!location.pathname.startsWith('/admin') && <FloatingThemeToggle />}

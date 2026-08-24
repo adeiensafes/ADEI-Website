@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import Typewriter from '../components/ui/Typewriter';
 import AnimatedClubs from '../components/ui/AnimatedClubs';
-import { API_ENDPOINTS, getImageUrl } from '../config/api';
+import { API_ENDPOINTS, getImageUrl, handleImageError } from '../config/api';
 
 const Clubs = () => {
   const [clubs, setClubs] = useState([]);
@@ -375,9 +375,7 @@ const Clubs = () => {
                           border: '3px solid var(--color-primary)',
                           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
                         }}
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
+                        onError={(e) => handleImageError(e)}
                       />
                     </div>
                   )}
@@ -549,9 +547,7 @@ const Clubs = () => {
                           border: '4px solid var(--color-primary)',
                           boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)'
                         }}
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
+                        onError={(e) => handleImageError(e)}
                       />
                     </div>
                   )}
